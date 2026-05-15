@@ -1,8 +1,8 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-#from app.crud.permisos import verify_permissions
-#from app.router.dependencies import get_current_user
+from app.crud.permisos import verify_permissions
+from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.modulos import ModuloCreate, ModuloUpdate, ModuloOut, PaginatedModulos
 from app.schemas.users import UserOut
@@ -17,13 +17,13 @@ modulo = 1
 def create_modulos(
     Modulo: ModuloCreate, 
     db: Session = Depends(get_db),
-    #user_token: UserOut = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user)
 ):
     try:
         #Verficamos que tenga permisos
-        # id_rol = user_token.rol_id       
-        # if not verify_permissions(db, id_rol, modulo, 'insertar'):
-        #     raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+        id_rol = user_token.rol_id       
+        if not verify_permissions(db, id_rol, modulo, 'insertar'):
+            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
         crud_modulo.create_modulo(db, Modulo)
         return {"message": "Módulo registrado correctamente"}
@@ -34,12 +34,12 @@ def create_modulos(
 @router.get("/by-id",  response_model=ModuloOut)
 def get_module_by_id(id: int, 
               db: Session = Depends(get_db),
-              #user_token: UserOut = Depends(get_current_user)
+              user_token: UserOut = Depends(get_current_user)
               ):
     try:
-        # id_rol=user_token.rol_id
-        # if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
-        #     raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        id_rol=user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
         # Obtenemos el módulo por su ID usando la función del CRUD
         modulo = crud_modulo.get_modulo_by_id(db, id)
@@ -53,12 +53,12 @@ def get_module_by_id(id: int,
 @router.get("/all/modulos", response_model=List[ModuloOut])
 def get_all_modules(
     db: Session = Depends(get_db),
-    #user_token: UserOut = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user)
 ):
     try:
-        # id_rol = user_token.rol_id
-        # if not verify_permissions(db, id_rol, modulo, "seleccionar"):
-        #     raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, "seleccionar"):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
         modulos = crud_modulo.get_all_modules(db)
         return modulos
     except SQLAlchemyError as e:
@@ -69,12 +69,12 @@ def get_all_modules(
 def update_module_by_id(id_modulo: int, 
                  Modulo: ModuloUpdate, 
                  db: Session = Depends(get_db),
-                 #user_token: UserOut = Depends(get_current_user)
+                 user_token: UserOut = Depends(get_current_user)
                  ):
     try:
-        # id_roles = user_token.rol_id
-        # if not verify_permissions(db, id_roles, modulo, 'actualizar'):
-        #     raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        id_roles = user_token.rol_id
+        if not verify_permissions(db, id_roles, modulo, 'actualizar'):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
         success = crud_modulo.update_module_by_id(db, id_modulo, Modulo)
         if not success:
@@ -88,18 +88,17 @@ def update_module_by_id(id_modulo: int,
 def get_all_modules_pag(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
-    search: str = Query("", min_length=0),
     db: Session = Depends(get_db),
-    #user_token: UserOut = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user)
 ): 
     try:
         #Verificamos permisos        
-        # id_rol = user_token.rol_id
-        # if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
-        #     raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
         skip = (page - 1) * page_size
-        data = crud_modulo.get_all_modules_pag(db, skip=skip, limit=page_size, search=search)
+        data = crud_modulo.get_all_modules_pag(db, skip=skip, limit=page_size)
 
         total = data["total"]  
         modulos = data["modulos"]

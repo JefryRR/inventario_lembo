@@ -41,7 +41,7 @@ def create_permiso(db: Session, permiso: PermisoCreate) -> Optional[bool]:
 def get_all_permisos(db: Session):
     try:
         query = text("""SELECT p.id_rol, p.id_modulo, p.insertar, p.actualizar, p.seleccionar, p.borrar,
-                        m.nombre AS nombre_modulo, r.nombre AS nombre_rol
+                        m.nombre AS nombre_modulo, r.nombre_rol
                         FROM permisos AS p
                         JOIN modulos AS m ON p.id_modulo = m.id_modulo
                         JOIN roles AS r ON p.id_rol = r.id_rol
@@ -58,7 +58,7 @@ def get_permisos_by_rol(db: Session, id_rol: int):
     try:
         query = text("""
             SELECT p.id_rol, p.id_modulo, p.insertar, p.actualizar, p.seleccionar, p.borrar,
-                   m.nombre AS nombre_modulo, r.nombre AS nombre_rol
+                   m.nombre AS nombre_modulo, r.nombre_rol
             FROM permisos AS p
             JOIN modulos AS m ON p.id_modulo = m.id_modulo
             JOIN roles AS r ON p.id_rol = r.id_rol
@@ -71,11 +71,11 @@ def get_permisos_by_rol(db: Session, id_rol: int):
         raise Exception("Error de base de datos al obtener permisos por rol")
 
 
-def get_permiso_by_ids(db: Session, id_modulo: int, id_rol: int):
+def get_permiso_by_id(db: Session, id_modulo: int, id_rol: int):
     try:
         query = text("""
             SELECT p.id_rol, p.id_modulo, p.insertar, p.actualizar, p.seleccionar, p.borrar,
-                   m.nombre AS nombre_modulo, r.nombre AS nombre_rol
+                   m.nombre AS nombre_modulo, r.nombre_rol
             FROM permisos AS p
             JOIN modulos AS m ON p.id_modulo = m.id_modulo
             JOIN roles AS r ON p.id_rol = r.id_rol
@@ -114,29 +114,12 @@ def update_permiso(db: Session, id_modulo: int, id_rol: int, permiso: PermisoUpd
         raise Exception("Error de base de datos al actualizar el permiso")
 
 #Función para obtener todos los permisos haciendo uso de la paginación
-def get_all_permisos_pag(db: Session, skip:int = 0, limit = 10, search: str = ""):
+def get_all_permisos_pag(db: Session, skip:int = 0, limit = 10):
     """
     Obtiene los permisos con paginación.
     También realizar una segunda consulta para contar total de permisos.
     """
     try: 
-        search = search.strip()
-        query_params = {"skip": skip, "limit": limit}
-
-        where_clause = ""
-        if search:
-            where_clause = """
-                WHERE m.nombre LIKE :search
-                   OR r.nombre LIKE :search
-                   OR CAST(p.id_rol AS CHAR) LIKE :search
-                   OR CAST(p.id_modulo AS CHAR) LIKE :search
-                   OR (CASE WHEN p.insertar THEN 'autorizado' ELSE 'no autorizado' END) LIKE :search
-                   OR (CASE WHEN p.actualizar THEN 'autorizado' ELSE 'no autorizado' END) LIKE :search
-                   OR (CASE WHEN p.seleccionar THEN 'autorizado' ELSE 'no autorizado' END) LIKE :search
-                   OR (CASE WHEN p.borrar THEN 'autorizado' ELSE 'no autorizado' END) LIKE :search
-            """
-            query_params["search"] = f"%{search}%"
-        
         count_query = text(f"""
             SELECT COUNT(*) AS total
             FROM (
@@ -144,24 +127,22 @@ def get_all_permisos_pag(db: Session, skip:int = 0, limit = 10, search: str = ""
                 FROM permisos AS p
                 JOIN modulos AS m ON p.id_modulo = m.id_modulo
                 JOIN roles AS r ON p.id_rol = r.id_rol
-                {where_clause}
             ) AS permisos_filtrados
         """)
-        total_result = db.execute(count_query, query_params).scalar()
+        total_result = db.execute(count_query).scalar()
 
         #2 Consultar permisos
         data_query = text(f"""
             SELECT p.id_rol AS id_rol, p.id_modulo AS id_modulo,
                    p.insertar, p.actualizar, p.seleccionar, p.borrar,
-                   m.nombre AS nombre_modulo, r.nombre AS nombre_rol
+                   m.nombre AS nombre_modulo, r.nombre_rol
             FROM permisos AS p
             JOIN modulos AS m ON p.id_modulo = m.id_modulo
             JOIN roles AS r ON p.id_rol = r.id_rol
-            {where_clause}
             ORDER BY p.id_rol, p.id_modulo
             LIMIT :limit OFFSET :skip
         """)
-        permisos_list = db.execute(data_query, query_params).mappings().all()
+        permisos_list = db.execute(data_query, {"limit": limit, "skip": skip} ).mappings().all()
         
         return {
                 "total": total_result or 0,

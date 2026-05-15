@@ -75,38 +75,25 @@ def update_module_by_id(db: Session, id_modulo: int, modulo: ModuloUpdate) -> Op
         raise Exception("Error de base de datos al actualizar el modulo")
 
 #Función para obtener todos los modulos haciendo uso de la paginación
-def get_all_modules_pag(db: Session, skip:int = 0, limit = 10, search: str = ""):
+def get_all_modules_pag(db: Session, skip:int = 0, limit = 10):
     """
     Obtiene los modulos con paginación.
     También realizar una segunda consulta para contar total de equipos.
     """
     try: 
-        search = search.strip()
-        query_params = {"skip": skip, "limit": limit}
-
-        where_clause = ""
-        if search:
-            where_clause = """
-                WHERE nombre LIKE :search
-                   OR CAST(id_modulo AS CHAR) LIKE :search
-            """
-            query_params["search"] = f"%{search}%"
-
         count_query = text(f"""
             SELECT COUNT(id_modulo) AS total
             FROM modulos
-            {where_clause}
         """)
-        total_result = db.execute(count_query, query_params).scalar()
+        total_result = db.execute(count_query).scalar()
 
         #2 Consultar equipos
         data_query = text(f"""
             SELECT id_modulo, nombre
             FROM modulos
-            {where_clause}
             LIMIT :limit OFFSET :skip
         """)
-        modulos_list = db.execute(data_query, query_params).mappings().all()
+        modulos_list = db.execute(data_query).mappings().all()
         
         return {
                 "total": total_result or 0,

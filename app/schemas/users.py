@@ -1,3 +1,4 @@
+from app.schemas.permisos import List
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
@@ -14,11 +15,11 @@ class UserCreate(UserBase):
    pass_hash: str = Field(min_length=8)
 
 class UserUpdate(BaseModel):
-    nombre_user: Optional[str] = Field(max_length=25)
-    documento: Optional[int] = Field(gt=0)
-    tipo_documento: Optional[str] = Field(max_length=20)
-    telefono: Optional[str] = Field(max_length=20)
-    correo: Optional[EmailStr] = Field(max_length=80)
+    nombre_user: Optional[str] = Field(default=None, max_length=25)
+    documento: Optional[int] = Field(default=None)
+    tipo_documento: Optional[str] = Field(default=None, max_length=20)
+    telefono: Optional[str] = Field(default=None, max_length=20)
+    correo: Optional[EmailStr] = Field(default=None, max_length=80)
     rol_id: Optional[int] = None
 
 class UserEstado(BaseModel):
@@ -26,3 +27,11 @@ class UserEstado(BaseModel):
 
 class UserOut(UserBase):
    id_user: int
+   nombre_rol: str
+
+class PaginatedUsers(BaseModel):
+    page: int
+    page_size: int
+    total_users: int
+    total_pages: int
+    users: List[UserOut]

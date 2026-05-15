@@ -12,10 +12,10 @@ def create_roles(db: Session, rol: RolCreate) -> Optional[bool]:
     try:
         query = text("""
             INSERT INTO roles (
-                nombre, descripcion,
+                nombre_rol, descripcion,
                 estado
             ) VALUES (
-                :nombre, :descripcion,
+                :nombre_rol, :descripcion,
                 :estado
             )
         """)
@@ -93,3 +93,5 @@ def change_rol_status(db: Session, id_rol: int, nuevo_estado: bool) -> bool:
         db.rollback()
         logger.error(f"Error al cambiar el estado del rol  {id_rol}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del rol")
+    
+
