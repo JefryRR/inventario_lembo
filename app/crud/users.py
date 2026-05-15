@@ -186,3 +186,5 @@ def get_all_users_pag(db: Session, skip: int = 0, limit: int = 10):
         raise Exception(
             "Error de base de datos al obtener los usuarios"
         )
+        
+        

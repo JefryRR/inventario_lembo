@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional
 
 class RolBase(BaseModel):
     nombre_rol: str = Field(max_length=25)
