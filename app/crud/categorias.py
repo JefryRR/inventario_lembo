@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session # type: ignore
+from sqlalchemy import text # type: ignore
+from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from typing import Optional
 from app.schemas.categorias import CategoriaCreate, CategoriaUpdate
 import logging

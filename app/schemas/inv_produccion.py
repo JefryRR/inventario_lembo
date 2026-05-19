@@ -3,34 +3,37 @@ from typing import Optional
 from datetime import datetime
 
 class ProduccionBase(BaseModel):
-    id_inventario: int
     cantidad: int
-    fecha_ingreso: datetime = Field(default_factory=datetime.utcnow)
-    fecha_vencimiento: datetime = Field(default_factory=datetime.utcnow)
+    unid_medida: str
+    fecha_ingreso: datetime
+    fecha_vencimiento: datetime
     lote_id: int
     valor_unitario: float
     categoria_id: int
+    especie_id: int
 
 class ProduccionCreate(ProduccionBase):
     pass
 
 class ProduccionUpdate(BaseModel):
-    id_inventario: Optional[int] = None
     cantidad: Optional[int] = None
+    unid_medida: Optional[str] = None
     fecha_ingreso: Optional[datetime] = None
     fecha_vencimiento: Optional[datetime] = None
     lote_id: Optional[int] = None
     valor_unitario: Optional[float] = None
     categoria_id: Optional[int] = None
+    especie_id: Optional[int] = None
 
 class ProduccionOut(ProduccionBase):
-    id_produccion: int
-    nombre_producto: str
+    id_inventario: int
+    nombre_lote: str
     nombre_categoria: str
+    nombre_especie: str
 
 class PaginatedProducciones(BaseModel):
     page: int
     page_size: int
     total_producciones: int
     total_pages: int
-    producciones: list[ProduccionOut]
+    produccion: list[ProduccionOut]
