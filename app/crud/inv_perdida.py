@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from typing import Optional
-from app.schemas.inv_perdida import PerdidaCreate, PerdidaUpdate, PerdidaOut, PaginatedPerdidas
+from app.schemas.inv_perdida import PerdidaCreate, PerdidaUpdate, PerdidaOut
 
 import logging
 
