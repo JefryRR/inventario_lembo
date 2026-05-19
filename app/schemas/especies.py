@@ -3,14 +3,14 @@ from typing import Optional, List
 
 class EspecieBase(BaseModel):
     nombre_especie: str = Field(max_length=25)
-    descripcion: Optional[str] = Field(default=None, max_length=100)
+    descripcion: Optional[str] = Field(default=None, max_length=255)
    
 class EspecieCreate(EspecieBase):
     pass
 
 class EspecieUpdate(BaseModel):
     nombre_especie: Optional[str] = Field(default=None, max_length=25)
-    descripcion: Optional[str] = Field(default=None, max_length=100)
+    descripcion: Optional[str] = Field(default=None, max_length=255)
 
 class EspecieOut(EspecieBase):
     id_especie: int
