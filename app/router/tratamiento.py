@@ -3,15 +3,15 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
-from app.schemas.mortalidad import MortalidadCreate, MortalidadUpdate, PaginatedMortalidad, MortalidadOut
+from app.schemas.tratamiento import TratamientoCreate, TratamientoUpdate, TratamientoOut, PaginatedTratamientos
 from app.schemas.users import UserOut
-from app.crud import mortalidad as crud_mortalidad
+from app.crud import tratamiento as crud_tratamiento
 
 router = APIRouter()
 modulo = 3 # ID del módulo de lotes para verificar permisos
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
-def create_mortalidad(mortalidad: MortalidadCreate, db: Session = Depends(get_db),
+def create_tratamiento(tratamiento: TratamientoCreate, db: Session = Depends(get_db),
                       user_token: UserOut = Depends(get_current_user)
                       ):
     try:
@@ -20,14 +20,14 @@ def create_mortalidad(mortalidad: MortalidadCreate, db: Session = Depends(get_db
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        crud_mortalidad.create_lote(db, mortalidad)
-        return {"message": "Registro de mortalidad creado correctamente"}
+        crud_tratamiento.create_tratamiento(db, tratamiento)
+        return {"message": "Registro de tratamiento creado correctamente"}
     
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/all-mortalidad")
-def get_all_mortalidad(db: Session = Depends(get_db),
+@router.get("/all-tratamientos", response_model=list[TratamientoOut])
+def get_all_tratamientos(db: Session = Depends(get_db),
             user_token: UserOut = Depends(get_current_user)
             ):
     try:
@@ -35,31 +35,31 @@ def get_all_mortalidad(db: Session = Depends(get_db),
         if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
-        mortalidad = crud_mortalidad.get_all_mortalidad(db)
-        if not mortalidad:
-          raise HTTPException(status_code=404, detail="Registros de mortalidad no encontrados")
-        return mortalidad
-    except Exception as e:
-      raise HTTPException(status_code=500, detail=str(e))
-  
-@router.get("/by-id", response_model=MortalidadOut)
-def get_mortalidad_by_id(id_mortalidad: int, db: Session = Depends(get_db),
-            user_token: UserOut = Depends(get_current_user)
-            ):
-    try:
-        id_rol = user_token.rol_id
-        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
-             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
-         
-        mortalidad = crud_mortalidad.get_mortalidad_by_id(db, id_mortalidad)
-        if not mortalidad:
-          raise HTTPException(status_code=404, detail="Registro de mortalidad no encontrado")
-        return mortalidad
+        tratamiento = crud_tratamiento.get_all_tratamientos(db)
+        if not tratamiento:
+          raise HTTPException(status_code=404, detail="Registros de tratamientos no encontrados")
+        return tratamiento
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/by-id/{mortalidad_id}")
-def update_mortalidad_by_id( id_mortalidad: int, mortalidad: MortalidadUpdate, db: Session = Depends(get_db),
+@router.get("/by-id", response_model=TratamientoOut)
+def get_tratamiento_by_id(id_tratamiento: int, db: Session = Depends(get_db),
+            user_token: UserOut = Depends(get_current_user)
+            ):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+         
+        tratamiento = crud_tratamiento.get_tratamiento_by_id(db, id_tratamiento)
+        if not tratamiento:
+          raise HTTPException(status_code=404, detail="Registro de tratamiento no encontrado")
+        return tratamiento
+    except Exception as e:
+      raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/by-id/{tratamiento_id}")
+def update_tratamiento_by_id( id_tratamiento: int, tratamiento: TratamientoUpdate, db: Session = Depends(get_db),
                       user_token: UserOut = Depends(get_current_user)
                       ):
     try:
@@ -67,16 +67,16 @@ def update_mortalidad_by_id( id_mortalidad: int, mortalidad: MortalidadUpdate, d
         if not verify_permissions(db, id_rol, modulo, 'actualizar'):
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
 
-        success = crud_mortalidad.update_mortalidad_by_id(db, id_mortalidad, mortalidad)
+        success = crud_tratamiento.update_tratamiento_by_id(db, id_tratamiento, tratamiento)
         if not success:
-            raise HTTPException(status_code=400, detail="No se pudo actualizar el registro de mortalidad")
-        return {"message": "Registro de mortalidad actualizado correctamente"}
+            raise HTTPException(status_code=400, detail="No se pudo actualizar el registro de tratamiento")
+        return {"message": "Registro de tratamiento actualizado correctamente"}
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/paginated", response_model=PaginatedMortalidad)
-def get_all_mortalidad_pag(
+@router.get("/paginated", response_model=PaginatedTratamientos)
+def get_all_tratamientos_pag(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -88,16 +88,16 @@ def get_all_mortalidad_pag(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_mortalidad.get_all_mortalidad_prod_pag(db, skip=skip, limit=page_size)
+        data = crud_tratamiento.get_all_tratamientos_pag(db, skip=skip, limit=page_size)
         total = data["total"]  
-        mortalidad = data["mortalidad"]
+        tratamiento = data["tratamientos"]
         
-        return PaginatedMortalidad(
+        return PaginatedTratamientos(
             page= page,
             page_size= page_size,
-            total_mortalidad= total,
+            total_tratamientos= total,
             total_pages= (total + page_size - 1) // page_size,
-            mortalidad= mortalidad
+            tratamientos= tratamiento
         )
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))

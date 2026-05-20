@@ -103,11 +103,11 @@ def change_status_lote(db: Session, lote_id: int, estado: LoteEstado) -> Optiona
 
 def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
     """
-    Obtiene usuarios con paginación.
+    Obtiene lotes con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
-        # Total de usuarios
+        # Total de lotes
         count_query = text("""
             SELECT COUNT(l_p.id_lote) AS total
             FROM lote_produccion AS l_p
@@ -144,10 +144,10 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
         }
 
     except SQLAlchemyError as e:
-        logger.error( f"Error al obtener los usuarios: {e}", exc_info=True)
+        logger.error( f"Error al obtener los lotes: {e}", exc_info=True)
 
         raise Exception(
-            "Error de base de datos al obtener los usuarios"
+            "Error de base de datos al obtener los lotes"
         )
         
         

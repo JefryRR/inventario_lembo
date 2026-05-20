@@ -1,7 +1,8 @@
 
 from fastapi import FastAPI # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
-from app.router import users, rols, modulos, permisos, auth, inv_perdida, inv_produccion, categorias, especies, lotes, mortalidad
+from app.crud import mortalidad
+from app.router import users, rols, modulos, permisos, auth, inv_perdida, inv_produccion, categorias, especies, lotes, mortalidad, inv_insumos, tipo_insumos, alimento_prod, tratamiento
 
 
 app = FastAPI()
@@ -18,6 +19,10 @@ app.include_router(categorias.router, prefix="/categorias", tags=["categorias"])
 app.include_router(especies.router, prefix="/especies", tags=["especies"])
 app.include_router(lotes.router, prefix="/lotes", tags=["lotes"])
 app.include_router(mortalidad.router, prefix="/mortalidad", tags=["mortalidad"])
+app.include_router(inv_insumos.router, prefix="/inv_insumos", tags=["inv_insumos"])
+app.include_router(tipo_insumos.router, prefix="/tipo_insumos", tags=["tipo_insumos"])
+app.include_router(alimento_prod.router, prefix="/alimento_prod", tags=["alimento_prod"])
+app.include_router(tratamiento.router, prefix="/tratamiento", tags=["tratamiento"])
 
 # Configuración de CORS para permitir todas las solicitudes desde cualquier origen
 app.add_middleware(

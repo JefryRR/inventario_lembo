@@ -5,11 +5,12 @@ from datetime import datetime
 class ProduccionBase(BaseModel):
     id_inventario: int
     cantidad: int
-    fecha_ingreso: datetime = Field(default_factory=datetime.utcnow)
-    fecha_vencimiento: datetime = Field(default_factory=datetime.utcnow)
+    fecha_ingreso: datetime
+    fecha_vencimiento: datetime
     lote_id: int
     valor_unitario: float
     categoria_id: int
+    especie_id: int
 
 class ProduccionCreate(ProduccionBase):
     pass
@@ -22,11 +23,14 @@ class ProduccionUpdate(BaseModel):
     lote_id: Optional[int] = None
     valor_unitario: Optional[float] = None
     categoria_id: Optional[int] = None
+    especie_id: Optional[int] = None
 
 class ProduccionOut(ProduccionBase):
     id_produccion: int
+    nombre_lote: str
     nombre_producto: str
     nombre_categoria: str
+    nombre_especie: str
 
 class PaginatedProducciones(BaseModel):
     page: int

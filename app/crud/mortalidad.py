@@ -12,9 +12,9 @@ def create_lote(db: Session, lote: MortalidadCreate) -> Optional[bool]:
     try:
         query = text("""
           INSERT INTO mortalidad_produccion (
-              lote_id, cantidad, fecha_reporte, observacion, nombre_persona
+              lote_id, cantidad, fecha_reporte, observacion, user_id
           ) VALUES (
-              :lote_id, :cantidad, :fecha_reporte, :observacion, :nombre_persona
+              :lote_id, :cantidad, :fecha_reporte, :observacion, :user_id
           )
       """)
         db.execute(query, lote.model_dump())
@@ -28,13 +28,15 @@ def create_lote(db: Session, lote: MortalidadCreate) -> Optional[bool]:
 def get_all_mortalidad(db: Session):
     try:
         query = text("""
-                     SELECT m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                     m_p.nombre_persona, e.nombre_especie, c.nombre_categoria,
-                     l_p.nombre_lote
+                     SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
+                     e.nombre_especie, c.nombre_categoria, m_p.user_id, l_p.nombre_lote, 
+                     u.nombre_user
                      FROM mortalidad_produccion AS m_p
                      INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+                     LEFT JOIN users AS u ON m_p.user_id = u.id_user
+                     ORDER BY m_p.id_mortalidad DESC
                      """)
         result = db.execute(query).mappings().all()
         return result
@@ -45,13 +47,14 @@ def get_all_mortalidad(db: Session):
 def get_mortalidad_by_id(db: Session, id: int):
     try:
         query = text("""
-                     SELECT m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                     m_p.nombre_persona, e.nombre_especie, c.nombre_categoria,
-                     l_p.nombre_lote, l_p.id_lote
+                     SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
+                     e.nombre_especie, c.nombre_categoria, m_p.user_id, 
+                     l_p.nombre_lote, u.nombre_user
                      FROM mortalidad_produccion AS m_p
                      INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+                     LEFT JOIN users AS u ON m_p.user_id = u.id_user
                     WHERE m_p.id_mortalidad = :id
                     """)
         
@@ -84,37 +87,39 @@ def update_mortalidad_by_id(db: Session, id_mortalidad: int, mortalidad: Mortali
             logger.error(f"Error al actualizar lote {id_mortalidad}: {e}")
             raise Exception("Error de base de datos al actualizar el registro de mortalidad")
 
-
 def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10):
     """
-    Obtiene usuarios con paginación.
+    Obtiene los registros de mortalidad con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
-        # Total de usuarios
+        # Total de mortalidad
         count_query = text("""
-            SELECT COUNT(l_p.id_mortalidad) AS total
+            SELECT COUNT(m_p.id_mortalidad) AS total
             FROM mortalidad_produccion AS m_p
             INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
             LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
             LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+            LEFT JOIN users AS u ON m_p.user_id = u.id_user
         """)
 
         total_result = db.execute(count_query).scalar()
 
-        # Usuarios paginados
+        # Registros paginados
         data_query = text(""" 
-                        SELECT m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                        m_p.nombre_persona, e.nombre_especie, c.nombre_categoria, u.nombre_user,
-                        l_p.nombre_lote
+                        SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
+                        e.nombre_especie, c.nombre_categoria, m_p.user_id, l_p.nombre_lote, 
+                        u.nombre_user
                         FROM mortalidad_produccion AS m_p
                         INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
                         LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                         LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+                        LEFT JOIN users AS u ON m_p.user_id = u.id_user
+                        ORDER BY m_p.id_mortalidad DESC
                         LIMIT :limit OFFSET :skip
                     """)
 
-        lotes_prod_list = db.execute(
+        mortalidad_prod_list = db.execute(
             data_query,
             {
                 "limit": limit,
@@ -124,14 +129,14 @@ def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10):
 
         return {
             "total": total_result or 0,
-            "lotes": lotes_prod_list
+            "mortalidad": mortalidad_prod_list
         }
 
     except SQLAlchemyError as e:
-        logger.error( f"Error al obtener los usuarios: {e}", exc_info=True)
+        logger.error( f"Error al obtener los registros de mortalidad: {e}", exc_info=True)
 
         raise Exception(
-            "Error de base de datos al obtener los usuarios"
+            "Error de base de datos al obtener los registros de mortalidad"
         )
         
         
