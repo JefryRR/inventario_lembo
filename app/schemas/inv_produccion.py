@@ -3,8 +3,11 @@ from typing import Optional
 from datetime import datetime
 
 class ProduccionBase(BaseModel):
-    id_inventario: int
     cantidad: int
+<<<<<<< HEAD
+=======
+    unid_medida: str
+>>>>>>> 4b90f88b96a63f9687e750076d2958d2dd456ecb
     fecha_ingreso: datetime
     fecha_vencimiento: datetime
     lote_id: int
@@ -16,8 +19,8 @@ class ProduccionCreate(ProduccionBase):
     pass
 
 class ProduccionUpdate(BaseModel):
-    id_inventario: Optional[int] = None
     cantidad: Optional[int] = None
+    unid_medida: Optional[str] = None
     fecha_ingreso: Optional[datetime] = None
     fecha_vencimiento: Optional[datetime] = None
     lote_id: Optional[int] = None
@@ -26,9 +29,8 @@ class ProduccionUpdate(BaseModel):
     especie_id: Optional[int] = None
 
 class ProduccionOut(ProduccionBase):
-    id_produccion: int
+    id_inventario: int
     nombre_lote: str
-    nombre_producto: str
     nombre_categoria: str
     nombre_especie: str
 
@@ -37,4 +39,4 @@ class PaginatedProducciones(BaseModel):
     page_size: int
     total_producciones: int
     total_pages: int
-    producciones: list[ProduccionOut]
+    produccion: list[ProduccionOut]

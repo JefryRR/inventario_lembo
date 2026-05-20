@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from typing import Optional
-from app.schemas.inv_perdida import PerdidaCreate, PerdidaUpdate, PerdidaOut, PaginatedPerdidas
+from app.schemas.inv_perdida import PerdidaCreate, PerdidaUpdate, PerdidaOut
 
 import logging
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def create_perdida(db: Session, perdida: PerdidaCreate) -> Optional[bool]:
     try:
         query = text("""
-            INSERT INTO inv_perdida (
+            INSERT INTO inv_perdidas (
                 inv_prod_id, cantidad, motivo,
                 fecha_reporte, user_id, observaciones
             ) VALUES (
@@ -32,16 +32,14 @@ def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
         query = text("""
             SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
                    p.fecha_reporte, p.user_id, p.observaciones,
-                   pr.nombre_producto, u.nombre_user
-            FROM inv_perdida p
-            JOIN inv_productos pr ON p.inv_prod_id = pr.id_producto
-            JOIN users u ON p.user_id = u.id_user
+                   u.nombre_user
+            FROM inv_perdidas p
+            LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
+            LEFT JOIN users AS u ON p.user_id = u.id_user
             WHERE p.id_perdida = :id
         """)
         result = db.execute(query, {"id": id}).mappings().first()
-        if result:
-            return PerdidaOut(**result)
-        return None
+        return result
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener pérdida por id: {e}")
         raise Exception("Error de base de datos al obtener la pérdida")
@@ -52,27 +50,27 @@ def all_perdidas(db: Session) -> list[PerdidaOut]:
             SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
                    p.fecha_reporte, p.user_id, p.observaciones,
                    pr.nombre_producto, u.nombre_user
-            FROM inv_perdida p
-            JOIN inv_productos pr ON p.inv_prod_id = pr.id_producto
-            JOIN users u ON p.user_id = u.id_user
+            FROM inv_perdidas p
+            LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
+            LEFT JOIN users AS u ON p.user_id = u.id_user
             ORDER BY p.fecha_reporte DESC
         """)
         results = db.execute(query).mappings().all()
-        return [PerdidaOut(**row) for row in results]
+        return results
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las pérdidas: {e}")
         raise Exception("Error de base de datos al obtener las pérdidas")
     
-def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate) -> Optional[bool]:
+def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
     try:
-    # Solo los campos enviados por el cliente
+    # Solo los campos enviados por el usuario
         perdida_data = perdida_update.model_dump(exclude_unset=True)
         if not perdida_data:
-             return False  # nada que actualizar
+            return False  # nada que actualizar
          # Construir dinámicamente la sentencia UPDATE
         set_clauses = ", ".join([f"{key} = :{key}" for key in perdida_data.keys()])
         sentencia = text(f"""
-             UPDATE inv_perdida
+             UPDATE inv_perdidas
              SET {set_clauses}
              WHERE id_perdida = :id_perdida
          """)
@@ -82,38 +80,65 @@ def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate) ->
         db.commit()
         return result.rowcount > 0
     except SQLAlchemyError as e:
-            db.rollback()
-            logger.error(f"Error al actualizar pérdida {id}: {e}")
-            raise Exception("Error de base de datos al actualizar la pérdida")
+        db.rollback()
+        logger.error(f"Error al actualizar pérdida {id}: {e}")
+        raise Exception("Error de base de datos al actualizar la pérdida")
     
-def get_perdidas_paginated(db: Session, page: int = 1, page_size: int = 10) -> PaginatedPerdidas:
+def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
+    """
+    Obtiene pérdidas con paginación.
+    Compatible con PostgreSQL, MySQL y SQLite.
+    """
     try:
-        offset = (page - 1) * page_size
-        total_query = text("SELECT COUNT(*) FROM inv_perdida")
-        total_perdidas = db.execute(total_query).scalar()
-        
-        query = text("""
+        # Total de pérdidas
+        count_query = text("""
+            SELECT COUNT(p.id_perdida) AS total
+            FROM inv_perdidas p
+        """)
+
+        total_result = db.execute(count_query).scalar()
+
+        # Pérdidas paginadas
+        data_query = text("""
             SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
                    p.fecha_reporte, p.user_id, p.observaciones,
                    pr.nombre_producto, u.nombre_user
-            FROM inv_perdida p
-            JOIN inv_productos pr ON p.inv_prod_id = pr.id_producto
-            JOIN users u ON p.user_id = u.id_user
+            FROM inv_perdidas p
+            LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
+            LEFT JOIN users AS u ON p.user_id = u.id_user
             ORDER BY p.fecha_reporte DESC
-            LIMIT :limit OFFSET :offset
+            LIMIT :limit OFFSET :skip
         """)
-        results = db.execute(query, {"limit": page_size, "offset": offset}).mappings().all()
-        perdidas = [PerdidaOut(**row) for row in results]
-        
-        total_pages = (total_perdidas + page_size - 1) // page_size
-        
-        return PaginatedPerdidas(
-            page=page,
-            page_size=page_size,
-            total_perdidas=total_perdidas,
-            total_pages=total_pages,
-            perdidas=perdidas
-        )
+
+        total_result = db.execute(count_query).scalar()
+
+        # Pérdidas paginadas
+        data_query = text(""" 
+                        SELECT  p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
+                        p.fecha_reporte, p.user_id, p.observaciones,
+                        pr.nombre_producto, u.nombre_user
+                        FROM inv_perdidas AS p
+                        INNER JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
+                        INNER JOIN users AS u ON p.user_id = u.id_user
+                        LIMIT :limit OFFSET :skip
+                    """)
+
+        perdidas_list = db.execute(
+            data_query,
+            {
+                "limit": limit,
+                "skip": skip
+            }
+        ).mappings().all()
+
+        return {
+            "total": total_result or 0,
+            "perdidas": perdidas_list
+        }
+
     except SQLAlchemyError as e:
-        logger.error(f"Error al obtener pérdidas paginadas: {e}")
-        raise Exception("Error de base de datos al obtener las pérdidas")
+        logger.error( f"Error al obtener las pérdidas: {e}", exc_info=True)
+
+        raise Exception(
+            "Error de base de datos al obtener las pérdidas"
+        )

@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session # type: ignore
+from sqlalchemy import text        # type: ignore
+from sqlalchemy.exc import SQLAlchemyError   # type: ignore
 from app.core.security import get_hashed_password
 from typing import Optional
 import logging
@@ -118,7 +118,7 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
 
         total_result = db.execute(count_query).scalar()
 
-        # Usuarios paginados
+        # Lotes paginados
         data_query = text(""" 
                         SELECT  l_p.id_lote, l_p.nombre_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
                         l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id,

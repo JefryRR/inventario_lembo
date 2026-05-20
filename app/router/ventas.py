@@ -4,32 +4,32 @@ from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.inv_perdida import PerdidaCreate, PerdidaUpdate, PerdidaOut, PaginatedPerdidas
+from app.schemas.ventas import VentasCreate, VentasUpdate, VentasOut, PaginatedVentas
+from app.crud import ventas as crud_ventas
 from app.schemas.users import UserOut
-from app.crud import inv_perdida as inv_perdida_crud
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 
 router = APIRouter()
-modulo = 11
+modulo = 13
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
-def create_perdida(
-    perdida: PerdidaCreate, 
+def create_venta(
+    venta: VentasCreate, 
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
     try:
-        id_rol = user_token.rol_id       
+        id_rol = user_token.rol_id
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        inv_perdida_crud.create_perdida(db, perdida)
-        return {"message": "Pérdida registrada correctamente"}
+        crud_ventas.create_venta(db, venta)
+        return {"message": "Venta registrada correctamente"}
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.get("/by-id",  response_model=PerdidaOut)
-def get_perdida_by_id(id: int, 
+@router.get("/by-id", response_model=VentasOut)
+def get_venta_by_id(id: int, 
               db: Session = Depends(get_db),
               user_token: UserOut = Depends(get_current_user)
               ):
@@ -38,15 +38,15 @@ def get_perdida_by_id(id: int,
         if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
-        perdida = inv_perdida_crud.get_perdida_by_id(db, id)
-        if not perdida:
-            raise HTTPException(status_code=404, detail="Pérdida no encontrada")
-        return perdida
+        venta = crud_ventas.get_venta_by_id(db, id)
+        if not venta:
+            raise HTTPException(status_code=404, detail="Venta no encontrada")
+        return venta
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-@router.get("/all/perdidas", response_model=List[PerdidaOut])
-def all_perdidas(
+
+@router.get("/all/ventas", response_model=List[VentasOut])
+def get_all_ventas(
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
@@ -55,33 +55,48 @@ def all_perdidas(
         if not verify_permissions(db, id_rol, modulo, "seleccionar"):
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
-        perdida = inv_perdida_crud.all_perdidas(db)
-        return perdida
+        ventas = crud_ventas.all_ventas(db)
+        return ventas
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-
     
-@router.put("/update-perdida-by-id/{id}")
-def update_perdida_by_id(
+@router.put("/update/venta/{id}")
+def update_venta(
     id: int,
-    perdida_update: PerdidaUpdate,
+    venta: VentasUpdate,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
     try:
         id_rol = user_token.rol_id
-        if not verify_permissions(db, id_rol, modulo, "actualizar"):
-            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        if not verify_permissions(db, id_rol, modulo, 'actualizar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
         
-        updated_perdida = inv_perdida_crud.update_perdida_by_id(db, id, perdida_update)
-        if not updated_perdida:
-            raise HTTPException(status_code=404, detail="Pérdida no encontrada")
-        return {"message": "Pérdida actualizada correctamente"}
+        ventas = crud_ventas.update_venta(db, id, venta)
+        if not ventas:
+            raise HTTPException(status_code=400, detail="No se pudo actualizar la venta")
+        return {"message": "Venta actualizada correctamente"}
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.get("/paginated-perdida")
-def get_perdidas_paginated(
+@router.get("/ventas/by/user", response_model=List[VentasOut])
+def get_ventas_by_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, "seleccionar"):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        
+        ventas = crud_ventas.ventas_by_user(db, user_id)
+        return ventas
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/paginated-ventas")
+def ventas_paginated(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -93,15 +108,15 @@ def get_perdidas_paginated(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = inv_perdida_crud.get_perdidas_paginated(db, skip=skip, limit=page_size)
+        data = crud_ventas.ventas_paginated(db, skip=skip, limit=page_size)
         total = data["total"]  
-        perdidas = data["perdidas"]
+        ventas = data["ventas"]
         
         return {
-            "total_lotes": total,
+            "total_ventas": total,
             "page": page,
             "page_size": page_size,
-            "perdidas": perdidas
+            "ventas": ventas
         }
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))

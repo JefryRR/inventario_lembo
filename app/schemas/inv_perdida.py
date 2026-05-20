@@ -4,34 +4,30 @@ from datetime import datetime
 from enum import Enum
 
 class TipoPerdida(str, Enum):
-    contaminacion = "contaminación"
-    extravio = "extravío"
+    contaminacion = "contaminacion"
+    extravio = "extravio"
     vencimiento = "vencimiento"
     robo = "robo"
-    daño = "daño_físico"
+    daño_fisico = "daño_fisico"
 
 class PerdidaBase(BaseModel):
     inv_prod_id: int
     cantidad: int
     motivo: TipoPerdida
-    fecha_reporte: datetime = Field(default_factory=datetime.utcnow)
+    fecha_reporte: datetime
     user_id: int
-    observaciones: Optional[str] = Field(default=None, max_length=255)
+    observaciones: Optional[str] = Field(default=None, min_length=3, max_length=255)
 
 class PerdidaCreate(PerdidaBase):
     pass
 
 class PerdidaUpdate(BaseModel):
-    inv_prod_id: Optional[int] = None
     cantidad: Optional[int] = None
     motivo: Optional[TipoPerdida] = None
-    fecha_reporte: Optional[datetime] = None
-    user_id: Optional[int] = None
-    observaciones: Optional[str] = Field(default=None, max_length=255)
+    observaciones: Optional[str] = Field(default=None, min_length=3, max_length=255)
 
 class PerdidaOut(PerdidaBase):
     id_perdida: int
-    nombre_producto: str
     nombre_user: str
 
 class PaginatedPerdidas(BaseModel):
