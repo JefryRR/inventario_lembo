@@ -4,10 +4,7 @@ from datetime import datetime
 
 class ProduccionBase(BaseModel):
     cantidad: int
-<<<<<<< HEAD
-=======
     unid_medida: str
->>>>>>> 4b90f88b96a63f9687e750076d2958d2dd456ecb
     fecha_ingreso: datetime
     fecha_vencimiento: datetime
     lote_id: int
