@@ -8,9 +8,10 @@ class TratamientoBase(BaseModel):
     fecha_inicio: datetime
     fecha_fin: datetime
     cantidad: int = Field(gt=0)
-    unid_medida: str
+    unid_medida_id: int
     observacion: str
     user_id: int = Field(gt=0)
+    cant_convertida: Optional[float] = None
 
 class TratamientoCreate(TratamientoBase):
     pass
@@ -20,13 +21,14 @@ class TratamientoUpdate(BaseModel):
     medicina_id: Optional[int] = None
     cantidad: Optional[int] = None
     fecha_fin: Optional[datetime] = None
-    unid_medida: Optional[str] = None
+    unid_medida_id: Optional[int] = None
     observacion: Optional[str] = None
     user_id: Optional[int] = None
 
 class TratamientoOut(TratamientoBase):
     id_tratamiento: int
     nombre_producto: str
+    simbolo: str
 
 class PaginatedTratamientos(BaseModel):
     page: int

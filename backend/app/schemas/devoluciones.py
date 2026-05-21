@@ -11,6 +11,7 @@ class DevolucionBase(BaseModel):
     id_detalle_venta: int
     venta_id: int
     cant_devolucion: int
+    unid_medida_id: int
     motivo: MotivoDevolucion
     fecha_dev: datetime
     user_id: int
@@ -29,6 +30,7 @@ class DevolucionOut(DevolucionBase):
     nombre_producto: str
     nombre_comprador: str
     nombre_user: str
+    simbolo: str
 
 class PaginatedDevoluciones(BaseModel):
     page: int

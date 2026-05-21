@@ -20,8 +20,8 @@ def create_insumo(db: Session, insumo: InsumoCreate):
         
         query = text("""
                     INSERT INTO inv_insumos(
-                    nombre_producto, cantidad, unidad_medida, precio_unitario, fecha_ingreso, fecha_vencimiento, tipo_id)
-                    VALUES (:nombre_producto, :cantidad, :unidad_medida, :precio_unitario, :fecha_ingreso, 
+                    nombre_producto, cantidad, unid_medida_id, precio_unitario, min_stock, fecha_ingreso, fecha_vencimiento, tipo_id)
+                    VALUES (:nombre_producto, :cantidad, :unid_medida_id, :precio_unitario, :min_stock, :fecha_ingreso, 
                     :fecha_vencimiento, :tipo_id)
                     """)
         db.execute(query, insumo.model_dump())
@@ -34,10 +34,11 @@ def create_insumo(db: Session, insumo: InsumoCreate):
 
 def get_insumo_by_id(db: Session, insumo_id: int):
     try:
-        query = text("""SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unidad_medida, i_in.precio_unitario, i_in.fecha_ingreso, 
-                     i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo
+        query = text("""SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
+                      i_in.min_stock, i_in.fecha_ingreso, i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo, u_m.simbolo
                      FROM inv_insumos AS i_in
                      INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
+                     LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
                      WHERE i_in.id_insumo = :id""")
         result = db.execute(query, {"id": insumo_id}).fetchone()
         return result
@@ -47,10 +48,11 @@ def get_insumo_by_id(db: Session, insumo_id: int):
 
 def get_all_insumos(db: Session):
     try:
-        query = text("""SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unidad_medida, i_in.precio_unitario, i_in.fecha_ingreso, 
-                        i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo
-                        FROM inv_insumos AS i_in
-                        INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
+        query = text("""SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
+                      i_in.min_stock, i_in.fecha_ingreso, i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo, u_m.simbolo
+                     FROM inv_insumos AS i_in
+                     INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
+                     LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
                      """)
         result = db.execute(query).fetchall()
         return result
@@ -98,10 +100,11 @@ def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Insumos paginados
         data_query = text(""" 
-                        SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unidad_medida, i_in.precio_unitario, i_in.fecha_ingreso, 
-                        i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo
+                        SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
+                        i_in.min_stock, i_in.fecha_ingreso, i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo, u_m.simbolo
                         FROM inv_insumos AS i_in
                         INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
+                        LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
                         LIMIT :limit OFFSET :skip
                     """)
 

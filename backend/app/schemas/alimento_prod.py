@@ -7,7 +7,7 @@ class AlimentoBase(BaseModel):
     insumo_id: int = Field(gt=0)
     fecha_alimento: datetime
     cantidad: int = Field(gt=0)
-    unidad_medida: str = Field(min_length=1, max_length=50)
+    unid_medida_id: int = Field(gt=0)
     
 
 class AlimentoCreate(AlimentoBase):
@@ -17,11 +17,13 @@ class AlimentoUpdate(BaseModel):
     lote_id: Optional[int] = None
     insumo_id: Optional[int] = None
     cantidad: Optional[int] = None
-    unidad_medida: Optional[str] = None
+    unid_medida_id: Optional[int] = None
 
 class AlimentoOut(AlimentoBase):
     id_alimento: int
     nombre_producto: str
+    simbolo: str
+    nombre_lote: str
 
 class PaginatedAlimentos(BaseModel):
     page: int

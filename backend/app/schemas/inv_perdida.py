@@ -15,7 +15,7 @@ class PerdidaBase(BaseModel):
     cantidad: int
     motivo: TipoPerdida
     fecha_reporte: datetime
-    user_id: int
+    user_id: Optional[int]
     observaciones: Optional[str] = Field(default=None, min_length=3, max_length=255)
 
 class PerdidaCreate(PerdidaBase):
@@ -28,7 +28,8 @@ class PerdidaUpdate(BaseModel):
 
 class PerdidaOut(PerdidaBase):
     id_perdida: int
-    nombre_user: str
+    nombre_user: Optional[str]
+    nombre_producto: Optional[str]
 
 class PaginatedPerdidas(BaseModel):
     page: int

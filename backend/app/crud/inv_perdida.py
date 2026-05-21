@@ -47,14 +47,14 @@ def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
 def all_perdidas(db: Session) -> list[PerdidaOut]:
     try:
         query = text("""
-            SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
-                   p.fecha_reporte, p.user_id, p.observaciones,
-                   pr.nombre_producto, u.nombre_user
-            FROM inv_perdidas p
-            LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
-            LEFT JOIN users AS u ON p.user_id = u.id_user
-            ORDER BY p.fecha_reporte DESC
-        """)
+                    SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
+                    p.fecha_reporte, p.user_id, p.observaciones,
+                    pr.nombre_producto, u.nombre_user
+                    FROM inv_perdidas p
+                    LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
+                    LEFT JOIN users AS u ON p.user_id = u.id_user
+                    ORDER BY p.fecha_reporte DESC
+                    """)
         results = db.execute(query).mappings().all()
         return results
     except SQLAlchemyError as e:

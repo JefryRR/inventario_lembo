@@ -12,10 +12,10 @@ def create_devolucion(db: Session, devolucion: DevolucionCreate) -> Optional[boo
     try:
         query = text("""
             INSERT INTO devoluciones (
-                id_detalle_venta, venta_id, cant_devolucion,
+                id_detalle_venta, venta_id, cant_devolucion, unid_medida_id,
                 motivo, fecha_dev, user_id, observacion
             ) VALUES (
-                :id_detalle_venta, :venta_id, :cant_devolucion,
+                :id_detalle_venta, :venta_id, :cant_devolucion, :unid_medida_id,
                 :motivo, :fecha_dev, :user_id, :observacion
             )
         """)
@@ -30,15 +30,16 @@ def create_devolucion(db: Session, devolucion: DevolucionCreate) -> Optional[boo
 def get_devolucion_by_id(db: Session, id: int) -> Optional[DevolucionOut]:
     try:
         query = text("""
-            SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion,
-                   d.motivo, d.fecha_dev, d.user_id, d.observacion,
-                   dv.nombre_producto, v.nombre_comprador, u.nombre_user
-            FROM devoluciones AS d
-            LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
-            LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
-            LEFT JOIN users AS u ON d.user_id = u.id_user
-            WHERE d.id_devolucion = :id
-        """)
+                    SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion, d.unid_medida_id,
+                    d.motivo, d.fecha_dev, d.user_id, d.observacion,
+                    dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
+                    FROM devoluciones AS d
+                    LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
+                    LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
+                    LEFT JOIN users AS u ON d.user_id = u.id_user
+                    LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
+                    WHERE d.id_devolucion = :id
+                """)
         result = db.execute(query, {"id": id}).mappings().first()
         return result
     except SQLAlchemyError as e:
@@ -48,13 +49,14 @@ def get_devolucion_by_id(db: Session, id: int) -> Optional[DevolucionOut]:
 def get_all_devoluciones(db: Session) -> list[DevolucionOut]:
     try:
         query = text("""
-            SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion,
+            SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion, d.unid_medida_id,
                    d.motivo, d.fecha_dev, d.user_id, d.observacion,
-                   dv.nombre_producto, v.nombre_comprador, u.nombre_user
+                   dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
             FROM devoluciones AS d
             LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
             LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
             LEFT JOIN users AS u ON d.user_id = u.id_user
+            LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
             ORDER BY d.fecha_dev DESC
         """)
         result = db.execute(query).mappings().all()
@@ -102,28 +104,30 @@ def get_devoluciones_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Devoluciones paginadas
         data_query = text("""
-            SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion,
+                    SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion, d.unid_medida_id,
                    d.motivo, d.fecha_dev, d.user_id, d.observacion,
-                   dv.nombre_producto, v.nombre_comprador, u.nombre_user
-            FROM devoluciones d
-            LEFT JOIN detalle_ventas dv ON d.id_detalle_venta = dv.id_detalle_venta
-            LEFT JOIN ventas v ON d.venta_id = v.id_venta
-            LEFT JOIN users u ON d.user_id = u.id_user
-            ORDER BY d.fecha_dev DESC
-            LIMIT :limit OFFSET :skip
-        """)
+                   dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
+                    FROM devoluciones AS d
+                    LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
+                    LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
+                    LEFT JOIN users AS u ON d.user_id = u.id_user
+                    LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
+                    ORDER BY d.fecha_dev DESC
+                    LIMIT :limit OFFSET :skip
+                """)
 
         total_result = db.execute(count_query).scalar()
 
         # Devoluciones paginadas
         data_query = text(""" 
-                        SELECT  d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion,
+                        SELECT  d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion, d.unid_medida_id,
                         d.motivo, d.fecha_dev, d.user_id, d.observacion,
-                        dv.nombre_producto, v.nombre_comprador, u.nombre_user
+                        dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
                         FROM devoluciones AS d
                         LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
                         LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
                         LEFT JOIN users AS u ON d.user_id = u.id_user
+                        LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
                         ORDER BY d.fecha_dev DESC
                         LIMIT :limit OFFSET :skip
                     """)

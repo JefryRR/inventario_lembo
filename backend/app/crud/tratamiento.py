@@ -9,31 +9,55 @@ logger = logging.getLogger(__name__)
 
 def create_tratamiento(db: Session, tratamiento: TratamientoCreate) -> Optional[bool]:
     try:
+        query_conversion = text("""
+            SELECT conversion
+            FROM unidades_medida
+            WHERE id_unidad = :unid_medida_id
+        """)
+        
+        result_conv = db.execute(
+            query_conversion, 
+            {"unid_medida_id": tratamiento.unid_medida_id}
+        ).mappings().first()
+
+        if not result_conv:
+            logger.error("Unidad de medida no encontrada")
+            raise Exception("Unidad de medida no encontrada")
+        
+        factor_conversion = result_conv["conversion"]
+    
         query = text("""
-          INSERT INTO tratamientos (
-              lote_id, medicina_id, fecha_inicio, fecha_fin, cantidad, unid_medida, observacion, user_id
-          ) VALUES (
-              :lote_id, :medicina_id, :fecha_inicio, :fecha_fin, :cantidad, :unid_medida, :observacion, :user_id
-          )
-      """)
-        db.execute(query, tratamiento.model_dump())
+            INSERT INTO tratamientos (
+                lote_id, medicina_id, fecha_inicio, fecha_fin, 
+                cantidad, unid_medida_id, observacion, user_id, cant_convertida
+            ) VALUES (
+                :lote_id, :medicina_id, :fecha_inicio, :fecha_fin, 
+                :cantidad, :unid_medida_id, :observacion, :user_id, :cant_convertida
+            )
+        """)
+        params = tratamiento.model_dump()
+        params["cant_convertida"] = params["cantidad"] * factor_conversion
+        db.execute(query, params)
         db.commit()
         return True
-    except SQLAlchemyError as e:
-      db.rollback()
-      logger.error(f"Error al crear el registro del tratamiento: {e}")
-      raise Exception("Error de base de datos al crear el registro del tratamiento")
 
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Error al crear el registro del tratamiento: {e}")
+        raise Exception("Error de base de datos al crear el registro del tratamiento")
 def get_all_tratamientos(db: Session):
     try:
         query = text("""
                      SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin,
-                     t_p.cantidad, t_p.unid_medida, e.nombre_especie, c.nombre_categoria, in_ins.nombre_producto, l_p.nombre_lote
+                     t_p.cantidad, t_p.unid_medida_id, t_p.observacion, e.nombre_especie, c.nombre_categoria,
+                      t_p.cant_convertida, t_p.user_id,
+                     in_ins.nombre_producto, l_p.nombre_lote, u_m.simbolo
                      FROM tratamientos AS t_p
                      INNER JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
+                     LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
                      ORDER BY t_p.id_tratamiento DESC
                      """)
         result = db.execute(query).mappings().all()
@@ -45,13 +69,16 @@ def get_all_tratamientos(db: Session):
 def get_tratamiento_by_id(db: Session, id: int):
     try:
         query = text("""
-                     SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin, t_p.cantidad, t_p.unid_medida,
-                     e.nombre_especie, c.nombre_categoria, in_ins.nombre_producto, l_p.nombre_lote
+                     SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin,
+                     t_p.cantidad, t_p.unid_medida_id, t_p.observacion, e.nombre_especie, c.nombre_categoria,
+                      t_p.cant_convertida, t_p.user_id,
+                     in_ins.nombre_producto, l_p.nombre_lote, u_m.simbolo
                      FROM tratamientos AS t_p
                      INNER JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
+                     LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
                     WHERE t_p.id_tratamiento = :id
                     """)
         
@@ -103,13 +130,16 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
 
         # Registros paginados
         data_query = text(""" 
-                        SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin, t_p.cantidad, t_p.unid_medida,
-                        e.nombre_especie, c.nombre_categoria, in_ins.nombre_producto, l_p.nombre_lote
+                        SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin,
+                        t_p.cantidad, t_p.unid_medida_id, t_p.observacion, e.nombre_especie, c.nombre_categoria,
+                         t_p.cant_convertida, t_p.user_id,
+                        in_ins.nombre_producto, l_p.nombre_lote, u_m.simbolo
                         FROM tratamientos AS t_p
                         INNER JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
                         LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                         LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                         LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
+                        LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
                         ORDER BY t_p.id_tratamiento DESC
                         LIMIT :limit OFFSET :skip
                     """)

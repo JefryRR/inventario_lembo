@@ -12,10 +12,10 @@ def create_detalle_venta(db: Session, detalle: DetalleVentaCreate) -> Optional[b
     try:
         query = text("""
             INSERT INTO detalle_ventas (
-                nombre_producto, cantidad, unidad_medida,
+                nombre_producto, cantidad, unid_medida_id,
                 precio_venta, inv_prod_id, venta_id, estado_venta
             ) VALUES (
-                :nombre_producto, :cantidad, :unidad_medida,
+                :nombre_producto, :cantidad, :unid_medida_id,
                 :precio_venta, :inv_prod_id, :venta_id, :estado_venta
             )
         """)
@@ -24,18 +24,27 @@ def create_detalle_venta(db: Session, detalle: DetalleVentaCreate) -> Optional[b
         return True
     except SQLAlchemyError as e:
         db.rollback()
-        mensaje_error = str(e)
-        if "45000" in mensaje_error or "No se puede crear el detalle de venta" in mensaje_error:
-            raise Exception("No se puede crear el detalle de venta por inventario insuficiente")
+        mensaje_error = f"{e}"
+        mensaje_origen = f"{getattr(e, 'orig', '')}"
+        mensaje_completo = f"{mensaje_error} {mensaje_origen}".lower()
+        if (
+            "45000" in mensaje_completo
+            or "1644" in mensaje_completo
+            or "no hay suficiente stock" in mensaje_completo
+            or "no se puede crear el detalle de venta" in mensaje_completo
+        ):
+            raise Exception(f"Error: No hay suficiente stock para realizar esta venta o apartado")
         raise Exception("Error de base de datos al crear el detalle de venta")
     
 def get_detalle_venta_by_id(db: Session, id: int) -> Optional[DetalleVentaOut]:
     try:
         query = text("""
-            SELECT d_v.id_detalle_venta, d_v.nombre_producto, d_v.cantidad, d_v.unidad_medida,
-                   d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, v.nombre_comprador
+            SELECT d_v.id_detalle_venta, d_v.nombre_producto, d_v.cantidad, d_v.unid_medida_id,
+                   d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, v.nombre_comprador,
+                    u_m.simbolo
             FROM detalle_ventas d_v
             LEFT JOIN ventas AS v ON d_v.venta_id = v.id_venta
+            LEFT JOIN unidades_medida AS u_m ON d_v.unid_medida_id = u_m.id_unidad
             WHERE d_v.id_detalle_venta = :id
         """)
         result = db.execute(query, {"id": id}).mappings().first()
@@ -47,10 +56,11 @@ def get_detalle_venta_by_id(db: Session, id: int) -> Optional[DetalleVentaOut]:
 def get_all_detalles_venta(db: Session) -> list[DetalleVentaOut]:
     try:
         query = text("""
-            SELECT d_v.id_detalle_venta, d_v.nombre_producto, d_v.cantidad, d_v.unidad_medida,
-                   d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, v.nombre_comprador
+            SELECT d_v.id_detalle_venta, d_v.nombre_producto, d_v.cantidad, d_v.unid_medida_id,
+                   d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, v.nombre_comprador, u_m.simbolo
             FROM detalle_ventas d_v
             LEFT JOIN ventas AS v ON d_v.venta_id = v.id_venta
+            LEFT JOIN unidades_medida AS u_m ON d_v.unid_medida_id = u_m.id_unidad
             ORDER BY d_v.id_detalle_venta DESC
         """)
         results = db.execute(query).mappings().all()
@@ -98,11 +108,12 @@ def get_detalles_venta_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Detalles de venta paginados
         data_query = text("""
-            SELECT d_v.id_detalle_venta, d_v.nombre_producto, d_v.cantidad, d_v.unidad_medida,
-                   d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, v.nombre_comprador
+            SELECT d_v.id_detalle_venta, d_v.nombre_producto, d_v.cantidad, d_v.unid_medida_id,
+                   d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, v.nombre_comprador, u_m.simbolo
             FROM detalle_ventas d_v
             LEFT JOIN inv_produccion AS pr ON d_v.inv_prod_id = pr.id_inventario
             LEFT JOIN ventas AS v ON d_v.venta_id = v.id_venta
+            LEFT JOIN unidades_medida AS u_m ON d_v.unid_medida_id = u_m.id_unidad
             ORDER BY d_v.fecha_reporte DESC
             LIMIT :limit OFFSET :skip
         """)
@@ -111,11 +122,12 @@ def get_detalles_venta_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Detalles de venta paginados
         data_query = text(""" 
-                        SELECT  d_v.id_detalle_venta, d_v.nombre_producto, d_v.cantidad, d_v.unidad_medida,
-                        d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, v.nombre_comprador
+                        SELECT  d_v.id_detalle_venta, d_v.nombre_producto, d_v.cantidad, d_v.unid_medida_id,
+                        d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, v.nombre_comprador, u_m.simbolo
                         FROM detalle_ventas AS d_v
                         LEFT JOIN inv_produccion AS pr ON d_v.inv_prod_id = pr.id_inventario
                         LEFT JOIN ventas AS v ON d_v.venta_id = v.id_venta
+                        LEFT JOIN unidades_medida AS u_m ON d_v.unid_medida_id = u_m.id_unidad
                         LIMIT :limit OFFSET :skip
                     """)
 

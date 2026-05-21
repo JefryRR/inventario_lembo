@@ -11,8 +11,10 @@ def create_produccion(db: Session, produccion: ProduccionCreate):
     try:
 
         query = text("""INSERT INTO inv_produccion 
-                    (cantidad, unid_medida, fecha_ingreso, fecha_vencimiento, lote_id, valor_unitario, categoria_id, especie_id)
-                    VALUES (:cantidad, :unid_medida, :fecha_ingreso, :fecha_vencimiento, :lote_id, :valor_unitario, :categoria_id, :especie_id)
+                     (cantidad, unid_medida_id, fecha_ingreso, fecha_vencimiento, lote_id, valor_unitario, 
+                     categoria_id, especie_id, id_inventario)
+                     VALUES (:cantidad, :unid_medida_id, :fecha_ingreso, :fecha_vencimiento, :lote_id, :valor_unitario, 
+                     :categoria_id, :especie_id, :id_inventario)
         """)
         db.execute(query, produccion.model_dump())
         db.commit()
@@ -24,13 +26,14 @@ def create_produccion(db: Session, produccion: ProduccionCreate):
 
 def get_produccion_by_id(db: Session, id: int):
     try:
-        query = text("""SELECT pr.id_inventario, pr.cantidad, pr.unid_medida,
+        query = text("""SELECT pr.id_inventario, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario, pr.categoria_id,
-                     pr.especie_id, l.nombre_lote, c.nombre_categoria, e.nombre_especie
+                     pr.especie_id, l.nombre_lote, c.nombre_categoria, e.nombre_especie, u_m.simbolo
                      FROM inv_produccion pr
                      LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
                      LEFT JOIN categorias AS c ON pr.categoria_id = c.id_categoria
                      LEFT JOIN especies AS e ON pr.especie_id = e.id_especie
+                     LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
                      WHERE pr.id_inventario = :id
                 """)
         result = db.execute(query, {"id": id}).mappings().first()
@@ -41,13 +44,14 @@ def get_produccion_by_id(db: Session, id: int):
 
 def all_produccion(db: Session):
     try:
-        query = text("""SELECT pr.id_inventario, pr.cantidad, pr.unid_medida,
+        query = text("""SELECT pr.id_inventario, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario, pr.categoria_id,
-                     pr.especie_id, l.nombre_lote, c.nombre_categoria, e.nombre_especie
+                     pr.especie_id, l.nombre_lote, c.nombre_categoria, e.nombre_especie, u_m.simbolo
                      FROM inv_produccion pr
                      LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
                      LEFT JOIN categorias AS c ON pr.categoria_id = c.id_categoria
                      LEFT JOIN especies AS e ON pr.especie_id = e.id_especie
+                     LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
                     """)
         result = db.execute(query).mappings().all()
         return result
@@ -89,20 +93,21 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
             LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
             LEFT JOIN categorias AS c ON pr.categoria_id = c.id_categoria
             LEFT JOIN especies AS e ON pr.especie_id = e.id_especie
+            LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
         """)
 
         total_result = db.execute(count_query).scalar()
 
         # Producción paginada
         data_query = text(""" 
-                        SELECT  pr.id_inventario, pr.cantidad, pr.unid_medida, pr.fecha_ingreso, pr.fecha_vencimiento,
-                        pr.lote_id, pr.valor_unitario, l.nombre_lote,
-                        pr.especie_id, pr.categoria_id,
-                        e.nombre_especie, c.nombre_categoria
-                        FROM inv_produccion AS pr
+                        SELECT pr.id_inventario, pr.cantidad, pr.unid_medida_id,
+                        pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario, pr.categoria_id,
+                        pr.especie_id, l.nombre_lote, c.nombre_categoria, e.nombre_especie, u_m.simbolo
+                        FROM inv_produccion pr
                         LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
                         LEFT JOIN categorias AS c ON pr.categoria_id = c.id_categoria
                         LEFT JOIN especies AS e ON pr.especie_id = e.id_especie
+                        LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
                         LIMIT :limit OFFSET :skip
                     """)
 

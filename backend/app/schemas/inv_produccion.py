@@ -4,7 +4,7 @@ from datetime import datetime
 
 class ProduccionBase(BaseModel):
     cantidad: int
-    unid_medida: str
+    unid_medida_id: int
     fecha_ingreso: datetime
     fecha_vencimiento: datetime
     lote_id: int
@@ -17,7 +17,7 @@ class ProduccionCreate(ProduccionBase):
 
 class ProduccionUpdate(BaseModel):
     cantidad: Optional[int] = None
-    unid_medida: Optional[str] = None
+    unid_medida_id: Optional[int] = None
     fecha_ingreso: Optional[datetime] = None
     fecha_vencimiento: Optional[datetime] = None
     lote_id: Optional[int] = None
@@ -30,6 +30,7 @@ class ProduccionOut(ProduccionBase):
     nombre_lote: str
     nombre_categoria: str
     nombre_especie: str
+    simbolo: str
 
 class PaginatedProducciones(BaseModel):
     page: int

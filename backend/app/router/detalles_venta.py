@@ -25,6 +25,13 @@ def create_detalle_venta(
         
         crud_detalles.create_detalle_venta(db, detalle)
         return {"message": "Detalle de venta registrado correctamente"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        mensaje_error = str(e)
+        if "no hay suficiente stock" in mensaje_error.lower() or "inventario insuficiente" in mensaje_error.lower() or "No se puede crear el detalle de venta" in mensaje_error:
+            raise HTTPException(status_code=409, detail=mensaje_error)
+        raise HTTPException(status_code=500, detail=mensaje_error)
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
