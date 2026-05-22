@@ -27,14 +27,15 @@ def create_tratamiento(db: Session, tratamiento: TratamientoCreate) -> Optional[
         factor_conversion = result_conv["conversion"]
     
         query = text("""
-            INSERT INTO tratamientos (
-                lote_id, medicina_id, fecha_inicio, fecha_fin, 
-                cantidad, unid_medida_id, observacion, user_id, cant_convertida
-            ) VALUES (
-                :lote_id, :medicina_id, :fecha_inicio, :fecha_fin, 
-                :cantidad, :unid_medida_id, :observacion, :user_id, :cant_convertida
-            )
+                     INSERT INTO tratamientos (
+                         lote_id, medicina_id, fecha_inicio, fecha_fin, 
+                         cantidad, unid_medida_id, observacion, user_id, cant_convertida
+                     ) VALUES (
+                         :lote_id, :medicina_id, :fecha_inicio, :fecha_fin, 
+                         :cantidad, :unid_medida_id, :observacion, :user_id, :cant_convertida
+                     )
         """)
+        
         params = tratamiento.model_dump()
         params["cant_convertida"] = params["cantidad"] * factor_conversion
         db.execute(query, params)
@@ -45,6 +46,7 @@ def create_tratamiento(db: Session, tratamiento: TratamientoCreate) -> Optional[
         db.rollback()
         logger.error(f"Error al crear el registro del tratamiento: {e}")
         raise Exception("Error de base de datos al crear el registro del tratamiento")
+    
 def get_all_tratamientos(db: Session):
     try:
         query = text("""
@@ -90,14 +92,38 @@ def get_tratamiento_by_id(db: Session, id: int):
 
 def update_tratamiento_by_id(db: Session, id_tratamiento: int, tratamiento: TratamientoUpdate) -> Optional[bool]:
     try:
-    # Solo los campos enviados por el cliente
         tratamiento_data = tratamiento.model_dump(exclude_unset=True)
         if not tratamiento_data:
-             return False  # nada que actualizar
+            return False
+
+        # Si se actualiza cantidad o unidad, recalcular cant_convertida
+        if "cantidad" in tratamiento_data or "unid_medida_id" in tratamiento_data:
+            
+     # Obtener los valores actuales del registro para lo que no venga en el request
+            actual = db.execute(text("""
+                                    SELECT cantidad, unid_medida_id FROM tratamientos
+                                    WHERE id_tratamiento = :id_tratamiento
+                                """), {"id_tratamiento": id_tratamiento}).mappings().first()
+            if not actual:
+                raise Exception("Tratamiento no encontrado")
+            cantidad = tratamiento_data.get("cantidad", actual["cantidad"])
+            unid_medida_id = tratamiento_data.get("unid_medida_id", actual["unid_medida_id"])
+
+         # Obtener el factor de conversión
+            conv = db.execute(text("""
+                 SELECT conversion FROM unidades_medida
+                 WHERE id_unidad = :unid_medida_id
+             """), {"unid_medida_id": unid_medida_id}).mappings().first()
+            if not conv:
+                raise Exception("Unidad de medida no encontrada")
+        
+         # Agregar el valor recalculado al dict
+            tratamiento_data["cant_convertida"] = cantidad * conv["conversion"]
+
          # Construir dinámicamente la sentencia UPDATE
         set_clauses = ", ".join([f"{key} = :{key}" for key in tratamiento_data.keys()])
         sentencia = text(f"""
-             UPDATE tratamiento
+             UPDATE tratamientos
              SET {set_clauses}
              WHERE id_tratamiento = :id_tratamiento
          """)

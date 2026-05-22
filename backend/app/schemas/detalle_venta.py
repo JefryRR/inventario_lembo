@@ -9,7 +9,6 @@ class EstadoVenta(str, Enum):
     cancelado = "Cancelado"
 
 class DetalleVentaBase(BaseModel):
-    nombre_producto: str = Field(min_length=3, max_length=25)
     cantidad: int
     unid_medida_id:int 
     precio_venta: float
@@ -21,14 +20,15 @@ class DetalleVentaCreate(DetalleVentaBase):
     pass
 
 class DetalleVentaUpdate(BaseModel):
-    nombre_producto: Optional[str] = Field(default=None, min_length=3, max_length=25)
     cantidad: Optional[int] = None
-    unid_medida: Optional[int] = None
+    inv_prod_id: Optional[int] = None
+    unid_medida_id: Optional[int] = None
     precio_venta: Optional[float] = Field(default=None)
-    estado_venta: Optional[EstadoVenta] = None
 
 class DetalleVentaOut(DetalleVentaBase):
+    cant_convertida: Optional[float] = None
     id_detalle_venta: int
+    nombre_producto: str
     nombre_comprador: str
     simbolo: str
 

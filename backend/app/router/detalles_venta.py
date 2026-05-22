@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.detalle_venta import DetalleVentaCreate, DetalleVentaUpdate, DetalleVentaOut
+from app.schemas.detalle_venta import DetalleVentaCreate, DetalleVentaUpdate, DetalleVentaOut, EstadoVenta
 from app.schemas.users import UserOut
 from app.crud import detalle_venta as crud_detalles
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
@@ -77,15 +77,56 @@ def update_detalle_venta_by_id(
 ):
     try:
         id_rol = user_token.rol_id
+
+       # 1. Verificar permisos primero
         if not verify_permissions(db, id_rol, modulo, "actualizar"):
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
+
+        # 2. Verificar que el detalle existe
+        estado_venta = crud_detalles.get_detalle_venta_by_id(db, id)
+        if not estado_venta:
+            raise HTTPException(status_code=404, detail="Detalle de venta no encontrado")
         
+        print(estado_venta)  
+        
+        # 3. Verificar estado de la venta (con paréntesis correctos)
+        estados_bloqueados = ["Vendido", "Devuelto", "Cancelado"]
+        if estado_venta.estado_venta in estados_bloqueados:
+            raise HTTPException(
+                status_code=400,
+                detail=f"No se puede actualizar el registro porque la venta se encuentra en estado '{(estado_venta.estado_venta).value}'"
+            )
+
+        # 4. Validar campos del body
+        if detalle_update.cantidad is not None and detalle_update.cantidad < 0:
+            raise HTTPException(status_code=400, detail="La cantidad no puede ser negativa")
+
+        # 5. Ejecutar actualización
         result = crud_detalles.update_detalle_venta_by_id(db, id, detalle_update)
+        
         if not result:
             raise HTTPException(status_code=404, detail="Detalle de venta no encontrado")
         return {"message": "Detalle de venta actualizado correctamente"}
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.put("/estado/{id_detalle_venta}", status_code=status.HTTP_200_OK)
+def change_status_detalle_venta(
+    id_detalle_venta: int, 
+    estado: EstadoVenta, 
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)):
+  try:
+      id_rol = user_token.rol_id
+      if not verify_permissions(db, id_rol, modulo, 'actualizar'):
+             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+
+      success = crud_detalles.change_status_det_venta(db, id_detalle_venta, estado=estado)
+      if not success:
+          raise HTTPException(status_code=400, detail="No se pudo cambiar el estado del detalle de la venta")
+      return {"message": "Estado del detalle de la venta actualizado correctamente"}
+  except Exception as e:
+      raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/paginated-detalle")
 def get_detalles_venta_paginated(
@@ -105,7 +146,7 @@ def get_detalles_venta_paginated(
         detalles = data["detalles"]
         
         return {
-            "total_lotes": total,
+            "total_detalles": total,
             "page": page,
             "page_size": page_size,
             "detalles": detalles

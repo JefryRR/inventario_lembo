@@ -11,9 +11,9 @@ def create_produccion(db: Session, produccion: ProduccionCreate):
     try:
 
         query = text("""INSERT INTO inv_produccion 
-                     (cantidad, unid_medida_id, fecha_ingreso, fecha_vencimiento, lote_id, valor_unitario, 
+                     (nombre_producto, cantidad, unid_medida_id, fecha_ingreso, fecha_vencimiento, lote_id, valor_unitario, 
                      categoria_id, especie_id, id_inventario)
-                     VALUES (:cantidad, :unid_medida_id, :fecha_ingreso, :fecha_vencimiento, :lote_id, :valor_unitario, 
+                     VALUES (:nombre_producto, :cantidad, :unid_medida_id, :fecha_ingreso, :fecha_vencimiento, :lote_id, :valor_unitario, 
                      :categoria_id, :especie_id, :id_inventario)
         """)
         db.execute(query, produccion.model_dump())
@@ -26,7 +26,7 @@ def create_produccion(db: Session, produccion: ProduccionCreate):
 
 def get_produccion_by_id(db: Session, id: int):
     try:
-        query = text("""SELECT pr.id_inventario, pr.cantidad, pr.unid_medida_id,
+        query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario, pr.categoria_id,
                      pr.especie_id, l.nombre_lote, c.nombre_categoria, e.nombre_especie, u_m.simbolo
                      FROM inv_produccion pr
@@ -44,7 +44,7 @@ def get_produccion_by_id(db: Session, id: int):
 
 def all_produccion(db: Session):
     try:
-        query = text("""SELECT pr.id_inventario, pr.cantidad, pr.unid_medida_id,
+        query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario, pr.categoria_id,
                      pr.especie_id, l.nombre_lote, c.nombre_categoria, e.nombre_especie, u_m.simbolo
                      FROM inv_produccion pr
@@ -100,7 +100,7 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Producción paginada
         data_query = text(""" 
-                        SELECT pr.id_inventario, pr.cantidad, pr.unid_medida_id,
+                        SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                         pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario, pr.categoria_id,
                         pr.especie_id, l.nombre_lote, c.nombre_categoria, e.nombre_especie, u_m.simbolo
                         FROM inv_produccion pr

@@ -11,7 +11,6 @@ class TratamientoBase(BaseModel):
     unid_medida_id: int
     observacion: str
     user_id: int = Field(gt=0)
-    cant_convertida: Optional[float] = None
 
 class TratamientoCreate(TratamientoBase):
     pass
@@ -27,6 +26,7 @@ class TratamientoUpdate(BaseModel):
 
 class TratamientoOut(TratamientoBase):
     id_tratamiento: int
+    cant_convertida: Optional[float] = None
     nombre_producto: str
     simbolo: str
 
