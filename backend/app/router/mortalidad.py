@@ -4,6 +4,7 @@ from app.core.database import get_db
 from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
 from app.schemas.mortalidad import MortalidadCreate, MortalidadUpdate, PaginatedMortalidad, MortalidadOut
+from app.crud import lotes as crud_lotes
 from app.schemas.users import UserOut
 from app.crud import mortalidad as crud_mortalidad
 
@@ -19,6 +20,13 @@ def create_mortalidad(mortalidad: MortalidadCreate, db: Session = Depends(get_db
         
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+        
+        lote = crud_lotes.get_lote_by_id(db, mortalidad.lote_id)
+        if not lote:
+            raise HTTPException(status_code=404, detail="Lote no encontrado")
+        
+        if lote["estado_lote"] == "finalizado":
+            raise HTTPException(status_code=400, detail="No se puede registrar mortalidad porque el lote ya fue finalizado")
         
         crud_mortalidad.create_lote(db, mortalidad)
         return {"message": "Registro de mortalidad creado correctamente"}
@@ -66,6 +74,15 @@ def update_mortalidad_by_id( id_mortalidad: int, mortalidad: MortalidadUpdate, d
         id_rol = user_token.rol_id
         if not verify_permissions(db, id_rol, modulo, 'actualizar'):
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+
+        registro = crud_mortalidad.get_mortalidad_by_id(db, id_mortalidad)
+        if not registro:
+            raise HTTPException(status_code=404, detail="Registro de mortalidad no encontrado")
+
+
+        lote = crud_lotes.get_lote_by_id(db, registro["lote_id"])
+        if lote and lote.estado_lote == "finalizado":
+            raise HTTPException(status_code=400, detail="No se puede modificar la mortalidad porque el lote ya fue finalizado")
 
         success = crud_mortalidad.update_mortalidad_by_id(db, id_mortalidad, mortalidad)
         if not success:

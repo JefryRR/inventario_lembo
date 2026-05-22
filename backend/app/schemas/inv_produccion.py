@@ -24,8 +24,6 @@ class ProduccionUpdate(BaseModel):
     fecha_vencimiento: Optional[datetime] = None
     lote_id: Optional[int] = None
     valor_unitario: Optional[float] = None
-    categoria_id: Optional[int] = None
-    especie_id: Optional[int] = None
 
 class ProduccionOut(ProduccionBase):
     id_inventario: int

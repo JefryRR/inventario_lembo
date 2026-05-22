@@ -18,6 +18,7 @@ class VentasUpdate(BaseModel):
 class VentasOut(VentasBase):
     id_venta: int
     nombre_user: str
+    total_venta: Optional[float]
 
 class PaginatedVentas(BaseModel):
     page: int

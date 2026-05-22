@@ -24,10 +24,14 @@ def create_venta(db: Session, venta: VentasCreate):
 def get_venta_by_id(db: Session, id: int):
     try:
         query = text("""SELECT v.id_venta, v.nombre_comprador, v.id_comprador, 
-                     v.fecha_venta, v.user_id, u.nombre_user
+                     v.fecha_venta, v.user_id, u.nombre_user, COALESCE(SUM(d.precio_venta * d.cantidad), 0) AS total_venta
                      FROM ventas v
                      LEFT JOIN users u ON v.user_id = u.id_user
+                     LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
+                        AND d.estado_venta NOT IN ('Cancelado', 'Devuelto')
                      WHERE v.id_venta = :id
+                     GROUP BY v.id_venta, v.nombre_comprador, v.id_comprador, 
+                     v.fecha_venta, v.user_id, u.nombre_user
                 """)
         result = db.execute(query, {"id": id}).mappings().first()
         return result
@@ -38,9 +42,13 @@ def get_venta_by_id(db: Session, id: int):
 def all_ventas(db: Session):
     try:
         query = text("""SELECT v.id_venta, v.nombre_comprador, v.id_comprador, 
-                     v.fecha_venta, v.user_id, u.nombre_user
+                     v.fecha_venta, v.user_id, u.nombre_user, COALESCE(SUM(d.precio_venta * d.cantidad), 0) AS total_venta
                      FROM ventas v
                      LEFT JOIN users u ON v.user_id = u.id_user
+                     LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
+                        AND d.estado_venta NOT IN ('Cancelado', 'Devuelto')
+                     GROUP BY v.id_venta, v.nombre_comprador, v.id_comprador, 
+                     v.fecha_venta, v.user_id, u.nombre_user
                     """)
         result = db.execute(query).mappings().all()
         return result
@@ -102,9 +110,12 @@ def ventas_paginated(db: Session, skip: int = 0, limit: int = 10):
         # Ventas paginadas
         data_query = text(""" 
                         SELECT  v.id_venta, v.nombre_comprador, v.id_comprador, v.fecha_venta, v.user_id,
-                        u.nombre_user
+                        u.nombre_user, COALESCE(SUM(d.precio_venta * d.cantidad), 0) AS total_venta
                         FROM ventas AS v
                         LEFT JOIN users AS u ON v.user_id = u.id_user
+                        LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
+                            AND d.estado_venta NOT IN ('Cancelado', 'Devuelto')
+                        GROUP BY v.id_venta, v.nombre_comprador, v.id_comprador, v.fecha_venta, v.user_id, u.nombre_user
                         LIMIT :limit OFFSET :skip
                     """)
 
