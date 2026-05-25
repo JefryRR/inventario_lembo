@@ -53,7 +53,7 @@ export async function apiFetch(endpoint, options = {}) {
 
       if (tokenErrorHints.some((hint) => detail.includes(hint))) {
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        window.location.href = "/signin";
       }
     }
 

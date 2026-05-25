@@ -14,6 +14,9 @@ import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
+import Users from "./pages/users/users";
+import UsersCreate from "./components/users/usersCreate";
+import UsersEdit from "./components/users/usersEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -33,6 +36,9 @@ export default function App() {
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/users/create" element={<UsersCreate />} />
+            <Route path="/users/Edit/:id" element={<UsersEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 
