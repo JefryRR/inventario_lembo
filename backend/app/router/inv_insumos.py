@@ -9,7 +9,7 @@ from app.crud import inv_insumos as crud_insumos
 from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
-modulo = 17
+modulo = 10
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_insumo(

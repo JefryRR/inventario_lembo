@@ -9,7 +9,7 @@ from app.schemas.users import UserOut
 from app.crud import mortalidad as crud_mortalidad
 
 router = APIRouter()
-modulo = 3 # ID del módulo de lotes para verificar permisos
+modulo = 11 # ID del módulo de lotes para verificar permisos
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_mortalidad(mortalidad: MortalidadCreate, db: Session = Depends(get_db),

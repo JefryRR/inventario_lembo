@@ -9,7 +9,6 @@ class MotivoDevolucion(str, Enum):
 
 class DevolucionBase(BaseModel):
     id_detalle_venta: int
-    venta_id: int
     cant_devolucion: int
     unid_medida_id: int
     motivo: MotivoDevolucion

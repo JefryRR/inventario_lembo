@@ -8,7 +8,7 @@ from app.schemas.users import UserOut
 from app.crud import alimento_prod as crud_alimento_prod
 
 router = APIRouter()
-modulo = 3 # ID del módulo de lotes para verificar permisos
+modulo = 14 # ID del módulo de lotes para verificar permisos
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_alimento(alimento: AlimentoCreate, db: Session = Depends(get_db),

@@ -10,7 +10,7 @@ from app.crud import modulos as crud_modulo
 from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
-modulo = 1
+modulo = 4
 
 # Endpoint para crear un nuevo módulo
 @router.post("/crear", status_code=status.HTTP_201_CREATED)

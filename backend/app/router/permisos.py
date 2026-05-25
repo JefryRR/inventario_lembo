@@ -10,7 +10,7 @@ from app.router.dependencies import get_current_user
 from app.core.database import get_db
 
 router = APIRouter()
-modulo = 2  # ID asignados
+modulo = 1  # ID asignados
 
 # Crear permiso
 @router.post("/crear", status_code=status.HTTP_201_CREATED)

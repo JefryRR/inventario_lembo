@@ -12,10 +12,10 @@ def create_devolucion(db: Session, devolucion: DevolucionCreate) -> Optional[boo
     try:
         query = text("""
             INSERT INTO devoluciones (
-                id_detalle_venta, venta_id, cant_devolucion, unid_medida_id,
+                id_detalle_venta, cant_devolucion, unid_medida_id,
                 motivo, fecha_dev, user_id, observacion
             ) VALUES (
-                :id_detalle_venta, :venta_id, :cant_devolucion, :unid_medida_id,
+                :id_detalle_venta, :cant_devolucion, :unid_medida_id,
                 :motivo, :fecha_dev, :user_id, :observacion
             )
         """)
@@ -30,12 +30,12 @@ def create_devolucion(db: Session, devolucion: DevolucionCreate) -> Optional[boo
 def get_devolucion_by_id(db: Session, id: int) -> Optional[DevolucionOut]:
     try:
         query = text("""
-                    SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion, d.unid_medida_id,
-                    d.motivo, d.fecha_dev, d.user_id, d.observacion,
+                    SELECT d.id_devolucion, d.id_detalle_venta, d.cant_devolucion, d.unid_medida_id,
+                    d.motivo, d.fecha_dev, d.user_id, d.observacion, dv.venta_id,
                     dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
                     FROM devoluciones AS d
                     LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
-                    LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
+                    LEFT JOIN ventas AS v ON dv.venta_id = v.id_venta
                     LEFT JOIN users AS u ON d.user_id = u.id_user
                     LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
                     WHERE d.id_devolucion = :id
@@ -49,16 +49,17 @@ def get_devolucion_by_id(db: Session, id: int) -> Optional[DevolucionOut]:
 def get_all_devoluciones(db: Session) -> list[DevolucionOut]:
     try:
         query = text("""
-            SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion, d.unid_medida_id,
-                   d.motivo, d.fecha_dev, d.user_id, d.observacion,
-                   dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
-            FROM devoluciones AS d
-            LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
-            LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
-            LEFT JOIN users AS u ON d.user_id = u.id_user
-            LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
-            ORDER BY d.fecha_dev DESC
-        """)
+                    SELECT d.id_devolucion, d.id_detalle_venta, d.cant_devolucion, d.unid_medida_id,
+                    d.motivo, d.fecha_dev, d.user_id, d.observacion, dv.venta_id,
+                    pr.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
+                    FROM devoluciones AS d
+                    LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
+                    LEFT JOIN ventas AS v ON dv.venta_id = v.id_venta
+                    LEFT JOIN inv_produccion AS pr ON dv.inv_prod_id = pr.id_inventario
+                    LEFT JOIN users AS u ON d.user_id = u.id_user
+                    LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
+                    ORDER BY d.fecha_dev DESC
+                """)
         result = db.execute(query).mappings().all()
         return result
     except SQLAlchemyError as e:
@@ -104,12 +105,12 @@ def get_devoluciones_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Devoluciones paginadas
         data_query = text("""
-                    SELECT d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion, d.unid_medida_id,
-                   d.motivo, d.fecha_dev, d.user_id, d.observacion,
-                   dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
+                    SELECT d.id_devolucion, d.id_detalle_venta, d.cant_devolucion, d.unid_medida_id,
+                    d.motivo, d.fecha_dev, d.user_id, d.observacion, dv.venta_id,
+                    dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
                     FROM devoluciones AS d
                     LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
-                    LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
+                    LEFT JOIN ventas AS v ON dv.venta_id = v.id_venta
                     LEFT JOIN users AS u ON d.user_id = u.id_user
                     LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
                     ORDER BY d.fecha_dev DESC

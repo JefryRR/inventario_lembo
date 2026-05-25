@@ -10,7 +10,7 @@ from app.crud import categorias as crud_categorias
 from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
-modulo = 2
+modulo = 6
 
 # Endpoint para crear un nuevo rol
 @router.post("/crear", status_code=status.HTTP_201_CREATED)

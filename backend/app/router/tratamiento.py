@@ -8,7 +8,7 @@ from app.schemas.users import UserOut
 from app.crud import tratamiento as crud_tratamiento
 
 router = APIRouter()
-modulo = 3 # ID del módulo de lotes para verificar permisos
+modulo = 16 # ID del módulo de lotes para verificar permisos
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_tratamiento(tratamiento: TratamientoCreate, db: Session = Depends(get_db),
