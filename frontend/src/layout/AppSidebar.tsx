@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
 const modulosItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Módulo operativo",
+    name: "Módulo usuarios",
     subItems: [
       {
         name: "Usuarios",
@@ -43,7 +43,25 @@ const modulosItems: NavItem[] = [
       { 
         name: "Roles",
         path: "/roles",
-      }
+      },
+      { 
+        name: "Permisos",
+        path: "/permisos",
+      },
+      { 
+        name: "Módulos",
+        path: "/modulos",
+      },
+    ],
+  },
+  {
+    icon: <GridIcon />,
+    name: "Módulo operativo",
+    subItems: [
+      {
+        name: "Usuarios",
+        path: "/users",
+      },
     ],
   }
 ];

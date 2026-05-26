@@ -74,7 +74,7 @@ def get_permiso_by_id(
         raise HTTPException(status_code=500, detail=str(e))
 
 # Actualizar permiso
-@router.put("/{id_modulo}/{id_rol}")
+@router.put("/update/{id_modulo}/{id_rol}")
 def update_permiso(
     id_modulo: int,
     id_rol: int,

@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
+// @ts-ignore: api helper is a JS module without generated declarations
+import { apiFetch } from "@/services/api";
 
 type PermissionFormState = {
     id_modulo: number;
@@ -12,6 +14,16 @@ type PermissionFormState = {
     borrar: boolean;
     nombre_modulo: string;
     nombre_rol: string;
+};
+
+type RoleOption = {
+    id_rol: number;
+    nombre_rol: string;
+};
+
+type ModuleOption = {
+    id_modulo: number;
+    nombre: string;
 };
 
 const initialState: PermissionFormState = {
@@ -25,61 +37,114 @@ const initialState: PermissionFormState = {
     nombre_rol: "",
 };
 
-export default function PermissionsCreate() {
+export default function UsersCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<PermissionFormState>(initialState);
     const [loading, setLoading] = useState(false);
+    const [loadingRoles, setLoadingRoles] = useState(false);
+    const [loadingModulos, setLoadingModulos] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
+    const [roles, setRoles] = useState<RoleOption[]>([]);
+    const [modulos, setModulos] = useState<ModuleOption[]>([]);
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        let mounted = true;
+
+        const loadRoles = async () => {
+            setLoadingRoles(true);
+            try {
+                const rolesData = await apiFetch(`roles/all/roles`);
+                if (!mounted) return;
+
+                const roleList = Array.isArray(rolesData?.roles)
+                    ? rolesData.roles
+                    : Array.isArray(rolesData)
+                        ? rolesData
+                        : [];
+
+                setRoles(roleList);
+            } catch (requestError: any) {
+                if (!mounted) return;
+                setError(requestError?.detail || requestError?.message || "No se pudieron cargar los roles");
+            } finally {
+                if (mounted) setLoadingRoles(false);
+            }
+        };
+
+        loadRoles();
+
+        const loadModulos = async () => {
+            setLoadingModulos(true);
+            try {
+                const modulosData = await apiFetch(`modulos/all/modulos`);
+                if (!mounted) return;
+
+                const moduleList = Array.isArray(modulosData?.modulos)
+                    ? modulosData.modulos
+                    : Array.isArray(modulosData)
+                        ? modulosData
+                        : [];
+
+                setModulos(moduleList);
+            } catch (requestError: any) {
+                if (!mounted) return;
+                setError(requestError?.detail || requestError?.message || "No se pudieron cargar los módulos");
+            } finally {
+                if (mounted) setLoadingModulos(false);
+            }
+        };
+
+        loadModulos();
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const handleChange =
+        (field: keyof PermissionFormState) =>
+            (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+                const target = event.target as HTMLInputElement | HTMLSelectElement;
+                let value: any;
+                if (field === "insertar" || field === "actualizar" || field === "seleccionar" || field === "borrar") {
+                    const raw = (target as HTMLSelectElement).value ?? (target as HTMLInputElement).checked;
+                    value = raw === '1' || String(raw).toLowerCase() === 'si' || String(raw).toLowerCase() === 'true';
+                } else if (field === 'id_modulo' || field === 'id_rol') {
+                    value = Number(target.value);
+                } else {
+                    value = target.value;
+                }
+                setForm((current) => ({ ...current, [field]: value }));
+            };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
         setError(null);
         setSuccess(null);
-
+    
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                navigate("/signin");
-                return;
-            }
-
             const payload = {
-                id_modulo: form.id_modulo,
-                id_rol: form.id_rol,
+                id_modulo: Number(form.id_modulo),
+                id_rol: Number(form.id_rol),
                 insertar: form.insertar,
                 actualizar: form.actualizar,
                 seleccionar: form.seleccionar,
                 borrar: form.borrar,
-                nombre_modulo: form.nombre_modulo,
-                nombre_rol: form.nombre_rol,
             };
 
-            const response = await fetch("http://localhost:8000/permisos/crear", {
+            const data = await apiFetch("permisos/crear", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(payload),
+                body: payload,
             });
-
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(
-                    data?.detail || data?.message || "No se pudo crear el permiso"
-                );
-            }
 
             setSuccess(data?.message || "Permiso creado correctamente");
             setForm(initialState);
-            navigate("/users");
+            navigate("/permisos");
         } catch (requestError: any) {
             setError(
-                requestError?.message || "Ocurrió un error al crear el permiso"
+                requestError?.detail || requestError?.message || "Ocurrió un error al crear el permiso"
             );
         } finally {
             setLoading(false);
@@ -119,22 +184,32 @@ export default function PermissionsCreate() {
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Módulo <span className="text-error-500">*</span>
                             </label>
-                            <input
-                                value={form.nombre_modulo}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-                                required
-                            />
+                            <select value={form.id_modulo} onChange={handleChange("id_modulo")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingModulos || modulos.length === 0}>
+                                <option value={0} disabled>
+                                    {loadingModulos ? "Cargando módulos..." : "Selecciona un módulo"}
+                                </option>
+                                {modulos.map((modulo) => (
+                                    <option key={modulo.id_modulo} value={modulo.id_modulo}>
+                                        {modulo.nombre}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Rol <span className="text-error-500">*</span>
                             </label>
-                            <input
-                                value={form.nombre_rol}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-                                required
-                            />
+                            <select value={form.id_rol} onChange={handleChange("id_rol")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingRoles || roles.length === 0}>
+                                <option value={0} disabled>
+                                    {loadingRoles ? "Cargando roles..." : "Selecciona un rol"}
+                                </option>
+                                {roles.map((role) => (
+                                    <option key={role.id_rol} value={role.id_rol}>
+                                        {role.nombre_rol}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         <div>
@@ -142,12 +217,13 @@ export default function PermissionsCreate() {
                                 Insertar <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.insertar ? "true" : "false"}
+                                value={form.insertar ? "Si" : "No"}
+                                onChange={handleChange("insertar")}
                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required
                             >
-                                <option value="true">Sí</option>
-                                <option value="false">No</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
                             </select>
                         </div>
 
@@ -156,12 +232,13 @@ export default function PermissionsCreate() {
                                 Actualizar <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.actualizar ? "true" : "false"}
+                                value={form.actualizar ? "Si" : "No"}
+                                onChange={handleChange("actualizar")}
                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required
                             >
-                                <option value="true">Sí</option>
-                                <option value="false">No</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
                             </select>
                         </div>
 
@@ -170,12 +247,13 @@ export default function PermissionsCreate() {
                                 Seleccionar <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.seleccionar ? "true" : "false"}
+                                value={form.seleccionar ? "Si" : "No"}
+                                onChange={handleChange("seleccionar")}
                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required
                             >
-                                <option value="true">Sí</option>
-                                <option value="false">No</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
                             </select>
                         </div>
 
@@ -184,12 +262,13 @@ export default function PermissionsCreate() {
                                 Eliminar <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.borrar ? "true" : "false"}
+                                value={form.borrar ? "Si" : "No"}
+                                onChange={handleChange("borrar")}
                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required
                             >
-                                <option value="true">Sí</option>
-                                <option value="false">No</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
                             </select>
                         </div>
                     </div>
@@ -212,7 +291,7 @@ export default function PermissionsCreate() {
                             disabled={loading}
                             className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {loading ? "Guardando..." : "Guardar permisos"}
+                            {loading ? "Guardando..." : "Guardar permiso"}
                         </button>
                         <Link
                             to="/permisos"
