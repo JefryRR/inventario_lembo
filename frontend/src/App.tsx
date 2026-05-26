@@ -15,6 +15,8 @@ import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import Users from "./pages/users";
 import Roles from "./pages/roles";
+import RolesCreate from "./components/roles/rolesCreate"
+import RolesEdit from "./components/roles/rolesEdit";
 import UsersCreate from "./components/users/usersCreate";
 import UsersEdit from "./components/users/usersEdit";
 import AppLayout from "./layout/AppLayout";
@@ -39,6 +41,8 @@ export default function App() {
             <Route path="/users/create" element={<UsersCreate />} />
             <Route path="/users/Edit/:id" element={<UsersEdit />} />
             <Route path="/roles" element={<Roles />} />
+            <Route path="/roles/crear" element={<RolesCreate />} />
+            <Route path="/roles/editar/:id_rol" element={<RolesEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

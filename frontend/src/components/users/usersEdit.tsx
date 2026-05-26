@@ -95,7 +95,7 @@ export default function UsersEdit() {
     const handleChange =
         (field: keyof UserFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-                const value = field === "estado" ? (event.target as HTMLInputElement).checked : event.target.value;
+                const value = event.target.value;
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
@@ -115,7 +115,6 @@ export default function UsersEdit() {
                 correo: form.correo.trim(),
                 ...(form.pass_hash ? { pass_hash: form.pass_hash } : {}),
                 rol_id: Number(form.rol_id),
-                estado: form.estado,
             };
 
             await apiFetch(`users/by-id/${id}`, { method: "PUT", body: payload });
@@ -131,7 +130,6 @@ export default function UsersEdit() {
     return (
         <>
             <PageMeta title="Editar usuario | Inventario Lembo" description="Editar usuario" />
-            <PageBreadcrumb pageTitle="Editar usuario" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
@@ -198,10 +196,6 @@ export default function UsersEdit() {
                                             </option>
                                         ))}
                                     </select>
-                                </div>
-                                <div className="flex items-center gap-3 md:col-span-2">
-                                    <input id="estado" type="checkbox" checked={form.estado} onChange={handleChange("estado")} className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
-                                    <label htmlFor="estado" className="text-sm text-gray-700 dark:text-gray-300">Usuario activo</label>
                                 </div>
                             </div>
 

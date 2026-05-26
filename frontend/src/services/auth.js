@@ -15,9 +15,17 @@ export async function login(username, password) {
     },
     body: formData,
   });
-//Condición donde si los datos no coinciden, retorna el mensaje
+  // Si la respuesta no es OK intentamos leer el detalle enviado por el backend
   if (!response.ok) {
-    throw new Error("Usuario o contraseña no validos");
+    let errData = {};
+    try {
+      errData = await response.json();
+    } catch (e) {
+      // ignore JSON parse errors
+    }
+
+    const detail = errData?.detail || errData?.message || "Usuario o contraseña no validos";
+    throw new Error(detail);
   }
 
   return response.json();

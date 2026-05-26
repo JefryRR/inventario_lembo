@@ -25,19 +25,6 @@ type UsersResponse = {
 
 const PAGE_SIZES = [5, 10, 20, 50];
 
-function StatusBadge({ active }: { active: boolean }) {
-    return (
-        <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${active
-                ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
-                : "bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400"
-                }`}
-        >
-            {active ? "Activo" : "Inactivo"}
-        </span>
-    );
-}
-
 export default function Users() {
     const navigate = useNavigate();
     const [users, setUsers] = useState<UserRow[]>([]);
@@ -118,9 +105,18 @@ export default function Users() {
     }, [search, users]);
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    // const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
-    // const endItem = Math.min(page * pageSize, total);
 
+    const handleStatusChange = async (id_user: number, newState: boolean) => {
+        // optimista: actualizar UI inmediatamente
+        setUsers((prev) => prev.map(u => u.id_user === id_user ? { ...u, estado: newState } : u));
+        try {
+            await apiFetch(`users/by-id/${id_user}/status`, { method: "PUT", body: { estado: newState } });
+        } catch (err) {
+            // rollback si falla
+            setUsers((prev) => prev.map(u => u.id_user === id_user ? { ...u, estado: !newState } : u));
+            console.error(err);
+        }
+    };
     return (
         <>
             <PageBreadcrumb pageTitle="Usuarios" />
@@ -209,7 +205,7 @@ export default function Users() {
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">
                                                 {user.nombre_user}
                                             </div>
-                                            <div className="text-xs text-gray-500 dark:text-gray-400">{user.tipo_documento}. {user.documento}</div> 
+                                            <div className="text-xs text-gray-500 dark:text-gray-400">{user.tipo_documento}. {user.documento}</div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div> {user.correo} </div>
@@ -222,7 +218,12 @@ export default function Users() {
 
                                         </td>
                                         <td className="px-5 py-4">
-                                            <StatusBadge active={user.estado} />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleStatusChange(user.id_user, !user.estado)}
+                                                className="inline-flex ...">
+                                                {user.estado ? <span className="text-success-700">Activo</span> : <span className="text-error-700">Inactivo</span>}
+                                            </button>
                                         </td>
                                         <td className="px-5 py-4">
                                             <Link
