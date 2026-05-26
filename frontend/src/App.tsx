@@ -17,6 +17,9 @@ import Blank from "./pages/Blank";
 import Users from "./pages/users/users";
 import UsersCreate from "./components/users/usersCreate";
 import UsersEdit from "./components/users/usersEdit";
+import Permisos from "./pages/permisos";
+import PermisosCreate from "./components/permisos/permisosCreate";
+import PermisosEdit from "./components/permisos/permisosEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -39,6 +42,9 @@ export default function App() {
             <Route path="/users" element={<Users />} />
             <Route path="/users/create" element={<UsersCreate />} />
             <Route path="/users/Edit/:id" element={<UsersEdit />} />
+            <Route path="/permisos" element={<Permisos />} />
+            <Route path="/permisos/create" element={<PermisosCreate />} />
+            <Route path="/permisos/edit/:moduloId/:rolId" element={<PermisosEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 
