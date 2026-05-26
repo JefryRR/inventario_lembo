@@ -25,6 +25,12 @@ import PermisosEdit from "./components/permisos/permisosEdit";
 import Modulos from "./pages/modulos";
 import ModulosCreate from "./components/modulos/modulosCreate";
 import ModulosEdit from "./components/modulos/modulosEdit";
+import Categorias from "./pages/categorias";
+import CategoriasCreate from "./components/categorias/categoriasCreate";
+import CategoriasEdit from "./components/categorias/categoriasEdit";
+import Especies from "./pages/especies";
+import EspeciesCreate from "./components/especies/especiesCreate";
+import EspeciesEdit from "./components/especies/especiesEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -52,6 +58,12 @@ export default function App() {
             <Route path="/modulos" element={<Modulos />} />
             <Route path="/modulos/create" element={<ModulosCreate />} />
             <Route path="/modulos/edit/:id" element={<ModulosEdit />} />
+            <Route path="/categorias" element={<Categorias />} />
+            <Route path="/categorias/crear" element={<CategoriasCreate />} />
+            <Route path="/categorias/edit/:id" element={<CategoriasEdit />} />
+            <Route path="/especies" element={<Especies />} />
+            <Route path="/especies/create" element={<EspeciesCreate />} />
+            <Route path="/especies/edit/:id" element={<EspeciesEdit />} />
             <Route path="/roles" element={<Roles />} />
             <Route path="/roles/crear" element={<RolesCreate />} />
             <Route path="/roles/editar/:id_rol" element={<RolesEdit />} />

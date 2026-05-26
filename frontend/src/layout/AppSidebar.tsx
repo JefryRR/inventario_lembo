@@ -59,8 +59,12 @@ const modulosItems: NavItem[] = [
     name: "Módulo operativo",
     subItems: [
       {
-        name: "Usuarios",
-        path: "/users",
+        name: "Categorías",
+        path: "/categorias",
+      },
+      {
+        name: "Especies",
+        path: "/especies",
       },
     ],
   }
