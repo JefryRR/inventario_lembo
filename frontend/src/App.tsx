@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import NotFound from "./pages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
 import Videos from "./pages/UiElements/Videos";
 import Images from "./pages/UiElements/Images";
 import Alerts from "./pages/UiElements/Alerts";
@@ -14,7 +13,8 @@ import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
-import Users from "./pages/users/users";
+import Users from "./pages/users";
+import Roles from "./pages/roles";
 import UsersCreate from "./components/users/usersCreate";
 import UsersEdit from "./components/users/usersEdit";
 import AppLayout from "./layout/AppLayout";
@@ -35,10 +35,10 @@ export default function App() {
             <Route path="/dashboard" element={<Home />} />
 
             {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
             <Route path="/users" element={<Users />} />
             <Route path="/users/create" element={<UsersCreate />} />
             <Route path="/users/Edit/:id" element={<UsersEdit />} />
+            <Route path="/roles" element={<Roles />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

@@ -25,6 +25,9 @@ export default function SignInForm() {
       const data = await login(email, password);
       if (data?.access_token) {
         localStorage.setItem("token", data.access_token);
+        if (data?.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
         navigate("/dashboard");
       } else {
         setError("Respuesta inválida del servidor");

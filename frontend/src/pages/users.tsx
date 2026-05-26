@@ -209,8 +209,7 @@ export default function Users() {
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">
                                                 {user.nombre_user}
                                             </div>
-                                            <div className="text-xs text-gray-500 dark:text-gray-400">{user.tipo_documento}. {user.documento}</div>
-                                            <div className="text-xs text-gray-500 dark:text-gray-400"></div>
+                                            <div className="text-xs text-gray-500 dark:text-gray-400">{user.tipo_documento}. {user.documento}</div> 
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div> {user.correo} </div>

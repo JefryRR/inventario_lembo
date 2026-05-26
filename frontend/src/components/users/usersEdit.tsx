@@ -13,7 +13,13 @@ type UserFormState = {
     correo: string;
     pass_hash: string;
     rol_id: string;
+    nombre_rol: string;
     estado: boolean;
+};
+
+type RoleOption = {
+    id_rol: number;
+    nombre_rol: string;
 };
 
 const emptyState: UserFormState = {
@@ -24,6 +30,7 @@ const emptyState: UserFormState = {
     correo: "",
     pass_hash: "",
     rol_id: "",
+    nombre_rol: "",
     estado: true,
 };
 
@@ -33,6 +40,7 @@ export default function UsersEdit() {
     const id = params.id;
 
     const [form, setForm] = useState<UserFormState>(emptyState);
+    const [roles, setRoles] = useState<RoleOption[]>([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -46,19 +54,31 @@ export default function UsersEdit() {
             setLoading(true);
             setError(null);
             try {
-                const data = await apiFetch(`users/by-id/${id}`);
+                const [userData, rolesData] = await Promise.all([
+                    apiFetch(`users/by-id/${id}`),
+                    apiFetch(`roles/all/roles`),
+                ]);
                 if (!mounted) return;
 
+                const roleList = Array.isArray(rolesData?.roles)
+                    ? rolesData.roles
+                    : Array.isArray(rolesData)
+                        ? rolesData
+                        : [];
+
                 setForm({
-                    nombre_user: data?.nombre_user || "",
-                    documento: data?.documento ? String(data.documento) : "",
-                    tipo_documento: data?.tipo_documento || "CC",
-                    telefono: data?.telefono || "",
-                    correo: data?.correo || "",
+                    nombre_user: userData?.nombre_user || "",
+                    documento: userData?.documento ? String(userData.documento) : "",
+                    tipo_documento: userData?.tipo_documento || "CC",
+                    telefono: userData?.telefono || "",
+                    correo: userData?.correo || "",
                     pass_hash: "",
-                    rol_id: data?.rol_id ? String(data.rol_id) : "",
-                    estado: data?.estado !== undefined ? Boolean(data.estado) : true,
+                    rol_id: userData?.rol_id ? String(userData.rol_id) : "",
+                    nombre_rol: userData?.nombre_rol || "",
+                    estado: userData?.estado !== undefined ? Boolean(userData.estado) : true,
                 });
+
+                setRoles(roleList);
             } catch (err: any) {
                 setError(err?.detail || err?.message || "No se pudo cargar el usuario");
             } finally {
@@ -169,9 +189,14 @@ export default function UsersEdit() {
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Rol <span className="text-error-500">*</span></label>
                                     <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        <option value="">Seleccionar rol</option>
-                                        <option value="2">Administrador</option>
-                                        <option value="3">Lider</option>
+                                        {form.rol_id && !roles.some((role) => String(role.id_rol) === form.rol_id) && (
+                                            <option value={form.rol_id}>{form.nombre_rol || "Rol asignado"}</option>
+                                        )}
+                                        {roles.map((role) => (
+                                            <option key={role.id_rol} value={String(role.id_rol)}>
+                                                {role.nombre_rol}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="flex items-center gap-3 md:col-span-2">
