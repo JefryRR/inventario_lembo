@@ -21,11 +21,12 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/dashboard", pro: false }],
+    path: "/dashboard"
+    // subItems: [{ name: "Estadisticas", path: "/dashboard", pro: false }],
   },
   {
     icon: <CalenderIcon />,
-    name: "Calendar",
+    name: "Calendario",
     path: "/calendar",
   },
 ];
@@ -39,6 +40,10 @@ const modulosItems: NavItem[] = [
         name: "Usuarios",
         path: "/users",
       },
+      { 
+        name: "Roles",
+        path: "/roles",
+      }
     ],
   }
 ];

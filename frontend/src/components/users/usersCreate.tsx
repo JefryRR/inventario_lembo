@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
+// @ts-ignore: api helper is a JS module without generated declarations
+import { apiFetch } from "@/services/api";
 
 type UserFormState = {
     nombre_user: string;
@@ -12,6 +14,11 @@ type UserFormState = {
     pass_hash: string;
     rol_id: string;
     estado: boolean;
+};
+
+type RoleOption = {
+    id_rol: number;
+    nombre_rol: string;
 };
 
 const initialState: UserFormState = {
@@ -29,8 +36,41 @@ export default function UsersCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<UserFormState>(initialState);
     const [loading, setLoading] = useState(false);
+    const [loadingRoles, setLoadingRoles] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
+    const [roles, setRoles] = useState<RoleOption[]>([]);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const loadRoles = async () => {
+            setLoadingRoles(true);
+            try {
+                const rolesData = await apiFetch(`roles/all/roles`);
+                if (!mounted) return;
+
+                const roleList = Array.isArray(rolesData?.roles)
+                    ? rolesData.roles
+                    : Array.isArray(rolesData)
+                        ? rolesData
+                        : [];
+
+                setRoles(roleList);
+            } catch (requestError: any) {
+                if (!mounted) return;
+                setError(requestError?.detail || requestError?.message || "No se pudieron cargar los roles");
+            } finally {
+                if (mounted) setLoadingRoles(false);
+            }
+        };
+
+        loadRoles();
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const handleChange =
         (field: keyof UserFormState) =>
@@ -48,14 +88,8 @@ export default function UsersCreate() {
         setLoading(true);
         setError(null);
         setSuccess(null);
-
+    
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                navigate("/signin");
-                return;
-            }
-
             const payload = {
                 nombre_user: form.nombre_user.trim(),
                 documento: Number(form.documento),
@@ -67,29 +101,17 @@ export default function UsersCreate() {
                 estado: form.estado,
             };
 
-            const response = await fetch("http://localhost:8000/users/create", {
+            const data = await apiFetch("users/create", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(payload),
+                body: payload,
             });
-
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(
-                    data?.detail || data?.message || "No se pudo crear el usuario"
-                );
-            }
 
             setSuccess(data?.message || "Usuario creado correctamente");
             setForm(initialState);
             navigate("/users");
         } catch (requestError: any) {
             setError(
-                requestError?.message || "Ocurrió un error al crear el usuario"
+                requestError?.detail || requestError?.message || "Ocurrió un error al crear el usuario"
             );
         } finally {
             setLoading(false);
@@ -215,10 +237,15 @@ export default function UsersCreate() {
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Rol <span className="text-error-500">*</span>
                             </label>
-                            <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                <option value="">Seleccionar rol</option>
-                                <option value="2">Administrador</option>
-                                <option value="3">Lider</option>
+                            <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingRoles || roles.length === 0}>
+                                <option value="" disabled>
+                                    {loadingRoles ? "Cargando roles..." : "Selecciona un rol"}
+                                </option>
+                                {roles.map((role) => (
+                                    <option key={role.id_rol} value={String(role.id_rol)}>
+                                        {role.nombre_rol}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
