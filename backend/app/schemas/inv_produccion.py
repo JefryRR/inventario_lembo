@@ -10,8 +10,7 @@ class ProduccionBase(BaseModel):
     fecha_vencimiento: datetime
     lote_id: int
     valor_unitario: float
-    categoria_id: int
-    especie_id: int
+   
 
 class ProduccionCreate(ProduccionBase):
     pass
@@ -31,6 +30,8 @@ class ProduccionOut(ProduccionBase):
     nombre_categoria: str
     nombre_especie: str
     simbolo: str
+    dias_restantes: int
+    nivel_alerta: Optional[str] = None
 
 class PaginatedProducciones(BaseModel):
     page: int

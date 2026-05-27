@@ -6,6 +6,7 @@ from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate, ProduccionOut, PaginatedProducciones
 from app.crud import inv_produccion as crud_produccion
+from app.crud import lotes as crud_lotes
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 
@@ -22,9 +23,22 @@ def create_produccion(
         id_rol = user_token.rol_id
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+
+        lote = crud_lotes.get_lote_by_id(db, produccion.lote_id)
+        if not lote:
+            raise HTTPException(status_code=404, detail="Lote no encontrado")
+
+        estados_bloqueados = {"activo", "cuarentena", "finalizado"}
+        if lote["estado_lote"] in estados_bloqueados:
+            raise HTTPException(
+                status_code=400,
+                detail="No se puede registrar la producción porque el lote está activo, en cuarentena o finalizado"
+            )
         
         crud_produccion.create_produccion(db, produccion)
         return {"message": "Producción registrada correctamente"}
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -60,9 +74,9 @@ def get_all_produccion(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.put("/update/production/{produccion_id}")
+@router.put("/update/{produccion_id}")
 def update_produccion(
-    id_inventario: int,
+    produccion_id: int,
     produccion: ProduccionUpdate,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
@@ -72,10 +86,12 @@ def update_produccion(
         if not verify_permissions(db, id_rol, modulo, 'actualizar'):
             raise HTTPException(status_code=401, detail='Usuario no autorizado')
         
-        success = crud_produccion.update_produccion(db, id_inventario, produccion)
+        success = crud_produccion.update_produccion(db, produccion_id, produccion)
         if not success:
             raise HTTPException(status_code=400, detail="No se pudo actualizar la producción")
         return {"message": "Producción actualizada correctamente"}
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -102,5 +118,7 @@ def get_produccion_paginated(
             "page_size": page_size,
             "produccion": produccion
         }
+    except HTTPException:
+        raise
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))

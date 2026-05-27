@@ -1,49 +1,79 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-type UserFormState = {
-    nombre_user: string;
-    documento: string;
-    tipo_documento: string;
-    telefono: string;
-    correo: string;
-    pass_hash: string;
-    rol_id: string;
-    nombre_rol: string;
-    estado: boolean;
+type Inv_prodFormState = {
+    nombre_producto: string,
+    cantidad: string,
+    unid_medida_id: string,
+    fecha_vencimiento: string,
+    lote_id: string,
+    valor_unitario: string,
+    nombre_lote: string,
+    categoria_id: string,
+    especie_id: string,
+    nombre_categoria: string,
+    nombre_especie: string,
+    simbolo: string,
 };
 
-type RoleOption = {
-    id_rol: number;
-    nombre_rol: string;
+type LoteOption = {
+    id_lote: number;
+    nombre_lote: string;
 };
 
-const emptyState: UserFormState = {
-    nombre_user: "",
-    documento: "",
-    tipo_documento: "CC",
-    telefono: "",
-    correo: "",
-    pass_hash: "",
-    rol_id: "",
-    nombre_rol: "",
-    estado: true,
+type CategoriaOption = {
+    id_categoria: number;
+    nombre_categoria: string;
 };
 
-export default function UsersEdit() {
+type EspecieOption = {
+    id_especie: number;
+    nombre_especie: string;
+};
+
+type Unid_medOption = {
+    id_unidad: number;
+    simbolo: string;
+};
+
+const emptyState: Inv_prodFormState = {
+    nombre_producto: "",
+    cantidad: "",
+    unid_medida_id: "",
+    fecha_vencimiento: "",
+    lote_id: "",
+    valor_unitario: "",
+    nombre_lote: "",
+    categoria_id: "",
+    especie_id: "",
+    nombre_categoria: "",
+    nombre_especie: "",
+    simbolo: ""
+};
+
+export default function Inv_prodEdit() {
     const navigate = useNavigate();
     const params = useParams();
-    const id = params.id;
+    const id = params.id_inventario;
 
-    const [form, setForm] = useState<UserFormState>(emptyState);
-    const [roles, setRoles] = useState<RoleOption[]>([]);
+    const [form, setForm] = useState<Inv_prodFormState>(emptyState);
     const [loading, setLoading] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
+    const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
+    const [especies, setEspecies] = useState<EspecieOption[]>([]);
+    const [lotes, setLotes] = useState<LoteOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
+
+    const toDateInputValue = (value: string | number | Date | undefined) => {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        return date.toISOString().slice(0, 10);
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -53,33 +83,49 @@ export default function UsersEdit() {
             setLoading(true);
             setError(null);
             try {
-                const [userData, rolesData] = await Promise.all([
-                    apiFetch(`users/by-id/${id}`),
-                    apiFetch(`roles/all/roles`),
+                const [invProdData, lotesData, UnidMedidasData, CategoriasData, EspeciesData] = await Promise.all([
+                    apiFetch(`inv_produccion/by-id?id=${id}`),
+                    apiFetch(`lotes/all-lotes_prod`),
+                    apiFetch(`unid-medida/all-unid_medidas`),
+                    apiFetch(`categorias/all-categorias`),
+                    apiFetch(`especies/all-especies`),
                 ]);
                 if (!mounted) return;
 
-                const roleList = Array.isArray(rolesData?.roles)
-                    ? rolesData.roles
-                    : Array.isArray(rolesData)
-                        ? rolesData
-                        : [];
+                const lotesList = Array.isArray(lotesData?.lotes) ? lotesData.Lotes :
+                    Array.isArray(lotesData) ? lotesData : [];
+
+                const unidMedList = Array.isArray(UnidMedidasData?.unid_medidas) ? UnidMedidasData.unid_medidas :
+                    Array.isArray(UnidMedidasData) ? UnidMedidasData : [];
+
+                const categoriasList = Array.isArray(CategoriasData?.categorias) ? CategoriasData.categorias :
+                    Array.isArray(CategoriasData) ? CategoriasData : [];
+
+                const especiesList = Array.isArray(EspeciesData?.especies) ? EspeciesData.especies :
+                    Array.isArray(EspeciesData) ? EspeciesData : [];
 
                 setForm({
-                    nombre_user: userData?.nombre_user || "",
-                    documento: userData?.documento ? String(userData.documento) : "",
-                    tipo_documento: userData?.tipo_documento || "CC",
-                    telefono: userData?.telefono || "",
-                    correo: userData?.correo || "",
-                    pass_hash: "",
-                    rol_id: userData?.rol_id ? String(userData.rol_id) : "",
-                    nombre_rol: userData?.nombre_rol || "",
-                    estado: userData?.estado !== undefined ? Boolean(userData.estado) : true,
+                    nombre_producto: invProdData?.nombre_producto || "",
+                    cantidad: String(invProdData?.cantidad ?? ""),
+                    unid_medida_id: invProdData?.unid_medida_id ? String(invProdData.unid_medida_id) : "",
+                    fecha_vencimiento: toDateInputValue(invProdData?.fecha_vencimiento),
+                    lote_id: invProdData?.lote_id ? String(invProdData.lote_id) : "",
+                    valor_unitario: invProdData?.valor_unitario ? String(invProdData.valor_unitario) : "",
+                    nombre_lote: invProdData?.nombre_lote || "",
+                    categoria_id: invProdData?.categoria_id ? String(invProdData.categoria_id) : "",
+                    especie_id: invProdData?.especie_id ? String(invProdData.especie_id) : "",
+                    nombre_categoria: invProdData?.nombre_categoria || "",
+                    nombre_especie: invProdData?.nombre_especie || "",
+                    simbolo: invProdData?.simbolo || ""
                 });
 
-                setRoles(roleList);
+                setLotes(lotesList);
+                setUnidMedidas(unidMedList);
+                setCategorias(categoriasList);
+                setEspecies(especiesList);
+
             } catch (err: any) {
-                setError(err?.detail || err?.message || "No se pudo cargar el usuario");
+                setError(err?.detail || err?.message || "No se pudo cargar el registro del producto");
             } finally {
                 if (mounted) setLoading(false);
             }
@@ -92,7 +138,7 @@ export default function UsersEdit() {
     }, [id]);
 
     const handleChange =
-        (field: keyof UserFormState) =>
+        (field: keyof Inv_prodFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
                 const value = event.target.value;
                 setForm((current) => ({ ...current, [field]: value }));
@@ -107,20 +153,21 @@ export default function UsersEdit() {
 
         try {
             const payload = {
-                nombre_user: form.nombre_user.trim(),
-                documento: Number(form.documento),
-                tipo_documento: form.tipo_documento.trim(),
-                telefono: form.telefono.trim(),
-                correo: form.correo.trim(),
-                ...(form.pass_hash ? { pass_hash: form.pass_hash } : {}),
-                rol_id: Number(form.rol_id),
+                nombre_producto: form.nombre_producto.trim(),
+                cantidad: Number(form.cantidad),
+                unid_medida_id: Number(form.unid_medida_id),
+                fecha_vencimiento: form.fecha_vencimiento,
+                lote_id: Number(form.lote_id),
+                valor_unitario: Number(form.valor_unitario),
+                categoria_id: Number(form.categoria_id),
+                especie_id: Number(form.especie_id),
             };
 
-            await apiFetch(`users/by-id/${id}`, { method: "PUT", body: payload });
-            setSuccess("Usuario actualizado correctamente");
-            setTimeout(() => navigate("/users"), 800);
+            await apiFetch(`inv_produccion/update/${id}`, { method: "PUT", body: payload });
+            setSuccess("Producto actualizado correctamente");
+            setTimeout(() => navigate("/invProd"), 800);
         } catch (err: any) {
-            setError(err?.detail || err?.message || "No se pudo actualizar el usuario");
+            setError(err?.detail || err?.message || "No se pudo actualizar el producto");
         } finally {
             setSaving(false);
         }
@@ -128,70 +175,91 @@ export default function UsersEdit() {
 
     return (
         <>
-            <PageMeta title="Editar usuario | Inventario Lembo" description="Editar usuario" />
-
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Editar usuario</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Actualiza los datos del usuario.</p>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Editar producto</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Actualiza los datos del producto.</p>
                     </div>
 
-                    <Link to="/users" className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Volver a usuarios</Link>
+                    <Link to="/inv_produccion" className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Volver a productos</Link>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-5 lg:p-6">
                     {loading ? (
-                        <div className="p-6 text-center text-sm text-gray-500">Cargando usuario...</div>
+                        <div className="p-6 text-center text-sm text-gray-500">Cargando producto...</div>
                     ) : error ? (
                         <div className="p-6 text-center text-sm text-error-500">{error}</div>
                     ) : (
                         <>
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre completo <span className="text-error-500">*</span></label>
-                                    <input value={form.nombre_user} onChange={handleChange("nombre_user")} placeholder="Juan Pérez" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del producto <span className="text-error-500">*</span></label>
+                                    <input value={form.nombre_producto} onChange={handleChange("nombre_producto")} placeholder="Carne cerdo" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Documento <span className="text-error-500">*</span></label>
-                                    <input type="number" value={form.documento} onChange={handleChange("documento")} placeholder="1001234567" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Cantidad <span className="text-error-500">*</span></label>
+                                    <input type="number" value={form.cantidad} onChange={handleChange("cantidad")} placeholder="100" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de documento <span className="text-error-500">*</span></label>
-                                    <select value={form.tipo_documento} onChange={handleChange("tipo_documento")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        <option value="CC">CC</option>
-                                        <option value="TI">TI</option>
-                                        <option value="CE">CE</option>
-                                        <option value="PP">PP</option>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Unidad de medida <span className="text-error-500">*</span></label>
+                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                        {form.unid_medida_id && !unidMedidas.some((unidMed) => String(unidMed.id_unidad) === form.unid_medida_id) && (
+                                            <option value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
+                                        )}
+                                        {unidMedidas.map((unidMed) => (
+                                            <option key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
+                                                {unidMed.simbolo}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
-
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono <span className="text-error-500">*</span></label>
-                                    <input value={form.telefono} onChange={handleChange("telefono")} placeholder="3001234567" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha vencimiento <span className="text-error-500">*</span></label>
+                                    <input type="date" value={form.fecha_vencimiento} onChange={handleChange("fecha_vencimiento")} placeholder="usuario@correo.com" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
                                 </div>
-
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Correo <span className="text-error-500">*</span></label>
-                                    <input type="email" value={form.correo} onChange={handleChange("correo")} placeholder="usuario@correo.com" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
-                                </div>
-
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña (dejar en blanco para no cambiar)</label>
-                                    <input type="password" value={form.pass_hash} onChange={handleChange("pass_hash")} placeholder="Mínimo 8 caracteres" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" minLength={8} />
-                                </div>
-
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Rol <span className="text-error-500">*</span></label>
-                                    <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.rol_id && !roles.some((role) => String(role.id_rol) === form.rol_id) && (
-                                            <option value={form.rol_id}>{form.nombre_rol || "Rol asignado"}</option>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre lote <span className="text-error-500">*</span></label>
+                                    <select value={form.lote_id} onChange={handleChange("lote_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                        {form.lote_id && !lotes.some((lote) => String(lote.id_lote) === form.lote_id) && (
+                                            <option value={form.lote_id}>{form.nombre_lote || "Lote asignado"}</option>
                                         )}
-                                        {roles.map((role) => (
-                                            <option key={role.id_rol} value={String(role.id_rol)}>
-                                                {role.nombre_rol}
+                                        {lotes.map((lote) => (
+                                            <option key={lote.id_lote} value={String(lote.id_lote)}>
+                                                {lote.nombre_lote}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Valor unitario</label>
+                                    <input type="number" value={form.valor_unitario} onChange={handleChange("valor_unitario")} placeholder="12785.00" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" minLength={1} />
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Categoría producto <span className="text-error-500">*</span></label>
+                                    <select value={form.categoria_id} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                        {form.categoria_id && !categorias.some((categoria) => String(categoria.id_categoria) === form.categoria_id) && (
+                                            <option value={form.categoria_id}>{form.nombre_categoria || "Categoría asignada"}</option>
+                                        )}
+                                        {categorias.map((categoria) => (
+                                            <option key={categoria.id_categoria} value={String(categoria.id_categoria)}>
+                                                {categoria.nombre_categoria}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Especie producto <span className="text-error-500">*</span></label>
+                                    <select value={form.especie_id} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                        {form.especie_id && !especies.some((especie) => String(especie.id_especie) === form.especie_id) && (
+                                            <option value={form.especie_id}>{form.nombre_especie || "Especie asignada"}</option>
+                                        )}
+                                        {especies.map((especie) => (
+                                            <option key={especie.id_especie} value={String(especie.id_especie)}>
+                                                {especie.nombre_especie}
                                             </option>
                                         ))}
                                     </select>
@@ -209,14 +277,17 @@ export default function UsersEdit() {
                             <div className="mt-6 flex flex-wrap gap-3">
                                 <button type="submit"
                                     disabled={saving}
-                                    className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "Guardando..." : "Actualizar usuario"}
+                                    className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "Guardando..." : "Actualizar producto"}
                                 </button>
-                                <Link to="/users" className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Cancelar</Link>
+                                <Link to="/invProd"
+                                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                                    Cancelar
+                                    </Link>
                             </div>
                         </>
                     )}
                 </form>
-            </div>
+            </div >
         </>
     );
 }

@@ -18,6 +18,7 @@ type invProdRow = {
     especie_id: number,
     nombre_categoria: string,
     nombre_especie: string,
+    nivel_alerta: string,
     simbolo: string
 };
 
@@ -97,7 +98,8 @@ export default function Users() {
                 inv_prod.nombre_especie,
                 inv_prod.fecha_ingreso,
                 inv_prod.fecha_vencimiento,
-                String(inv_prod.valor_unitario)
+                String(inv_prod.valor_unitario),
+                inv_prod.nivel_alerta
             ]
                 .join(" ")
                 .toLowerCase()
@@ -115,6 +117,16 @@ export default function Users() {
             hour: "2-digit",
             minute: "2-digit",
             hour12: true,
+        });
+    };
+
+    const SoloFecha = (fechaString: string | number | Date) => {
+        if (!fechaString) return "-";
+        const fecha = new Date(fechaString);
+        return fecha.toLocaleDateString("es-CO", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
         });
     };
 
@@ -167,7 +179,7 @@ export default function Users() {
                                     cantidad / unidad
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    fecha ingreso
+                                    fecha registro
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     fecha vencimiento
@@ -180,6 +192,9 @@ export default function Users() {
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Lote
+                                </th>
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    Estado
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Accciones
@@ -222,7 +237,7 @@ export default function Users() {
                                             <div> {formatearFecha(inv_prod.fecha_ingreso)} </div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div>{formatearFecha(inv_prod.fecha_vencimiento)}</div>
+                                            <div>{SoloFecha(inv_prod.fecha_vencimiento)}</div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_prod.valor_unitario}</div>
@@ -233,9 +248,12 @@ export default function Users() {
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div>{inv_prod.nombre_lote}</div>
                                         </td>
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                            <div>{inv_prod.nivel_alerta}</div>
+                                        </td>
                                         <td className="px-5 py-4">
                                             <Link
-                                                to={`/invProd/Edit/${inv_prod.id_inventario}`}
+                                                to={`/invProd/edit/${inv_prod.id_inventario}`}
                                                 className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
                                                 Editar
                                             </Link>
