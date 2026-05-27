@@ -2,7 +2,7 @@
 from fastapi import FastAPI # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from app.crud import mortalidad
-from app.router import users, rols, modulos, permisos, auth, inv_perdida, inv_produccion, categorias, especies, lotes, mortalidad, inv_insumos, tipo_insumos, alimento_prod, tratamiento, ventas, detalles_venta, devoluciones
+from app.router import users, rols, modulos, permisos, auth, inv_perdida, inv_produccion, categorias, especies, lotes, mortalidad, inv_insumos, tipo_insumos, alimento_prod, tratamiento, ventas, detalles_venta, devoluciones, unid_medida
 
 
 app = FastAPI()
@@ -35,7 +35,7 @@ app.include_router(tratamiento.router, prefix="/tratamiento", tags=["tratamiento
 app.include_router(ventas.router, prefix="/ventas", tags=["ventas"])
 app.include_router(detalles_venta.router, prefix="/detalles-venta", tags=["detalles-venta"])
 app.include_router(devoluciones.router, prefix="/devoluciones", tags=["devoluciones"])
-
+app.include_router(unid_medida.router, prefix="/unid-medida", tags=["unid-medida"])
 
 @app.get("/")
 def read_root():

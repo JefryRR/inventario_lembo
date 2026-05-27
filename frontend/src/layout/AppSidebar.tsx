@@ -75,7 +75,17 @@ const modulosItems: NavItem[] = [
         path: "/mortalidad",
       },
     ],
-  }
+  },
+  {
+    icon: <GridIcon />,
+    name: "Módulo de inventarios",
+    subItems: [
+      {
+        name: "Inv. producción",
+        path: "/invProd",
+      },
+    ],
+  },
 ];
 
 const AppSidebar: React.FC = () => {

@@ -25,6 +25,7 @@ import PermisosEdit from "./components/permisos/permisosEdit";
 import Modulos from "./pages/modulos";
 import ModulosCreate from "./components/modulos/modulosCreate";
 import ModulosEdit from "./components/modulos/modulosEdit";
+import InvProduccion from "./pages/inv_produccion";
 import Categorias from "./pages/categorias";
 import CategoriasCreate from "./components/categorias/categoriasCreate";
 import CategoriasEdit from "./components/categorias/categoriasEdit";
@@ -79,6 +80,7 @@ export default function App() {
             <Route path="/roles" element={<Roles />} />
             <Route path="/roles/crear" element={<RolesCreate />} />
             <Route path="/roles/editar/:id_rol" element={<RolesEdit />} />
+            <Route path="/invProd" element={<InvProduccion />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 
