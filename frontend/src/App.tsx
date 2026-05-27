@@ -25,6 +25,7 @@ import PermisosEdit from "./components/permisos/permisosEdit";
 import Modulos from "./pages/modulos";
 import ModulosCreate from "./components/modulos/modulosCreate";
 import ModulosEdit from "./components/modulos/modulosEdit";
+import InvProduccion from "./pages/inv_produccion";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -55,6 +56,7 @@ export default function App() {
             <Route path="/roles" element={<Roles />} />
             <Route path="/roles/crear" element={<RolesCreate />} />
             <Route path="/roles/editar/:id_rol" element={<RolesEdit />} />
+            <Route path="/invProd" element={<InvProduccion />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

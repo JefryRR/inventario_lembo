@@ -4,18 +4,18 @@ from sqlalchemy.orm import Session
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.categorias import CategoriaCreate, CategoriaUpdate, CategoriaOut
+from app.schemas.unid_medidas import Unid_medCreate, Unid_medUpdate, Unid_medOut
 from app.schemas.users import UserOut
-from app.crud import categorias as crud_categorias
+from app.crud import unid_medida as crud_unid_medidas
 from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
-modulo = 6
+modulo = 18
 
-# Endpoint para crear un nuevo rol
+# Endpoint para crear una nueva unid de medida 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
-def create_categoria(
-    categoria: CategoriaCreate, 
+def create_unid_medida(
+    unid_medida: Unid_medCreate, 
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
@@ -25,14 +25,14 @@ def create_categoria(
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        crud_categorias.create_categoria(db, categoria)
-        return {"message": "Categoria registrada correctamente"}
+        crud_unid_medidas.create_unid_medida(db, unid_medida)
+        return {"message": "unidad de medida registrada correctamente"}
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint para obtener un rol por su ID  
-@router.get("/by-id",  response_model=CategoriaOut)
-def get_categoria_by_id(id: int, db: Session = Depends(get_db),
+@router.get("/get_by-id",  response_model=Unid_medOut)
+def get_unid_medida_by_id(id: int, db: Session = Depends(get_db),
               user_token: UserOut = Depends(get_current_user)
               ):
     try:
@@ -40,16 +40,16 @@ def get_categoria_by_id(id: int, db: Session = Depends(get_db),
         if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
-        categoria = crud_categorias.get_categoria_by_id(db, id)
-        if not categoria:
-            raise HTTPException(status_code=404, detail="categoria no encontrada")
-        return categoria
+        unid_medida = crud_unid_medidas.get_unid_medida_by_id(db, id)
+        if not unid_medida:
+            raise HTTPException(status_code=404, detail="unidad de medida no encontrada")
+        return unid_medida
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener todos los categoria
-@router.get("/all-categorias", response_model=List[CategoriaOut])
-def get_all_categoria(
+# Endpoint para obtener todos los unid_medida
+@router.get("/all-unid_medidas", response_model=List[Unid_medOut])
+def get_all_unid_medida(
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
@@ -58,19 +58,19 @@ def get_all_categoria(
         if not verify_permissions(db, id_rol, modulo, "seleccionar"):
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
-        categoria = crud_categorias.get_all_categorias(db)
+        unid_medida = crud_unid_medidas.get_all_unid_medidas(db)
         
-        if not categoria:
-            raise HTTPException(status_code=404, detail="No hay categorias registradas o no se pudieron obtener")
-        return categoria
+        if not unid_medida:
+            raise HTTPException(status_code=404, detail="No hay unidades de medida registradas o no se pudieron obtener")
+        return unid_medida
 
         
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint para actualizar un rol por su ID   
-@router.put("/by_id/{id_categoria}")
-def update_categoria_by_id(id_categoria: int, categoria: CategoriaUpdate, db: Session = Depends(get_db),
+@router.put("/by_id/{id_unid_medida}")
+def update_unid_medida_by_id(id_unid_medida: int, unid_medida: Unid_medUpdate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)
                 ):
     try:
@@ -78,9 +78,9 @@ def update_categoria_by_id(id_categoria: int, categoria: CategoriaUpdate, db: Se
         if not verify_permissions(db, id_rol, modulo, 'actualizar'):
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
-        success = crud_categorias.update_categoria_by_id(db, id_categoria, categoria)
+        success = crud_unid_medidas.update_unid_medida_by_id(db, id_unid_medida, unid_medida)
         if not success:
-            raise HTTPException(status_code=400, detail="No se pudo actualizar la categoria")
-        return {"message": "Categoria actualizada correctamente"}
+            raise HTTPException(status_code=400, detail="No se pudo actualizar la unidad de medida")
+        return {"message": "Unidad de medida actualizada correctamente"}
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))

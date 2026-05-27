@@ -97,7 +97,7 @@ def get_produccion_paginated(
         produccion = data["produccion"]
         
         return {
-            "total_lotes": total,
+            "total_produccion": total,
             "page": page,
             "page_size": page_size,
             "produccion": produccion

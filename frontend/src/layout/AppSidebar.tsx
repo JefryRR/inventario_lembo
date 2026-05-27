@@ -63,7 +63,17 @@ const modulosItems: NavItem[] = [
         path: "/users",
       },
     ],
-  }
+  },
+  {
+    icon: <GridIcon />,
+    name: "Módulo de inventarios",
+    subItems: [
+      {
+        name: "Inv. producción",
+        path: "/invProd",
+      },
+    ],
+  },
 ];
 
 const AppSidebar: React.FC = () => {
