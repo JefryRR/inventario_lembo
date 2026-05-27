@@ -31,6 +31,12 @@ import CategoriasEdit from "./components/categorias/categoriasEdit";
 import Especies from "./pages/especies";
 import EspeciesCreate from "./components/especies/especiesCreate";
 import EspeciesEdit from "./components/especies/especiesEdit";
+import Lotes from "./pages/lotes";
+import LotesCreate from "./components/lotes/lotesCreate";
+import LotesEdit from "./components/lotes/lotesEdit";
+import Mortalidad from "./pages/mortalidad";
+import MortalidadCreate from "./components/mortalidad/mortalidadCreate";
+import MortalidadEdit from "./components/mortalidad/mortalidadEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -64,6 +70,12 @@ export default function App() {
             <Route path="/especies" element={<Especies />} />
             <Route path="/especies/create" element={<EspeciesCreate />} />
             <Route path="/especies/edit/:id" element={<EspeciesEdit />} />
+            <Route path="/lotes" element={<Lotes />} />
+            <Route path="/lotes/create" element={<LotesCreate />} />
+            <Route path="/lotes/edit/:id" element={<LotesEdit />} />
+            <Route path="/mortalidad" element={<Mortalidad />} />
+            <Route path="/mortalidad/create" element={<MortalidadCreate />} />
+            <Route path="/mortalidad/edit/:id" element={<MortalidadEdit />} />
             <Route path="/roles" element={<Roles />} />
             <Route path="/roles/crear" element={<RolesCreate />} />
             <Route path="/roles/editar/:id_rol" element={<RolesEdit />} />
