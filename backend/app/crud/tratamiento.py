@@ -52,14 +52,15 @@ def get_all_tratamientos(db: Session):
         query = text("""
                      SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin,
                      t_p.cantidad, t_p.unid_medida_id, t_p.observacion, e.nombre_especie, c.nombre_categoria,
-                      t_p.cant_convertida, t_p.user_id,
-                     in_ins.nombre_producto, l_p.nombre_lote, u_m.simbolo
+                     t_p.cant_convertida, t_p.user_id,
+                     in_ins.nombre_producto, l_p.nombre_lote, u_m.simbolo, u.nombre_user
                      FROM tratamientos AS t_p
                      INNER JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
                      LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
+                     LEFT JOIN users AS u ON t_p.user_id = u.id_user
                      ORDER BY t_p.id_tratamiento DESC
                      """)
         result = db.execute(query).mappings().all()
@@ -73,14 +74,15 @@ def get_tratamiento_by_id(db: Session, id: int):
         query = text("""
                      SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin,
                      t_p.cantidad, t_p.unid_medida_id, t_p.observacion, e.nombre_especie, c.nombre_categoria,
-                      t_p.cant_convertida, t_p.user_id,
-                     in_ins.nombre_producto, l_p.nombre_lote, u_m.simbolo
+                     t_p.cant_convertida, t_p.user_id,
+                     in_ins.nombre_producto, l_p.nombre_lote, u_m.simbolo, u.nombre_user
                      FROM tratamientos AS t_p
                      INNER JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
                      LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
+                     LEFT JOIN users AS u ON t_p.user_id = u.id_user
                     WHERE t_p.id_tratamiento = :id
                     """)
         
@@ -150,6 +152,9 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
             INNER JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
             LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
             LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+            LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
+            LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
+            LEFT JOIN users AS u ON t_p.user_id = u.id_user
         """)
 
         total_result = db.execute(count_query).scalar()
@@ -158,7 +163,7 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
         data_query = text(""" 
                         SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin,
                         t_p.cantidad, t_p.unid_medida_id, t_p.observacion, e.nombre_especie, c.nombre_categoria,
-                         t_p.cant_convertida, t_p.user_id,
+                         t_p.cant_convertida, t_p.user_id, u.nombre_user,
                         in_ins.nombre_producto, l_p.nombre_lote, u_m.simbolo
                         FROM tratamientos AS t_p
                         INNER JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
@@ -166,6 +171,7 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                         LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
                         LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
+                        LEFT JOIN users AS u ON t_p.user_id = u.id_user
                         ORDER BY t_p.id_tratamiento DESC
                         LIMIT :limit OFFSET :skip
                     """)

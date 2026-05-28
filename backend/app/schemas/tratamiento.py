@@ -26,8 +26,10 @@ class TratamientoUpdate(BaseModel):
 
 class TratamientoOut(TratamientoBase):
     id_tratamiento: int
+    nombre_lote: str
     cant_convertida: Optional[float] = None
     nombre_producto: str
+    nombre_user: str
     simbolo: str
 
 class PaginatedTratamientos(BaseModel):

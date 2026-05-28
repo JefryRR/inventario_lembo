@@ -74,6 +74,14 @@ const modulosItems: NavItem[] = [
         name: "Mortalidad de producción",
         path: "/mortalidad",
       },
+      {
+        name: "Tratamiento",
+        path: "/tratamientos",
+      },
+      {
+        name: "Devoluciones",
+        path: "/devoluciones",
+      },
     ],
   },
   {
