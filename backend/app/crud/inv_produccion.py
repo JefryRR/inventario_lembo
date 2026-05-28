@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from datetime import date, timedelta
 from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate
 
 import logging
@@ -41,7 +42,52 @@ def get_produccion_by_id(db: Session, id: int):
         logger.error(f"Error al obtener producción por ID: {e}")
         raise Exception("Error de base de datos al obtener la producción")
 
+def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict:
+    """Calcula días restantes y nivel de alerta considerando la cantidad.
+
+    - Si `fecha_vencimiento` es None devuelve estado OK.
+    - Si `cantidad` es <= 0 devuelve `sin_stock` (sin alerta por vencimiento).
+    - En otro caso, calcula `dias_restantes` y clasifica la alerta.
+    """
+    if fecha_vencimiento is None:
+        return {"dias_restantes": 0, "nivel_alerta": "ok"}
+
+    # Normalizar si viene con time (datetime)
+    if hasattr(fecha_vencimiento, "date"):
+        fecha_vencimiento = fecha_vencimiento.date()
+
+    # Normalizar cantidad segura
+    try:
+        cantidad_val = float(cantidad or 0)
+    except Exception:
+        cantidad_val = 0
+
+    # Si no hay stock, marcar sin_stock
+    if cantidad_val <= 0:
+        return {"dias_restantes": 0, "nivel_alerta": "sin_stock"}
+
+    hoy = date.today()
+    dias = (fecha_vencimiento - hoy).days
+
+    # Si es el mismo día, contar como 1 día restante
+    if fecha_vencimiento == hoy:
+        dias = 1
+
+    if dias <= 0:
+        nivel = "Este inventario está vencido"
+    elif dias <= 7:
+        nivel = f"Crítico: El inventario debe ser priorizado, días restantes: {dias}."
+    elif dias <= 15:
+        nivel = f"Urgente: El inventario está próximo a vencer, días restantes: {dias}."
+    elif dias <= 30:
+        nivel = f"El inventario está próximo a vencer, días restantes: {dias}."
+    else:
+        nivel = "El inventario está en buen estado"
+
+    return {"dias_restantes": dias, "nivel_alerta": nivel}
+
 def all_produccion(db: Session):
+    
     try:
         query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
@@ -53,7 +99,17 @@ def all_produccion(db: Session):
                      LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
                     """)
         result = db.execute(query).mappings().all()
-        return result
+
+        resultado = []
+
+        for row in result:
+            data = dict(row)
+            alerta = get_nivel_alerta(data.get("fecha_vencimiento"), data.get("cantidad", 0))
+            data["dias_restantes"] = alerta["dias_restantes"]
+            data["nivel_alerta"] = alerta["nivel_alerta"]
+            resultado.append(data)
+            
+        return resultado
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas las producciones")
@@ -109,7 +165,7 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
                         LIMIT :limit OFFSET :skip
                     """)
-
+            
         prod_list = db.execute(
             data_query,
             {
@@ -118,11 +174,21 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
             }
         ).mappings().all()
 
+        resultado = []
+
+        for row in prod_list:
+            data = dict(row)
+            alerta = get_nivel_alerta(data.get("fecha_vencimiento"), data.get("cantidad", 0))
+            data["dias_restantes"] = alerta["dias_restantes"]
+            data["nivel_alerta"] = alerta["nivel_alerta"]
+            resultado.append(data)
+
         return {
             "total": total_result or 0,
-            "produccion": prod_list
+            "produccion": resultado
         }
 
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener la producción: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener la producción")
+    

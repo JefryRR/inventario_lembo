@@ -26,6 +26,8 @@ import Modulos from "./pages/modulos";
 import ModulosCreate from "./components/modulos/modulosCreate";
 import ModulosEdit from "./components/modulos/modulosEdit";
 import InvProduccion from "./pages/inv_produccion";
+import InvProdCreate from "./components/inv_produccion/inv_prodCreate";
+import InvProdEdit from "./components/inv_produccion/inv_prodEdit";
 import Categorias from "./pages/categorias";
 import CategoriasCreate from "./components/categorias/categoriasCreate";
 import CategoriasEdit from "./components/categorias/categoriasEdit";
@@ -93,6 +95,8 @@ export default function App() {
             <Route path="/devoluciones/crear" element={<DevolucionCreate />} />
             <Route path="/devoluciones/edit/:id" element={<DevolucionEdit />} />
             <Route path="/invProd" element={<InvProduccion />} />
+            <Route path="/invProd/create" element={<InvProdCreate />} />
+            <Route path="/invProd/edit/:id_inventario" element={<InvProdEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 
