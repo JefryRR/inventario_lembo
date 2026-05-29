@@ -41,6 +41,12 @@ import LotesEdit from "./components/lotes/lotesEdit";
 import Mortalidad from "./pages/mortalidad";
 import MortalidadCreate from "./components/mortalidad/mortalidadCreate";
 import MortalidadEdit from "./components/mortalidad/mortalidadEdit";
+import Tratamientos from "./pages/tratamientos";
+import TratamientoCreate from "./components/tratamiento/tratamientoCreate";
+import TratamientoEdit from "./components/tratamiento/tratamientoEdit";
+import Devoluciones from "./pages/devoluciones";
+import DevolucionCreate from "./components/devoluciones/devolucionCreate";
+import DevolucionEdit from "./components/devoluciones/devolucionEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -83,6 +89,12 @@ export default function App() {
             <Route path="/roles" element={<Roles />} />
             <Route path="/roles/crear" element={<RolesCreate />} />
             <Route path="/roles/editar/:id_rol" element={<RolesEdit />} />
+            <Route path="/tratamientos" element={<Tratamientos />} />
+            <Route path="/tratamientos/create" element={<TratamientoCreate />} />
+            <Route path="/tratamientos/edit/:id" element={<TratamientoEdit />} />
+            <Route path="/devoluciones" element={<Devoluciones />} />
+            <Route path="/devoluciones/crear" element={<DevolucionCreate />} />
+            <Route path="/devoluciones/edit/:id" element={<DevolucionEdit />} />
             <Route path="/invProd" element={<InvProduccion />} />
             <Route path="/invProd/create" element={<InvProdCreate />} />
             <Route path="/invProd/edit/:id_inventario" element={<InvProdEdit />} />

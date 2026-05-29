@@ -11,6 +11,7 @@ class DevolucionBase(BaseModel):
     id_detalle_venta: int
     cant_devolucion: int
     unid_medida_id: int
+    venta_id: int
     motivo: MotivoDevolucion
     fecha_dev: datetime
     user_id: int

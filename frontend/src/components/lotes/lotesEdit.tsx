@@ -204,7 +204,7 @@ export default function LotesEdit() {
           user_id: Number(form.user_id),
         };
 
-        // Primero actualizar campos editables por LoteUpdate (estado no está en LoteUpdate)
+        // Primero actualizar campos editables por LoteUpdate
         await apiFetch(`lotes/by-id/${id}?id_lote=${id}`, {
           method: "PUT",
           body: payload,

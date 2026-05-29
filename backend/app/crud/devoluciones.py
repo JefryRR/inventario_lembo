@@ -32,10 +32,11 @@ def get_devolucion_by_id(db: Session, id: int) -> Optional[DevolucionOut]:
         query = text("""
                     SELECT d.id_devolucion, d.id_detalle_venta, d.cant_devolucion, d.unid_medida_id,
                     d.motivo, d.fecha_dev, d.user_id, d.observacion, dv.venta_id,
-                    dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
+                    pr.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
                     FROM devoluciones AS d
                     LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
                     LEFT JOIN ventas AS v ON dv.venta_id = v.id_venta
+                    LEFT JOIN inv_produccion AS pr ON dv.inv_prod_id = pr.id_inventario
                     LEFT JOIN users AS u ON d.user_id = u.id_user
                     LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
                     WHERE d.id_devolucion = :id
@@ -121,12 +122,13 @@ def get_devoluciones_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Devoluciones paginadas
         data_query = text(""" 
-                        SELECT  d.id_devolucion, d.id_detalle_venta, d.venta_id, d.cant_devolucion, d.unid_medida_id,
-                        d.motivo, d.fecha_dev, d.user_id, d.observacion,
-                        dv.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
+                        SELECT d.id_devolucion, d.id_detalle_venta, d.cant_devolucion, d.unid_medida_id,
+                        d.motivo, d.fecha_dev, d.user_id, d.observacion, dv.venta_id,
+                        pr.nombre_producto, v.nombre_comprador, u.nombre_user, u_m.simbolo
                         FROM devoluciones AS d
                         LEFT JOIN detalle_ventas AS dv ON d.id_detalle_venta = dv.id_detalle_venta
-                        LEFT JOIN ventas AS v ON d.venta_id = v.id_venta
+                        LEFT JOIN ventas AS v ON dv.venta_id = v.id_venta
+                        LEFT JOIN inv_produccion AS pr ON dv.inv_prod_id = pr.id_inventario
                         LEFT JOIN users AS u ON d.user_id = u.id_user
                         LEFT JOIN unidades_medida AS u_m ON d.unid_medida_id = u_m.id_unidad
                         ORDER BY d.fecha_dev DESC
