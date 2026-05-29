@@ -90,7 +90,7 @@ def update_detalle_venta_by_id(
         print(estado_venta)  
         
         # 3. Verificar estado de la venta (con paréntesis correctos)
-        estados_bloqueados = ["Vendido", "Devuelto", "Cancelado"]
+        estados_bloqueados = ["Vendido", "Anulado"]
         if estado_venta.estado_venta in estados_bloqueados:
             raise HTTPException(
                 status_code=400,

@@ -141,15 +141,12 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
                 -- Cantidad inicial: stock actual + todo lo que salió
                 pr.cantidad 
                 + COALESCE(ventas_netas.total_vendido_neto, 0)
-                + COALESCE(dev.total_devoluciones, 0)
                 + COALESCE(pe.total_perdido, 0)            AS cantidad_inicial,
 
                 pr.cantidad                                AS stock_actual,
 
                 -- Vendido neto = lo vendido MENOS lo devuelto
                 COALESCE(ventas_netas.total_vendido_neto, 0) AS total_vendido,
-
-                COALESCE(dev.total_devoluciones, 0)        AS total_devoluciones,
                 COALESCE(pe.total_perdido, 0)              AS total_perdido
 
             FROM inv_produccion pr
@@ -165,19 +162,9 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
                 GROUP BY inv_prod_id
             ) ventas_netas ON ventas_netas.inv_prod_id = pr.id_inventario
 
-            -- Total de devoluciones (cantidad bruta devuelta)
-            LEFT JOIN (
-                SELECT 
-                    dv.inv_prod_id, 
-                    SUM(d.cant_devolucion) AS total_devoluciones
-                FROM devoluciones d
-                LEFT JOIN detalle_ventas dv ON d.id_detalle_venta = dv.id_detalle_venta
-                GROUP BY dv.inv_prod_id
-            ) dev ON dev.inv_prod_id = pr.id_inventario
-
             -- Pérdidas
             LEFT JOIN (
-                SELECT inv_prod_id, SUM(cantidad) AS total_perdido
+                SELECT inv_prod_id, SUM(cant_convertida) AS total_perdido
                 FROM inv_perdidas
                 GROUP BY inv_prod_id
             ) pe ON pe.inv_prod_id = pr.id_inventario
@@ -201,7 +188,7 @@ def get_reporte_movimientos(db: Session, inv_prod_id: int):
                 dv.estado_venta             as estado,
                 v.nombre_comprador          as referencia,
                 v.fecha_venta               as fecha,
-                '-'                        as motivo
+                ' '                        as motivo
             FROM detalle_ventas dv
             LEFT JOIN ventas v ON dv.venta_id = v.id_venta
             WHERE dv.inv_prod_id = :inv_prod_id
@@ -212,13 +199,14 @@ def get_reporte_movimientos(db: Session, inv_prod_id: int):
             SELECT 
                 'perdida'                   as tipo,
                 p.id_perdida                as id_registro,
-                p.cantidad                  as cantidad,
-                '-'                        as valor,
-                '-'                        as estado,
+                p.cant_convertida           as cantidad,
+                ip.valor_unitario           as valor,
+                ' '                        as estado,
                 p.observaciones             as referencia,
                 p.fecha_reporte             as fecha,
                 p.motivo                    as motivo
             FROM inv_perdidas p
+            LEFT JOIN inv_produccion ip ON p.inv_prod_id = ip.id_inventario
             WHERE p.inv_prod_id = :inv_prod_id            ORDER BY fecha ASC
         """)
         return db.execute(query, {"inv_prod_id": inv_prod_id}).mappings().all()

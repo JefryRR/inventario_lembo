@@ -111,7 +111,6 @@ export default function InformesProd() {
             extravio: "Extraviado",
             vencimiento: "Vencido",
             robo: "Robado",
-            daño_fisico: "Mal estado",
         };
 
         return mapaMotivos[motivo] ?? motivo;
@@ -249,7 +248,7 @@ export default function InformesProd() {
                                         <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Referencia</th>
                                         <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cantidad</th>
                                         <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado / Motivo</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado o Motivo</th>
                                         <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha</th>
                                     </tr>
                                 </thead>
@@ -270,7 +269,7 @@ export default function InformesProd() {
                                                     {movimiento.valor === "-" ? "-" : formatearMoneda(movimiento.valor)}
                                                 </td>
                                                 <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                                    {movimiento.estado} {movimiento.motivo !== "-" ? ` / ${formatearMotivo(movimiento.motivo)}` : ""}
+                                                    {movimiento.estado} {movimiento.motivo !== " " ? `${formatearMotivo(movimiento.motivo)}` : ""}
                                                 </td>
                                                 <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatearFecha(movimiento.fecha)}</td>
                                             </tr>

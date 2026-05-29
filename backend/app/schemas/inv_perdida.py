@@ -9,6 +9,7 @@ class TipoPerdida(str, Enum):
     vencimiento = "vencimiento"
     robo = "robo"
     daño_fisico = "daño_fisico"
+    muerte = "muerte animal"
 
 class PerdidaBase(BaseModel):
     inv_prod_id: int
@@ -32,6 +33,7 @@ class PerdidaOut(PerdidaBase):
     id_perdida: int
     nombre_user: Optional[str]
     nombre_producto: Optional[str]
+    valor_unitario: Optional[float] = None
 
 class PaginatedPerdidas(BaseModel):
     page: int

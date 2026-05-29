@@ -42,7 +42,7 @@ def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
         query = text("""
             SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
                    p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                   u.nombre_user, um.simbolo
+                   u.nombre_user, um.simbolo, pr.nombre_producto, pr.valor_unitario
             FROM inv_perdidas p
             LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
             LEFT JOIN users AS u ON p.user_id = u.id_user
@@ -60,7 +60,7 @@ def all_perdidas(db: Session) -> list[PerdidaOut]:
         query = text("""
                     SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
                     p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                    pr.nombre_producto, u.nombre_user, um.simbolo
+                    pr.nombre_producto, u.nombre_user, um.simbolo, pr.valor_unitario
                     FROM inv_perdidas p
                     LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
                     LEFT JOIN users AS u ON p.user_id = u.id_user
@@ -108,7 +108,7 @@ def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
         data_query = text("""
             SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
                    p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                   pr.nombre_producto, u.nombre_user, um.simbolo
+                   pr.nombre_producto, u.nombre_user, um.simbolo, pr.valor_unitario
             FROM inv_perdidas AS p
             LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
             LEFT JOIN users AS u ON p.user_id = u.id_user

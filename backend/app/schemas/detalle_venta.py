@@ -4,9 +4,8 @@ from enum import Enum
 
 class EstadoVenta(str, Enum):
     vendido = "Vendido"
-    devuelto = "Devuelto"
     separado = "Separado"
-    cancelado = "Cancelado"
+    anulado = "Anulado"
 
 class DetalleVentaBase(BaseModel):
     cantidad: int
