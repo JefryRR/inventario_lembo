@@ -24,14 +24,12 @@ type invProdRow = {
 
 type invProdResponse = {
     total: number;
-    total_produccion?: number;
     page: number;
     page_size: number;
     produccion: invProdRow[];
 };
 
 const PAGE_SIZES = [5, 10, 20, 50];
-const TABLE_COLUMNS = 10;
 
 export default function Users() {
     const [invProd, setInvProd] = useState<invProdRow[]>([]);
@@ -60,7 +58,7 @@ export default function Users() {
                 }
 
                 setInvProd(Array.isArray(data?.produccion) ? data.produccion : []);
-                setTotal(Number(data?.total ?? data?.total_produccion ?? 0));
+                setTotal(Number(data?.total ?? 0));
             } catch (requestError: any) {
                 if (!isMounted) {
                     return;
@@ -170,120 +168,95 @@ export default function Users() {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-800">
-                        <colgroup>
-                            <col className="w-56" />
-                            <col className="w-36" />
-                            <col className="w-40" />
-                            <col className="w-36" />
-                            <col className="w-44" />
-                            <col className="w-36" />
-                            <col className="w-32" />
-                            <col className="w-32" />
-                            <col className="w-48" />
-                            <col className="w-44" />
-                        </colgroup>
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
                         <thead className="bg-gray-50 dark:bg-gray-900/40">
                             <tr>
 
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Nombre producto
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     cantidad / unidad
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     fecha registro
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     fecha vencimiento
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    valor unitario
+                                </th>
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Categoría / Especie
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Lote
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    costo unitario
-                                </th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    costo total
-                                </th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Estado
                                 </th>
-                                <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Accciones
                                 </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
-                                Array.from({ length: 10 }).map((_, index) => (
+                                Array.from({ length: 5 }).map((_, index) => (
                                     <tr key={index}>
-                                        <td colSpan={TABLE_COLUMNS} className="px-5 py-4">
+                                        <td colSpan={6} className="px-5 py-4">
                                             <div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
                                         </td>
                                     </tr>
                                 ))
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={TABLE_COLUMNS} className="px-5 py-10 text-center text-sm text-error-500">
+                                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-error-500">
                                         {error}
                                     </td>
                                 </tr>
                             ) : filteredInvProduc.length === 0 ? (
                                 <tr>
-                                    <td colSpan={TABLE_COLUMNS} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay registros de inventario para mostrar.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredInvProduc.map((inv_prod) => (
                                     <tr key={inv_prod.id_inventario} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
-                                        <td className="px-4 py-4">
+                                        <td className="px-5 py-4">
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">
                                                 {inv_prod.nombre_producto}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 text-center">
+                                        <td className="px-5 py-4">
                                             <div className="text-sm text-gray-800 dark:text-gray-400">{inv_prod.cantidad} {inv_prod.simbolo}</div>
                                         </td>
-                                        <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                                            <div>{formatearFecha(inv_prod.fecha_ingreso)}</div>
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                            <div> {formatearFecha(inv_prod.fecha_ingreso)} </div>
                                         </td>
-                                        <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div>{SoloFecha(inv_prod.fecha_vencimiento)}</div>
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div className="truncate">{inv_prod.nombre_categoria} / {inv_prod.nombre_especie}</div>
-                                        </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div className="truncate">{inv_prod.nombre_lote}</div>
-                                        </td>
-                                        <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_prod.valor_unitario}</div>
                                         </td>
-                                         <td className="px-5 py-4 text-left text-xs text-gray-600 dark:text-gray-300">
-                                            <div>$ {inv_prod.valor_unitario * inv_prod.cantidad}</div>
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                            <div>{inv_prod.nombre_categoria} / {inv_prod.nombre_especie}</div>
                                         </td>
-                                        <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                                            <div >{inv_prod.nivel_alerta}</div>
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                            <div>{inv_prod.nombre_lote}</div>
                                         </td>
-                                        <td className="px-3 py-4 text-center">
-                                            <div className="flex flex-col items-center gap-2">
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                            <div>{inv_prod.nivel_alerta}</div>
+                                        </td>
+                                        <td className="px-5 py-4">
                                             <Link
                                                 to={`/invProd/edit/${inv_prod.id_inventario}`}
-                                                className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                                                className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
                                                 Editar
                                             </Link>
-                                            <Link
-                                                to={`/invProd/report/${inv_prod.id_inventario}`}
-                                                className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
-                                                Informe
-                                            </Link>
-                                            </div>
                                         </td>
                                     </tr>
                                 ))

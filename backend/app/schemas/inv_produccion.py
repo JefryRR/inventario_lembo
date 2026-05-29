@@ -30,12 +30,12 @@ class ProduccionOut(ProduccionBase):
     nombre_categoria: str
     nombre_especie: str
     simbolo: str
-    dias_restantes: int
+    dias_restantes: int = 0
     nivel_alerta: Optional[str] = None
 
 class PaginatedProducciones(BaseModel):
     page: int
     page_size: int
-    total_producciones: int
+    total_produccion: int
     total_pages: int
     produccion: list[ProduccionOut]

@@ -81,7 +81,7 @@ const modulosItems: NavItem[] = [
     name: "Módulo de inventarios",
     subItems: [
       {
-        name: "Inv. producción",
+        name: "Inventario de producción",
         path: "/invProd",
       },
     ],

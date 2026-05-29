@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate, ProduccionOut, PaginatedProducciones
+from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate, ProduccionOut
 from app.crud import inv_produccion as crud_produccion
 from app.crud import lotes as crud_lotes
 from app.schemas.users import UserOut
@@ -94,7 +94,27 @@ def update_produccion(
         raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@router.get("/reporte/{inv_prod_id}")
+def get_reporte_produccion(
+    inv_prod_id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        reporte = crud_produccion.get_reporte_produccion_detallado(db, inv_prod_id)
+        if not reporte:
+            raise HTTPException(status_code=404, detail="Producción no encontrada")
+        return reporte
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/paginated-production")
 def get_produccion_paginated(
     page: int = Query(1, ge=1),

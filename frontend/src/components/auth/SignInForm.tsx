@@ -20,9 +20,28 @@ export default function SignInForm() {
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     setError(null);
+
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail && !cleanPassword) {
+      setError("Debe ingresar el correo y la contraseña");
+      return;
+    }
+
+    if (!cleanEmail) {
+      setError("Debe ingresar el correo");
+      return;
+    }
+
+    if (!cleanPassword) {
+      setError("Debe ingresar la contraseña");
+      return;
+    }
+
     setLoading(true);
     try {
-      const data = await login(email, password);
+      const data = await login(cleanEmail, cleanPassword);
       if (data?.access_token) {
         localStorage.setItem("token", data.access_token);
         if (data?.user) {

@@ -64,7 +64,7 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
 
     # Si no hay stock, marcar sin_stock
     if cantidad_val <= 0:
-        return {"dias_restantes": 0, "nivel_alerta": "sin_stock"}
+        return {"dias_restantes": 0, "nivel_alerta": "Sin stock"}
 
     hoy = date.today()
     dias = (fecha_vencimiento - hoy).days
@@ -86,8 +86,160 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
 
     return {"dias_restantes": dias, "nivel_alerta": nivel}
 
-def all_produccion(db: Session):
+# En inv_produccion.py - agregar esta función
+def registrar_vencidos_como_perdidas(db: Session):
+    try:
+        query = text("""
+            SELECT pr.id_inventario, pr.cantidad, pr.fecha_vencimiento
+            FROM inv_produccion pr
+            WHERE pr.fecha_vencimiento < CURDATE()
+            AND pr.cantidad > 0
+            AND pr.id_inventario NOT IN (
+                SELECT inv_prod_id FROM inv_perdidas
+                WHERE motivo = 'vencimiento'
+            )
+        """)
+        vencidos = db.execute(query).mappings().all()
+
+        for row in vencidos:
+            insert = text("""
+                INSERT INTO inv_perdidas (
+                    inv_prod_id, cantidad, motivo,
+                    fecha_reporte, user_id, observaciones
+                ) VALUES (
+                    :inv_prod_id, :cantidad, :motivo,
+                    :fecha_reporte, :user_id, :observaciones
+                )
+            """)
+            db.execute(insert, {
+                "inv_prod_id": row["id_inventario"],
+                "cantidad": row["cantidad"],
+                "motivo": "vencimiento",
+                "fecha_reporte": date.today(),
+                "user_id": None,
+                "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}"
+            })
+
+        db.commit()
+        return len(vencidos)  # retorna cuántos se registraron
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Error al registrar vencidos: {e}")
+        raise Exception("Error al registrar productos vencidos como pérdidas")
+
+def get_reporte_encabezado(db: Session, inv_prod_id: int):
+    try:
+        query = text("""
+            SELECT 
+                pr.id_inventario,
+                pr.nombre_producto,
+                pr.fecha_ingreso,
+                pr.fecha_vencimiento,
+                pr.valor_unitario,
+                l.nombre_lote,
+
+                -- Cantidad inicial: stock actual + todo lo que salió
+                pr.cantidad 
+                + COALESCE(ventas_netas.total_vendido_neto, 0)
+                + COALESCE(dev.total_devoluciones, 0)
+                + COALESCE(pe.total_perdido, 0)            AS cantidad_inicial,
+
+                pr.cantidad                                AS stock_actual,
+
+                -- Vendido neto = lo vendido MENOS lo devuelto
+                COALESCE(ventas_netas.total_vendido_neto, 0) AS total_vendido,
+
+                COALESCE(dev.total_devoluciones, 0)        AS total_devoluciones,
+                COALESCE(pe.total_perdido, 0)              AS total_perdido
+
+            FROM inv_produccion pr
+            LEFT JOIN lote_produccion l ON pr.lote_id = l.id_lote
+
+            -- Vendido neto: suma cant_convertida actual (ya descontada por el trigger)
+            LEFT JOIN (
+                SELECT 
+                    inv_prod_id, 
+                    SUM(cant_convertida) AS total_vendido_neto
+                FROM detalle_ventas
+                WHERE estado_venta = 'Vendido'
+                GROUP BY inv_prod_id
+            ) ventas_netas ON ventas_netas.inv_prod_id = pr.id_inventario
+
+            -- Total de devoluciones (cantidad bruta devuelta)
+            LEFT JOIN (
+                SELECT 
+                    dv.inv_prod_id, 
+                    SUM(d.cant_devolucion) AS total_devoluciones
+                FROM devoluciones d
+                LEFT JOIN detalle_ventas dv ON d.id_detalle_venta = dv.id_detalle_venta
+                GROUP BY dv.inv_prod_id
+            ) dev ON dev.inv_prod_id = pr.id_inventario
+
+            -- Pérdidas
+            LEFT JOIN (
+                SELECT inv_prod_id, SUM(cantidad) AS total_perdido
+                FROM inv_perdidas
+                GROUP BY inv_prod_id
+            ) pe ON pe.inv_prod_id = pr.id_inventario
+
+            WHERE pr.id_inventario = :inv_prod_id    
+        """)
+        return db.execute(query, {"inv_prod_id": inv_prod_id}).mappings().first()
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener encabezado del reporte: {e}")
+        raise Exception("Error al obtener encabezado del reporte")
+
+def get_reporte_movimientos(db: Session, inv_prod_id: int):
+    try:
+        query = text("""
+            -- Ventas individuales
+            SELECT 
+                'venta'                     as tipo,
+                dv.id_detalle_venta         as id_registro,
+                dv.cant_convertida          as cantidad,
+                dv.precio_venta             as valor,
+                dv.estado_venta             as estado,
+                v.nombre_comprador          as referencia,
+                v.fecha_venta               as fecha,
+                '-'                        as motivo
+            FROM detalle_ventas dv
+            LEFT JOIN ventas v ON dv.venta_id = v.id_venta
+            WHERE dv.inv_prod_id = :inv_prod_id
+
+            UNION ALL
+
+            -- Pérdidas y devoluciones individuales
+            SELECT 
+                'perdida'                   as tipo,
+                p.id_perdida                as id_registro,
+                p.cantidad                  as cantidad,
+                '-'                        as valor,
+                '-'                        as estado,
+                p.observaciones             as referencia,
+                p.fecha_reporte             as fecha,
+                p.motivo                    as motivo
+            FROM inv_perdidas p
+            WHERE p.inv_prod_id = :inv_prod_id            ORDER BY fecha ASC
+        """)
+        return db.execute(query, {"inv_prod_id": inv_prod_id}).mappings().all()
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener movimientos del reporte: {e}")
+        raise Exception("Error al obtener movimientos del reporte")
+
+def get_reporte_produccion_detallado(db: Session, inv_prod_id: int):
+    encabezado = get_reporte_encabezado(db, inv_prod_id)
+    if not encabezado:
+        return None
     
+    movimientos = get_reporte_movimientos(db, inv_prod_id)
+
+    return {
+        "encabezado": dict(encabezado),
+        "movimientos": [dict(m) for m in movimientos]
+    }
+
+def all_produccion(db: Session):
+    registrar_vencidos_como_perdidas(db)
     try:
         query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
@@ -108,7 +260,9 @@ def all_produccion(db: Session):
             data["dias_restantes"] = alerta["dias_restantes"]
             data["nivel_alerta"] = alerta["nivel_alerta"]
             resultado.append(data)
-            
+        
+
+
         return resultado
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las producciones: {e}")
@@ -136,10 +290,12 @@ def update_produccion(db: Session, produccion_id: int, produccion: ProduccionUpd
         raise Exception("Error de base de datos al actualizar la produccción")
 
 def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
+
     """
     Obtiene inventario de producción con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
+    registrar_vencidos_como_perdidas(db)
     try:
         # Total de producción
         count_query = text("""
@@ -149,6 +305,7 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
             LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
             LEFT JOIN especies AS e ON l.especie_id = e.id_especie
             LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
+            ORDER BY pr.fecha_vencimiento ASC
         """)
 
         total_result = db.execute(count_query).scalar()
@@ -163,6 +320,7 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
                         LEFT JOIN especies AS e ON l.especie_id = e.id_especie
                         LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
+                        ORDER BY pr.fecha_vencimiento ASC
                         LIMIT :limit OFFSET :skip
                     """)
             
