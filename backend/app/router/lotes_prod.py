@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
-from app.schemas.lotes import LoteCreate, LoteOut, LoteUpdate
+from app.schemas.lotes_prod import LoteCreate, LoteEstado, LoteOut, LoteUpdate
 from app.schemas.users import UserOut
-from app.crud import lotes as crud_lotes_prod
+from app.crud import lotes_prod as crud_lotes_prod
 
 router = APIRouter()
 modulo = 5 # ID del módulo de lotes para verificar permisos
@@ -42,7 +42,7 @@ def get_all_lotes_prod(db: Session = Depends(get_db),
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
   
-@router.get("/lote_by_id", response_model=LoteOut)
+@router.get("/by-id", response_model=LoteOut)
 def get_lote_by_id(lote_id: int, db: Session = Depends(get_db),
             user_token: UserOut = Depends(get_current_user)
             ):
@@ -74,6 +74,22 @@ def update_lote_by_id( id_lote: int, lote: LoteUpdate, db: Session = Depends(get
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
 
+@router.put("/estado/{lote_id}", status_code=status.HTTP_200_OK)
+def change_status_lote(id_lote: int, estado: LoteEstado, db: Session = Depends(get_db),
+                      user_token: UserOut = Depends(get_current_user)
+                      ):
+  try:
+      id_rol = user_token.rol_id
+      if not verify_permissions(db, id_rol, modulo, 'actualizar'):
+             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+
+      success = crud_lotes_prod.change_status_lote(db, id_lote, estado=estado)
+      if not success:
+          raise HTTPException(status_code=400, detail="No se pudo cambiar el estado del lote")
+      return {"message": "Estado del lote actualizado correctamente"}
+  except Exception as e:
+      raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/paginated")
 def get_all_lotes_prod_pag(
     page: int = Query(1, ge=1),
@@ -87,15 +103,15 @@ def get_all_lotes_prod_pag(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_lotes_prod.get_all_lotes_granja_pag(db, skip=skip, limit=page_size)
+        data = crud_lotes_prod.get_all_lotes_prod_pag(db, skip=skip, limit=page_size)
         total = data["total"]  
-        lotes_granja = data["lotes_granja"]
+        lotes = data["lotes"]
         
         return {
             "total_lotes": total,
             "page": page,
             "page_size": page_size,
-            "lotes_granja": lotes_granja
+            "lotes": lotes
         }
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))

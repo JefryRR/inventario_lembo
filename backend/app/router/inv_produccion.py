@@ -6,7 +6,7 @@ from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate, ProduccionOut, PaginatedProducciones
 from app.crud import inv_produccion as crud_produccion
-from app.crud import lotes as crud_lotes
+from app.crud import lotes_prod as crud_lotes_prod
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 
@@ -24,7 +24,7 @@ def create_produccion(
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
 
-        lote = crud_lotes.get_lote_by_id(db, produccion.lote_id)
+        lote = crud_lotes_prod.get_lote_by_id(db, produccion.lote_id)
         if not lote:
             raise HTTPException(status_code=404, detail="Lote no encontrado")
 

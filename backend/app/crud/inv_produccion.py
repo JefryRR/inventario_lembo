@@ -28,9 +28,10 @@ def get_produccion_by_id(db: Session, id: int):
     try:
         query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
-                     l.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
+                     l_g.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
                      FROM inv_produccion pr
                      LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
+                     LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
                      LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
                      LEFT JOIN especies AS e ON l.especie_id = e.id_especie
                      LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
@@ -285,9 +286,10 @@ def all_produccion(db: Session):
     try:
         query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
-                     l.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
+                     l_g.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
                      FROM inv_produccion pr
                      LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
+                     LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
                      LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
                      LEFT JOIN especies AS e ON l.especie_id = e.id_especie
                      LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
@@ -335,9 +337,10 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
         data_query = text(""" 
                         SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                         pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
-                        l.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
+                        l_g.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
                         FROM inv_produccion pr
                         LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
+                        LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
                         LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
                         LEFT JOIN especies AS e ON l.especie_id = e.id_especie
                         LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad

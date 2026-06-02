@@ -2,7 +2,7 @@
 from fastapi import FastAPI # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from app.crud import mortalidad
-from app.router import users, rols, modulos, permisos, auth, inv_perdida, inv_produccion, categorias, especies, lotes, mortalidad, inv_insumos, tipo_insumos, alimento_prod, tratamiento, ventas, detalles_venta, unid_medida
+from app.router import users, rols, modulos, permisos, auth, inv_perdida, inv_produccion, categorias, especies, lotes_prod, lotes, mortalidad, inv_insumos, tipo_insumos, alimento_prod, tratamiento, ventas, detalles_venta, unid_medida
 
 
 app = FastAPI()
@@ -26,6 +26,7 @@ app.include_router(inv_perdida.router, prefix="/inv_perdida", tags=["inv_perdida
 app.include_router(inv_produccion.router, prefix="/inv_produccion", tags=["inv_produccion"])
 app.include_router(categorias.router, prefix="/categorias", tags=["categorias"])
 app.include_router(especies.router, prefix="/especies", tags=["especies"])
+app.include_router(lotes_prod.router, prefix="/lotes_prod", tags=["lotes_prod"])
 app.include_router(lotes.router, prefix="/lotes", tags=["lotes"])
 app.include_router(mortalidad.router, prefix="/mortalidad", tags=["mortalidad"])
 app.include_router(inv_insumos.router, prefix="/inv_insumos", tags=["inv_insumos"])
