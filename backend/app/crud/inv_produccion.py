@@ -90,7 +90,7 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
 def registrar_vencidos_como_perdidas(db: Session):
     try:
         query = text("""
-            SELECT pr.id_inventario, pr.cantidad, pr.fecha_vencimiento
+            SELECT pr.id_inventario, pr.cantidad, pr.fecha_vencimiento, pr.unid_medida_id
             FROM inv_produccion pr
             WHERE pr.fecha_vencimiento < CURDATE()
             AND pr.cantidad > 0
@@ -105,19 +105,21 @@ def registrar_vencidos_como_perdidas(db: Session):
             insert = text("""
                 INSERT INTO inv_perdidas (
                     inv_prod_id, cantidad, motivo,
-                    fecha_reporte, user_id, observaciones
+                    fecha_reporte, user_id, cant_convertida, unid_medida_id, observaciones
                 ) VALUES (
                     :inv_prod_id, :cantidad, :motivo,
-                    :fecha_reporte, :user_id, :observaciones
+                    :fecha_reporte, :user_id, :cant_convertida, :unid_medida_id, :observaciones
                 )
             """)
             db.execute(insert, {
                 "inv_prod_id": row["id_inventario"],
                 "cantidad": row["cantidad"],
+                "unid_medida_id": row["unid_medida_id"],
                 "motivo": "vencimiento",
                 "fecha_reporte": date.today(),
                 "user_id": None,
-                "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}"
+                "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}",
+                "cant_convertida": row["cantidad"]  # Se asume que la cantidad ya está en la unidad base o que el trigger lo ajustará
             })
 
         db.commit()
@@ -136,6 +138,7 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
                 pr.fecha_ingreso,
                 pr.fecha_vencimiento,
                 pr.valor_unitario,
+                um.simbolo,
                 l.nombre_lote,
 
                 -- Cantidad inicial: stock actual + todo lo que salió
@@ -168,6 +171,8 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
                 FROM inv_perdidas
                 GROUP BY inv_prod_id
             ) pe ON pe.inv_prod_id = pr.id_inventario
+                     
+            LEFT JOIN unidades_medida um ON pr.unid_medida_id = um.id_unidad
 
             WHERE pr.id_inventario = :inv_prod_id    
         """)
@@ -226,6 +231,55 @@ def get_reporte_produccion_detallado(db: Session, inv_prod_id: int):
         "movimientos": [dict(m) for m in movimientos]
     }
 
+def update_produccion(db: Session, produccion_id: int, produccion: ProduccionUpdate):
+    try:
+        produccion_data = produccion.model_dump(exclude_unset=True)
+        if not produccion_data:
+            return False
+        set_clauses = ", ".join([f"{key} = :{key}" for key in produccion_data.keys()])
+        query = text(f"""
+            UPDATE inv_produccion
+            SET {set_clauses}
+            WHERE id_inventario = :id_inventario
+        """)
+        
+        produccion_data["id_inventario"] = produccion_id
+        result = db.execute(query, produccion_data)
+        db.commit()
+        return result.rowcount > 0
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Error al actualizar la producción {produccion_id}: {e}")
+        raise Exception("Error de base de datos al actualizar la produccción")
+
+def get_produccion_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
+    """
+    Obtiene las tareas cuya fecha de inicio o fin esté dentro de un rango de fechas.
+    Ignora las horas (usa DATE(fecha_hora_init) y DATE(fecha_hora_fin)).
+    """
+    try:
+        query = text("""
+            SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
+                     pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
+                     l.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
+                     FROM inv_produccion pr
+                     LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
+                     LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
+                     LEFT JOIN especies AS e ON l.especie_id = e.id_especie
+                     LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
+            WHERE DATE(pr.fecha_vencimiento) BETWEEN :fecha_inicio AND :fecha_fin
+            ORDER BY pr.fecha_vencimiento DESC
+        """)
+        result = db.execute(query, {
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin
+        }).mappings().all()
+        
+        return [dict(row) for row in result]
+
+    except SQLAlchemyError as e:
+        raise Exception(f"Error al consultar los aislamientos por rango de fechas: {e}")
+
 def all_produccion(db: Session):
     registrar_vencidos_como_perdidas(db)
     try:
@@ -255,27 +309,6 @@ def all_produccion(db: Session):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas las producciones")
-
-def update_produccion(db: Session, produccion_id: int, produccion: ProduccionUpdate):
-    try:
-        produccion_data = produccion.model_dump(exclude_unset=True)
-        if not produccion_data:
-            return False
-        set_clauses = ", ".join([f"{key} = :{key}" for key in produccion_data.keys()])
-        query = text(f"""
-            UPDATE inv_produccion
-            SET {set_clauses}
-            WHERE id_inventario = :id_inventario
-        """)
-        
-        produccion_data["id_inventario"] = produccion_id
-        result = db.execute(query, produccion_data)
-        db.commit()
-        return result.rowcount > 0
-    except SQLAlchemyError as e:
-        db.rollback()
-        logger.error(f"Error al actualizar la producción {produccion_id}: {e}")
-        raise Exception("Error de base de datos al actualizar la produccción")
 
 def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
 

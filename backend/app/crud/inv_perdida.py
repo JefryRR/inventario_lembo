@@ -8,8 +8,31 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def create_perdida(db: Session, perdida: PerdidaCreate) -> Optional[bool]:
+def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optional[bool]:
     try:
+
+        duplicado = db.execute(text("""
+            SELECT COUNT(*) FROM inv_perdidas
+            WHERE inv_prod_id = :inv_prod_id
+            AND DATE(fecha_reporte) = DATE(:fecha_reporte)
+            AND motivo = :motivo                                    
+        """), {"inv_prod_id": perdida.inv_prod_id, "fecha_reporte": perdida.fecha_reporte, "motivo": perdida.motivo}).scalar()
+
+        if duplicado and duplicado > 0:
+            raise Exception("Ya existe una pérdida registrada para este producto, si desea modificarla, informe al administrador.")
+
+        disponible = db.execute(text("""
+            SELECT cantidad
+            FROM inv_produccion
+            WHERE id_inventario = :inv_prod_id
+        """), {"inv_prod_id": perdida.inv_prod_id}).mappings().first()
+
+        if not disponible:
+            raise ValueError("Producto no encontrado en inventario de producción")
+
+        if float(disponible["cantidad"] or 0) <= 0:
+            raise ValueError("No se puede descontar la pérdida porque el inventario de producción está en 0")
+
         conv = db.execute(text("""
             SELECT conversion FROM unidades_medida
             WHERE id_unidad = :unid_medida_id
@@ -28,10 +51,13 @@ def create_perdida(db: Session, perdida: PerdidaCreate) -> Optional[bool]:
             )
         """)
         params = perdida.model_dump()
+        params["user_id"] = user_id
         params["cant_convertida"] = float(perdida.cantidad) * float(conv)
         db.execute(query, params)
         db.commit()
         return True
+    except ValueError:
+        raise
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"Error al crear la pérdida: {e}")
@@ -42,11 +68,12 @@ def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
         query = text("""
             SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
                    p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                   u.nombre_user, um.simbolo, pr.nombre_producto, pr.valor_unitario
+                   u.nombre_user, um.simbolo, pr.nombre_producto, pr.valor_unitario, l.nombre_lote
             FROM inv_perdidas p
             LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
             LEFT JOIN users AS u ON p.user_id = u.id_user
             LEFT JOIN unidades_medida AS um ON p.unid_medida_id = um.id_unidad
+            LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
             WHERE p.id_perdida = :id
         """)
         result = db.execute(query, {"id": id}).mappings().first()
@@ -54,25 +81,7 @@ def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener pérdida por id: {e}")
         raise Exception("Error de base de datos al obtener la pérdida")
-    
-def all_perdidas(db: Session) -> list[PerdidaOut]:
-    try:
-        query = text("""
-                    SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
-                    p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                    pr.nombre_producto, u.nombre_user, um.simbolo, pr.valor_unitario
-                    FROM inv_perdidas p
-                    LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
-                    LEFT JOIN users AS u ON p.user_id = u.id_user
-                    LEFT JOIN unidades_medida AS um ON p.unid_medida_id = um.id_unidad
-                    ORDER BY p.fecha_reporte DESC
-                    """)
-        results = db.execute(query).mappings().all()
-        return results
-    except SQLAlchemyError as e:
-        logger.error(f"Error al obtener todas las pérdidas: {e}")
-        raise Exception("Error de base de datos al obtener las pérdidas")
-    
+
 def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
     try:
     # Solo los campos enviados por el usuario
@@ -95,7 +104,26 @@ def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
         db.rollback()
         logger.error(f"Error al actualizar pérdida {id}: {e}")
         raise Exception("Error de base de datos al actualizar la pérdida")
-    
+     
+def all_perdidas(db: Session) -> list[PerdidaOut]:
+    try:
+        query = text("""
+                    SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
+                        p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
+                        pr.nombre_producto, u.nombre_user, um.simbolo, pr.valor_unitario, l.nombre_lote
+                    FROM inv_perdidas AS p
+                    LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
+                    LEFT JOIN users AS u ON p.user_id = u.id_user
+                    LEFT JOIN unidades_medida AS um ON p.unid_medida_id = um.id_unidad
+                    LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
+                    ORDER BY p.fecha_reporte DESC
+                    """)
+        results = db.execute(query).mappings().all()
+        return results
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener todas las pérdidas: {e}")
+        raise Exception("Error de base de datos al obtener las pérdidas")
+      
 def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
     try:
         count_query = text("""
@@ -104,15 +132,15 @@ def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
         """)
         total_result = db.execute(count_query).scalar()
 
-        # ← query limpia sin duplicado ni error de sintaxis
         data_query = text("""
             SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo,
                    p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                   pr.nombre_producto, u.nombre_user, um.simbolo, pr.valor_unitario
+                   pr.nombre_producto, u.nombre_user, um.simbolo, pr.valor_unitario, l.nombre_lote
             FROM inv_perdidas AS p
             LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
             LEFT JOIN users AS u ON p.user_id = u.id_user
             LEFT JOIN unidades_medida AS um ON p.unid_medida_id = um.id_unidad
+            LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
             ORDER BY p.fecha_reporte DESC
             LIMIT :limit OFFSET :skip
         """)

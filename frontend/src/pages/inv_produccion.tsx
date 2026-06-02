@@ -30,6 +30,11 @@ type invProdResponse = {
     produccion: invProdRow[];
 };
 
+type DateRangeState = {
+    fecha_inicio: string;
+    fecha_fin: string;
+};
+
 const PAGE_SIZES = [5, 10, 20, 50];
 const TABLE_COLUMNS = 10;
 
@@ -41,6 +46,11 @@ export default function Users() {
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
+    const [dateRange, setDateRange] = useState<DateRangeState>({
+        fecha_inicio: "",
+        fecha_fin: "",
+    });
+    const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
 
 
     useEffect(() => {
@@ -51,9 +61,20 @@ export default function Users() {
             setError(null);
 
             try {
-                const data = (await apiFetch(
-                    `inv_produccion/paginated-production?page=${page}&page_size=${pageSize}`
-                )) as invProdResponse;
+                const queryParams = new URLSearchParams({
+                    page: String(page),
+                    page_size: String(pageSize),
+                });
+
+                const endpoint = activeDateRange
+                    ? (() => {
+                        queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
+                        queryParams.set("fecha_fin", activeDateRange.fecha_fin);
+                        return `inv_produccion/rango-fechas?${queryParams.toString()}`;
+                    })()
+                    : `inv_produccion/paginated-production?${queryParams.toString()}`;
+
+                const data = (await apiFetch(endpoint)) as invProdResponse;
 
                 if (!isMounted) {
                     return;
@@ -83,7 +104,7 @@ export default function Users() {
         return () => {
             isMounted = false;
         };
-    }, [page, pageSize]);
+    }, [page, pageSize, activeDateRange]);
 
     const filteredInvProduc = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -132,6 +153,29 @@ export default function Users() {
         });
     };
 
+    const applyDateFilter = () => {
+        if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
+            setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
+            return;
+        }
+
+        if (dateRange.fecha_inicio > dateRange.fecha_fin) {
+            setError("La fecha inicial no puede ser mayor que la fecha final.");
+            return;
+        }
+
+        setError(null);
+        setPage(1);
+        setActiveDateRange({ ...dateRange });
+    };
+
+    const clearDateFilter = () => {
+        setDateRange({ fecha_inicio: "", fecha_fin: "" });
+        setActiveDateRange(null);
+        setPage(1);
+        setError(null);
+    };
+
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
@@ -139,8 +183,8 @@ export default function Users() {
             <PageBreadcrumb pageTitle="Inventario de Producción" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <Link
                             to="/invProd/create"
                             className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
@@ -150,7 +194,7 @@ export default function Users() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar inventario..."
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-72"
+                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-20"
                         />
                         <select
                             value={pageSize}
@@ -166,6 +210,39 @@ export default function Users() {
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha inicio:</label>
+                        <input
+                            type="date"
+                            value={dateRange.fecha_inicio}
+                            onChange={(e) => setDateRange((current) => ({ ...current, fecha_inicio: e.target.value }))}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
+                            aria-label="Fecha inicial"
+                        />
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha fin:</label>
+                        <input
+                            type="date"
+                            value={dateRange.fecha_fin}
+                            onChange={(e) => setDateRange((current) => ({ ...current, fecha_fin: e.target.value }))}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
+                            aria-label="Fecha final"
+                        />
+                        <button
+                            type="button"
+                            onClick={applyDateFilter}
+                            className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-800 px-4 text-sm font-medium text-white transition hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
+                        >
+                            Filtrar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={clearDateFilter}
+                            disabled={!activeDateRange}
+                            className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                        >
+                            Limpiar
+                        </button>
                     </div>
                 </div>
 

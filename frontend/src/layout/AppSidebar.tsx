@@ -22,7 +22,6 @@ const navItems: NavItem[] = [
     icon: <GridIcon />,
     name: "Dashboard",
     path: "/dashboard"
-    // subItems: [{ name: "Estadisticas", path: "/dashboard", pro: false }],
   },
   {
     icon: <CalenderIcon />,
@@ -91,6 +90,10 @@ const modulosItems: NavItem[] = [
       {
         name: "Inventario de producción",
         path: "/invProd",
+      },
+      {
+        name: "Inventario de perdidas",
+        path: "/invPerd",
       },
     ],
   },

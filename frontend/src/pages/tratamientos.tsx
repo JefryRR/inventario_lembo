@@ -18,6 +18,7 @@ type TratamientoRow = {
 	cantidad_convertida: number;
     observacion: string | null;
     nombre_user: string;
+	simbolo: string | null;
 };
 
 type TratamientosResponse = {
@@ -39,8 +40,6 @@ function formatDate(value: string): string {
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
 	});
 }
 
@@ -174,6 +173,9 @@ export default function Tratamientos() {
 									Tratamiento
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Detalles
+								</th>
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Acciones
 								</th>
 							</tr>
@@ -212,14 +214,16 @@ export default function Tratamientos() {
 											<div>Fin: {formatDate(tratamiento.fecha_fin)}</div>
 										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{tratamiento.cantidad}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{tratamiento.cantidad} {tratamiento.simbolo || "-"}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											<div>Lote: {tratamiento.nombre_lote}</div>
 											<div>Producto: {tratamiento.nombre_producto}</div>
 											<div>Responsable: {tratamiento.nombre_user}</div>
 										</td>
-
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											<div> {tratamiento.observacion || "-"}</div>
+										</td>
 										<td className="px-5 py-4">
 											<Link
 												to={`/tratamientos/edit/${tratamiento.id_tratamiento}`}

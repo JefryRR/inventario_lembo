@@ -47,6 +47,8 @@ import TratamientoEdit from "./components/tratamiento/tratamientoEdit";
 import Devoluciones from "./pages/devoluciones";
 import DevolucionCreate from "./components/devoluciones/devolucionCreate";
 import DevolucionEdit from "./components/devoluciones/devolucionEdit";
+import InvPerdidas from "./pages/inv_perdidas";
+import InvPerdCreate from "./components/inv_perdida/inv_perdCreate";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -99,6 +101,8 @@ export default function App() {
             <Route path="/invProd/create" element={<InvProdCreate />} />
             <Route path="/invProd/edit/:id_inventario" element={<InvProdEdit />} />
             <Route path="/invProd/report/:id_inventario" element={<InvProdReport />} />
+            <Route path="/invPerd" element={<InvPerdidas />} />
+            <Route path="/invPerd/create" element={<InvPerdCreate />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

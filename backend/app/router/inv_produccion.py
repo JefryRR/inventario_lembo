@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate, ProduccionOut
+from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate, ProduccionOut, PaginatedProducciones
 from app.crud import inv_produccion as crud_produccion
 from app.crud import lotes as crud_lotes
 from app.schemas.users import UserOut
@@ -94,6 +94,45 @@ def update_produccion(
         raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/rango-fechas", response_model=PaginatedProducciones)
+def obtener_produccion_por_rango_fechas(
+    fecha_inicio: str = Query(..., description="Fecha inicial en formato YYYY-MM-DD"),
+    fecha_fin: str = Query(..., description="Fecha final en formato YYYY-MM-DD"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, "seleccionar"):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        
+        produccion = crud_produccion.get_produccion_by_date_range(db, fecha_inicio, fecha_fin)
+
+        if not produccion:
+            raise HTTPException(status_code=404, detail="No hay registro(s) de producción en ese rango de fechas")
+
+        # Aplicar paginación manualmente a los resultados filtrados
+        total = len(produccion)
+        skip = (page - 1) * page_size
+        end_index = skip + page_size
+        
+        # Obtener solo la página solicitada
+        produccion_paginados = produccion[skip:end_index]
+        
+        return PaginatedProducciones(
+            page=page,
+            page_size=page_size,
+            total_produccion=total,
+            total_pages=(total + page_size - 1) // page_size,
+            produccion=produccion_paginados
+        )
+
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener los registros de producción: {e}")
+
 
 @router.get("/reporte/{inv_prod_id}")
 def get_reporte_produccion(

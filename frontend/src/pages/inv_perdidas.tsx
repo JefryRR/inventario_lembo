@@ -4,35 +4,34 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-type invProdRow = {
-    id_inventario: number,
-    nombre_producto: string,
-    cantidad: number,
-    unid_medida_id: number,
-    fecha_ingreso: string,
-    fecha_vencimiento: string,
-    lote_id: number,
-    valor_unitario: number,
-    nombre_lote: string,
-    categoria_id: number,
-    especie_id: number,
-    nombre_categoria: string,
-    nombre_especie: string,
-    nivel_alerta: string,
+type invPerdRow = {
+    id_perdida: number
+    inv_prod_id: number
+    cantidad: number
+    motivo: string
+    fecha_reporte: string
+    unid_medida_id: number
+    user_id: number
+    observaciones: string
+    nombre_user: string
+    nombre_producto: string
+    valor_unitario: number
+    nombre_lote: string
     simbolo: string
+
 };
 
-type invProdResponse = {
+type invPerdResponse = {
     total: number;
     page: number;
     page_size: number;
-    produccion: invProdRow[];
+    perdidas: invPerdRow[];
 };
 
 const PAGE_SIZES = [5, 10, 20, 50];
 
 export default function Users() {
-    const [invProd, setInvProd] = useState<invProdRow[]>([]);
+    const [invPerd, setInvPerd] = useState<invPerdRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(1);
@@ -50,14 +49,14 @@ export default function Users() {
 
             try {
                 const data = (await apiFetch(
-                    `inv_produccion/paginated-production?page=${page}&page_size=${pageSize}`
-                )) as invProdResponse;
+                    `inv_perdida/paginated-perdida?page=${page}&page_size=${pageSize}`
+                )) as invPerdResponse;
 
                 if (!isMounted) {
                     return;
                 }
 
-                setInvProd(Array.isArray(data?.produccion) ? data.produccion : []);
+                setInvPerd(Array.isArray(data?.perdidas) ? data.perdidas : []);
                 setTotal(Number(data?.total ?? 0));
             } catch (requestError: any) {
                 if (!isMounted) {
@@ -67,7 +66,7 @@ export default function Users() {
                 setError(
                     requestError?.detail ||
                     requestError?.message ||
-                    "No se pudieron cargar los datos de producción."
+                    "No se pudieron cargar los datos de las perdidas."
                 );
             } finally {
                 if (isMounted) {
@@ -83,29 +82,29 @@ export default function Users() {
         };
     }, [page, pageSize]);
 
-    const filteredInvProduc = useMemo(() => {
+    const filteredInvperd = useMemo(() => {
         const term = search.trim().toLowerCase();
         if (!term) {
-            return invProd;
+            return invPerd;
         }
 
-        return invProd.filter((inv_prod) => {
+        return invPerd.filter((inv_perd) => {
             return [
-                inv_prod.nombre_producto,
-                String(inv_prod.cantidad),
-                inv_prod.nombre_lote,
-                inv_prod.nombre_categoria,
-                inv_prod.nombre_especie,
-                inv_prod.fecha_ingreso,
-                inv_prod.fecha_vencimiento,
-                String(inv_prod.valor_unitario),
-                inv_prod.nivel_alerta
+                inv_perd.nombre_producto,
+                String(inv_perd.cantidad),
+                inv_perd.motivo,
+                inv_perd.nombre_user,
+                inv_perd.fecha_reporte,
+                inv_perd.observaciones,
+                inv_perd.simbolo,
+                String(inv_perd.valor_unitario),
+                inv_perd.nombre_lote
             ]
                 .join(" ")
                 .toLowerCase()
                 .includes(term);
         });
-    }, [search, invProd]);
+    }, [search, invPerd]);
 
     const formatearFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
@@ -120,34 +119,29 @@ export default function Users() {
         });
     };
 
-    const SoloFecha = (fechaString: string | number | Date) => {
-        if (!fechaString) return "-";
-        const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString("es-CO", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
+    const formatearCantidad = (cantidad: number | string, simbolo?: string) => {
+        const unidad = simbolo?.trim() || "-";
+        return `${cantidad ?? 0} ${unidad}`;
     };
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
         <>
-            <PageBreadcrumb pageTitle="Inventario de Producción" />
+            <PageBreadcrumb pageTitle="Inventario de perdidas" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <Link
-                            to="/invProd/create"
+                            to="/invPerd/create"
                             className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
-                            Nuevo inventario
+                            Registrar pérdida
                         </Link>
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Buscar inventario..."
+                            placeholder="Buscar perdida..."
                             className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-72"
                         />
                         <select
@@ -176,25 +170,22 @@ export default function Users() {
                                     Nombre producto
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad / unidad
+                                    Cantidad
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    fecha registro
+                                    Fecha reporte
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    fecha vencimiento
+                                    Valor unitario
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    valor unitario
+                                    Motivo
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Categoría / Especie
+                                    Registrado por
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Lote
-                                </th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Estado
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Accciones
@@ -205,55 +196,54 @@ export default function Users() {
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, index) => (
                                     <tr key={index}>
-                                        <td colSpan={6} className="px-5 py-4">
+                                        <td colSpan={9} className="px-5 py-4">
                                             <div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
                                         </td>
                                     </tr>
                                 ))
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-error-500">
+                                    <td colSpan={9} className="px-5 py-10 text-center text-sm text-error-500">
                                         {error}
                                     </td>
                                 </tr>
-                            ) : filteredInvProduc.length === 0 ? (
+                            ) : filteredInvperd.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
-                                        No hay registros de inventario para mostrar.
+                                    <td colSpan={9} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        No hay registros de perdida para mostrar.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredInvProduc.map((inv_prod) => (
-                                    <tr key={inv_prod.id_inventario} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                                filteredInvperd.map((inv_perd) => (
+                                    <tr key={inv_perd.id_perdida} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                         <td className="px-5 py-4">
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">
-                                                {inv_prod.nombre_producto}
+                                                {inv_perd.nombre_producto}
                                             </div>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <div className="text-sm text-gray-800 dark:text-gray-400">{inv_prod.cantidad} {inv_prod.simbolo}</div>
+                                            <div className="text-sm text-gray-800 dark:text-gray-400" title={formatearCantidad(inv_perd.cantidad, inv_perd.simbolo)}>
+                                                {inv_perd.cantidad} {inv_perd.simbolo || "-"}
+                                            </div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div> {formatearFecha(inv_prod.fecha_ingreso)} </div>
+                                            <div> {formatearFecha(inv_perd.fecha_reporte)} </div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div>{SoloFecha(inv_prod.fecha_vencimiento)}</div>
+                                            <div>$ {inv_perd.valor_unitario}</div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div>$ {inv_prod.valor_unitario}</div>
+                                            <div>{inv_perd.motivo}</div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div>{inv_prod.nombre_categoria} / {inv_prod.nombre_especie}</div>
+                                            <div>{inv_perd.nombre_user}</div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div>{inv_prod.nombre_lote}</div>
-                                        </td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div>{inv_prod.nivel_alerta}</div>
+                                            <div>{inv_perd.nombre_lote}</div>
                                         </td>
                                         <td className="px-5 py-4">
                                             <Link
-                                                to={`/invProd/edit/${inv_prod.id_inventario}`}
+                                                to={`/invPerd/edit/${inv_perd.id_perdida}`}
                                                 className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
                                                 Editar
                                             </Link>

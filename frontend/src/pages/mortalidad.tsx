@@ -149,6 +149,10 @@ export default function Mortalidad() {
                                     Lote
                                 </th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Categoría / Especie
+								</th>
+								
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Fecha de reporte
                                 </th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -191,8 +195,12 @@ export default function Mortalidad() {
 											<div className="text-xs text-gray-500 dark:text-gray-400">ID: {mortalidad.id_mortalidad}</div>
 										</td>
 
+										<td className="px-5 py-4">
+											<div className="text-sm text-gray-800 dark:text-gray-300">{mortalidad.nombre_categoria || "-"} / {mortalidad.nombre_especie || "-"}</div>
+										</td>
+										
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(mortalidad.fecha_reporte)}</td>
-
+										
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.cantidad}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.observacion || "-"}</td>

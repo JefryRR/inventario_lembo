@@ -12,6 +12,7 @@ type MovimientoReporte = {
     referencia: string;
     fecha: string;
     motivo: string;
+    simbolo: string;
 };
 
 type ReporteProduccion = {
@@ -253,7 +254,6 @@ export default function InformesProd() {
                                         <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Tipo</th>
                                         <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Referencia</th>
                                         <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cantidad</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Unidad</th>
                                         <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor</th>
                                         <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado o Motivo</th>
                                         <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha</th>
@@ -262,7 +262,7 @@ export default function InformesProd() {
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {reporte.movimientos.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                                            <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                                 No hay movimientos registrados para este inventario.
                                             </td>
                                         </tr>
@@ -271,8 +271,7 @@ export default function InformesProd() {
                                             <tr key={`${movimiento.tipo}-${movimiento.id_registro}`} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                                 <td className="px-5 py-4 text-sm font-medium text-gray-800 dark:text-white/90">{movimiento.tipo}</td>
                                                 <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{movimiento.referencia}</td>
-                                                <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">{movimiento.cantidad}</td>
-                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{encabezado.simbolo || "-"}</td>
+                                                <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">{movimiento.cantidad} {movimiento.simbolo || "-"}</td>
                                                 <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
                                                     {movimiento.valor === "-" ? "-" : formatearMoneda(movimiento.valor)}
                                                 </td>
