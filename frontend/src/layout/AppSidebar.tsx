@@ -63,14 +63,6 @@ const modulosItems: NavItem[] = [
     name: "Módulo operativo",
     subItems: [
       {
-        name: "Categorías",
-        path: "/categorias",
-      },
-      {
-        name: "Especies",
-        path: "/especies",
-      },
-      {
         name: "Lotes de producción",
         path: "/lotesProd",
       },
@@ -86,10 +78,6 @@ const modulosItems: NavItem[] = [
       {
         name: "Tratamiento",
         path: "/tratamientos",
-      },
-      {
-        name: "Devoluciones",
-        path: "/devoluciones",
       },
       {
         name: "Alimentos de producción",
