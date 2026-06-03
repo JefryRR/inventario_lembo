@@ -38,6 +38,9 @@ import EspeciesEdit from "./components/especies/especiesEdit";
 import Lotes from "./pages/lotes_prod";
 import LotesCreate from "./components/lotes_prod/lotesCreate";
 import LotesEdit from "./components/lotes_prod/lotesEdit";
+import LotesGranja from "./pages/lotes_g";
+import LotesGranjaCreate from "./components/lotes_granja/lotesGranjaCreate";
+import LotesGranjaEdit from "./components/lotes_granja/lotesGranjaEdit";
 import Mortalidad from "./pages/mortalidad";
 import MortalidadCreate from "./components/mortalidad/mortalidadCreate";
 import MortalidadEdit from "./components/mortalidad/mortalidadEdit";
@@ -102,7 +105,10 @@ export default function App() {
             <Route path="/invProd/report/:id_inventario" element={<InvProdReport />} />
             <Route path="/invPerd" element={<InvPerdidas />} />
             <Route path="/invPerd/create" element={<InvPerdCreate />} />
-            <Route path="/invPerd/edit/:id_perdida" element={<InvPerdEdit />} />
+            {/* <Route path="/invPerd/edit/:id_perdida" element={<InvPerdEdit />} /> */}
+            <Route path="/lotesGranja" element={<LotesGranja />} />
+            <Route path="/lotesGranja/create" element={<LotesGranjaCreate />} />
+            <Route path="/lotesGranja/edit/:id_lote_g" element={<LotesGranjaEdit />} />
             <Route path="/ventas" element={<Ventas />} />
             <Route path="/ventas/create" element={<VentasCreate />} />
             <Route path="/ventas/edit/:id" element={<VentasEdit />} />
