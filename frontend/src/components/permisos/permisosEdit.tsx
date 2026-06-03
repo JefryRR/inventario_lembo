@@ -122,8 +122,6 @@ export default function PermisosEdit() {
 
     return (
         <>
-            <PageMeta title="Editar permiso | Inventario Lembo" description="Editar permiso" />
-
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 
                 {/* Cabecera */}

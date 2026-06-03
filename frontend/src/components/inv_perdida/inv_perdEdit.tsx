@@ -4,52 +4,39 @@ import { Link, useNavigate, useParams } from "react-router";
 import { apiFetch } from "@/services/api";
 
 type Inv_prodFormState = {
-    nombre_producto: string,
-    cantidad: string,
-    unid_medida_id: string,
-    fecha_vencimiento: string,
-    lote_id: string,
-    valor_unitario: string,
-    nombre_lote: string,
-    categoria_id: string,
-    especie_id: string,
-    nombre_categoria: string,
-    nombre_especie: string,
-    simbolo: string,
+    id_perdida: number
+    cantidad: number
+    motivo: string
+    unid_medida_id: number
+    observaciones: string
+    simbolo: string
 };
 
-type LoteOption = {
-    id_lote: number;
-    nombre_lote: string;
-};
-
-type CategoriaOption = {
-    id_categoria: number;
-    nombre_categoria: string;
-};
-
-type EspecieOption = {
-    id_especie: number;
-    nombre_especie: string;
-};
 
 type Unid_medOption = {
     id_unidad: number;
     simbolo: string;
 };
 
+type MotivoOption = {
+    value: string;
+    label: string;
+};
+
+const motivoOptions: MotivoOption[] = [
+    { value: "contaminacion", label: "Contaminación" },
+    { value: "extravio", label: "Extravio" },
+    { value: "vencimiento", label: "Vencimiento" },
+    { value: "robo", label: "Robo" },
+    { value: "daño_fisico", label: "Daño físico" },
+];
+
 const emptyState: Inv_prodFormState = {
-    nombre_producto: "",
-    cantidad: "",
-    unid_medida_id: "",
-    fecha_vencimiento: "",
-    lote_id: "",
-    valor_unitario: "",
-    nombre_lote: "",
-    categoria_id: "",
-    especie_id: "",
-    nombre_categoria: "",
-    nombre_especie: "",
+    id_perdida: 0,
+    cantidad: 0,
+    motivo: "",
+    unid_medida_id: 0,
+    observaciones: "",
     simbolo: ""
 };
 
@@ -60,10 +47,9 @@ export default function Inv_prodEdit() {
 
     const [form, setForm] = useState<Inv_prodFormState>(emptyState);
     const [loading, setLoading] = useState(false);
+    const [loadingInvperd, setLoadingInvperd] = useState(false);
+    const [loadingUnidMedidas, setLoadingUnidMedidas] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
-    const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
-    const [especies, setEspecies] = useState<EspecieOption[]>([]);
-    const [lotes, setLotes] = useState<LoteOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
@@ -83,49 +69,29 @@ export default function Inv_prodEdit() {
             setLoading(true);
             setError(null);
             try {
-                const [invProdData, lotesData, UnidMedidasData, CategoriasData, EspeciesData] = await Promise.all([
-                    apiFetch(`inv_produccion/by-id?id=${id}`),
-                    apiFetch(`lotes/all-lotes_prod`),
+                const [invPerdData, UnidMedidasData] = await Promise.all([
+                    apiFetch(`nv_perdida/update-perdida-by-id/=${id}`),
                     apiFetch(`unid-medida/all-unid_medidas`),
-                    apiFetch(`categorias/all-categorias`),
-                    apiFetch(`especies/all-especies`),
+                  
                 ]);
                 if (!mounted) return;
-
-                const lotesList = Array.isArray(lotesData?.lotes) ? lotesData.Lotes :
-                    Array.isArray(lotesData) ? lotesData : [];
 
                 const unidMedList = Array.isArray(UnidMedidasData?.unid_medidas) ? UnidMedidasData.unid_medidas :
                     Array.isArray(UnidMedidasData) ? UnidMedidasData : [];
 
-                const categoriasList = Array.isArray(CategoriasData?.categorias) ? CategoriasData.categorias :
-                    Array.isArray(CategoriasData) ? CategoriasData : [];
-
-                const especiesList = Array.isArray(EspeciesData?.especies) ? EspeciesData.especies :
-                    Array.isArray(EspeciesData) ? EspeciesData : [];
-
                 setForm({
-                    nombre_producto: invProdData?.nombre_producto || "",
-                    cantidad: String(invProdData?.cantidad ?? ""),
-                    unid_medida_id: invProdData?.unid_medida_id ? String(invProdData.unid_medida_id) : "",
-                    fecha_vencimiento: toDateInputValue(invProdData?.fecha_vencimiento),
-                    lote_id: invProdData?.lote_id ? String(invProdData.lote_id) : "",
-                    valor_unitario: invProdData?.valor_unitario ? String(invProdData.valor_unitario) : "",
-                    nombre_lote: invProdData?.nombre_lote || "",
-                    categoria_id: invProdData?.categoria_id ? String(invProdData.categoria_id) : "",
-                    especie_id: invProdData?.especie_id ? String(invProdData.especie_id) : "",
-                    nombre_categoria: invProdData?.nombre_categoria || "",
-                    nombre_especie: invProdData?.nombre_especie || "",
-                    simbolo: invProdData?.simbolo || ""
-                });
-
-                setLotes(lotesList);
+                    id_perdida: Number(invPerdData?.id_perdida ?? 0),
+                    cantidad: Number(invPerdData?.cantidad ?? 0),
+                    unid_medida_id: Number(invPerdData?.unid_medida_id ?? 0),
+                    motivo: invPerdData?.motivo || "",
+                    observaciones: invPerdData?.observaciones || "",
+                    simbolo: invPerdData?.simbolo || ""
+                });               
                 setUnidMedidas(unidMedList);
-                setCategorias(categoriasList);
-                setEspecies(especiesList);
+               
 
             } catch (err: any) {
-                setError(err?.detail || err?.message || "No se pudo cargar el registro del producto");
+                setError(err?.detail || err?.message || "No se pudo cargar el registro de la perdida");
             } finally {
                 if (mounted) setLoading(false);
             }
@@ -153,21 +119,19 @@ export default function Inv_prodEdit() {
 
         try {
             const payload = {
-                nombre_producto: form.nombre_producto.trim(),
+                id_perdida: form.id_perdida,
                 cantidad: Number(form.cantidad),
                 unid_medida_id: Number(form.unid_medida_id),
-                fecha_vencimiento: form.fecha_vencimiento,
-                lote_id: Number(form.lote_id),
-                valor_unitario: Number(form.valor_unitario),
-                categoria_id: Number(form.categoria_id),
-                especie_id: Number(form.especie_id),
+                motivo: form.motivo.trim(),
+                observaciones: form.observaciones.trim(),
+                simbolo: form.simbolo.trim()
             };
 
-            await apiFetch(`inv_produccion/update/${id}`, { method: "PUT", body: payload });
-            setSuccess("Producto actualizado correctamente");
-            setTimeout(() => navigate("/invProd"), 800);
+            await apiFetch(`inv_perdida/update/${id}`, { method: "PUT", body: payload });
+            setSuccess("Perdida actualizada correctamente");
+            setTimeout(() => navigate("/invPerd/update"), 800);
         } catch (err: any) {
-            setError(err?.detail || err?.message || "No se pudo actualizar el producto");
+            setError(err?.detail || err?.message || "No se pudo actualizar la perdida");
         } finally {
             setSaving(false);
         }
@@ -280,9 +244,9 @@ export default function Inv_prodEdit() {
                                     className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "Guardando..." : "Actualizar producto"}
                                 </button>
                                 <Link to="/invProd"
-                                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
                                     Cancelar
-                                    </Link>
+                                </Link>
                             </div>
                         </>
                     )}

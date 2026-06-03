@@ -4,44 +4,25 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-type MortalidadRow = {
-	id_mortalidad: number;
-	lote_id: number;
-	fecha_reporte: string;
-	cantidad: number;
-	observacion?: string;
-	user_id: number;
-	nombre_especie?: string;
-	nombre_categoria?: string;
+type LoteRow = {
+	id_lote_g: number;
 	nombre_lote: string;
-	nombre_user?: string;
+	ubicacion: string;
+	latitud: string;
+	longitud: string;
 };
 
-type MortalidadResponse = {
-	total_mortalidad: number;
+type LotesResponse = {
+	total_lotes: number;
 	page: number;
 	page_size: number;
-	mortalidad: MortalidadRow[];
+	lotes_granja: LoteRow[];
 };
 
-function formatDate(value: string): string {
-	if (!value) return "-";
 
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
-
-	return date.toLocaleString("es-CO", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
-
-export default function Mortalidad() {
+export default function Lotes_granja() {
 	const navigate = useNavigate();
-	const [rows, setRows] = useState<MortalidadRow[]>([]);
+	const [lotes, setLotes] = useState<LoteRow[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [page, setPage] = useState(1);
@@ -56,70 +37,83 @@ export default function Mortalidad() {
 	}, [navigate]);
 
 	useEffect(() => {
-		let mounted = true;
+		let isMounted = true;
 
-		const load = async () => {
+		const loadLotes = async () => {
 			setLoading(true);
 			setError(null);
 
 			try {
-				const data = (await apiFetch(`mortalidad/paginated?page=${page}&page_size=${pageSize}`)) as MortalidadResponse;
-				if (!mounted) return;
+				const data = (await apiFetch(`lotes/paginated?page=${page}&page_size=${pageSize}`)) as LotesResponse;
 
-				setRows(Array.isArray(data?.mortalidad) ? data.mortalidad : []);
-				setTotal(Number(data?.total_mortalidad ?? 0));
+				if (!isMounted) {
+					return;
+				}
+
+				setLotes(Array.isArray(data?.lotes_granja) ? data.lotes_granja : []);
+				setTotal(Number(data?.total_lotes ?? 0));
 			} catch (requestError: any) {
-				if (!mounted) return;
-				setError(requestError?.detail || requestError?.message || "No se pudieron cargar los registros de mortalidad");
+				if (!isMounted) {
+					return;
+				}
+
+				setError(
+					requestError?.detail ||
+						requestError?.message ||
+						"No se pudieron cargar los lotes de la granja"
+				);
 			} finally {
-				if (mounted) setLoading(false);
+				if (isMounted) {
+					setLoading(false);
+				}
 			}
 		};
 
-		load();
+		loadLotes();
 
 		return () => {
-			mounted = false;
+			isMounted = false;
 		};
 	}, [page, pageSize]);
 
-	const filtered = useMemo(() => {
+	const filteredLotes = useMemo(() => {
 		const term = search.trim().toLowerCase();
-		if (!term) return rows;
-
-		return rows.filter((r) => {
+		if (!term) {
+			return lotes;
+		}
+	
+		return lotes.filter((lote) => {
 			return [
-				r.nombre_lote,
-				r.nombre_especie,
-				r.nombre_categoria,
-				r.nombre_user,
-				r.observacion,
+				lote.nombre_lote,
+				lote.ubicacion,
+				lote.latitud,
+				lote.longitud,
 			]
 				.join(" ")
 				.toLowerCase()
 				.includes(term);
 		});
-	}, [search, rows]);
+	}, [search, lotes]);
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
 	return (
 		<>
-			<PageBreadcrumb pageTitle="Mortalidad" />
+			<PageBreadcrumb pageTitle="Lotes" />
 
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 						<Link
-							to="/mortalidad/create"
+							to="/lotesGranja/create"
 							className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
 						>
-							Nuevo registro
+							Nuevo lote
 						</Link>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Buscar..."
+							placeholder="Buscar lote..."
 							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-72"
 						/>
 					</div>
@@ -130,70 +124,58 @@ export default function Mortalidad() {
 						<thead className="bg-gray-50 dark:bg-gray-900/40">
 							<tr>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Lote
-                                </th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Categoría / Especie
+									Lote
 								</th>
-								
+								<th className="px-5 py-3 w-[200px] text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Ubicación
+								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Fecha de reporte
-                                </th>
+									Latitud
+								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Cantidad
-                                </th>
+									Longitud
+								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Observación
-                                </th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Usuario
-                                </th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Acciones
-                                </th>
+									Acciones
+								</th>
 							</tr>
 						</thead>
 
 						<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
 							{loading ? (
-								Array.from({ length: 5 }).map((_, index) => (
+								Array.from({ length: 4 }).map((_, index) => (
 									<tr key={index}>
-										<td colSpan={6} className="px-5 py-4">
+										<td colSpan={5} className="px-5 py-4">
 											<div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
 										</td>
 									</tr>
 								))
 							) : error ? (
 								<tr>
-									<td colSpan={6} className="px-5 py-10 text-center text-sm text-error-500">{error}</td>
+									<td colSpan={5} className="px-5 py-10 text-center text-sm text-error-500">
+										{error}
+									</td>
 								</tr>
-							) : filtered.length === 0 ? (
+							) : filteredLotes.length === 0 ? (
 								<tr>
-									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No hay registros de mortalidad.</td>
+									<td colSpan={5} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+										No hay lotes para mostrar.
+									</td>
 								</tr>
 							) : (
-								filtered.map((mortalidad) => (
-									<tr key={mortalidad.id_mortalidad} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+								filteredLotes.map((lote_g) => (
+									<tr key={lote_g.id_lote_g} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 										<td className="px-5 py-4">
-											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{mortalidad.nombre_lote}</div>
-											<div className="text-xs text-gray-500 dark:text-gray-400">ID: {mortalidad.id_mortalidad}</div>
+											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{lote_g.nombre_lote}</div>
+											<div className="text-xs text-gray-500 dark:text-gray-400">ID: {lote_g.id_lote_g}</div>
 										</td>
-
-										<td className="px-5 py-4">
-											<div className="text-sm text-gray-800 dark:text-gray-300">{mortalidad.nombre_categoria || "-"} / {mortalidad.nombre_especie || "-"}</div>
-										</td>
-										
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(mortalidad.fecha_reporte)}</td>
-										
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.cantidad}</td>
-
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.observacion || "-"}</td>
-
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.nombre_user}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{lote_g.ubicacion}</td>
+										<td className="pl-5 py-4 text-sm text-gray-600 dark:text-gray-300">{lote_g.latitud}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{lote_g.longitud}</td>
 
 										<td className="px-5 py-4">
 											<Link
-												to={`/mortalidad/edit/${mortalidad.id_mortalidad}`}
+												to={`/lotesGranja/edit/${lote_g.id_lote_g}`}
 												className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
 											>
 												Editar
@@ -216,7 +198,9 @@ export default function Mortalidad() {
 						>
 							Anterior
 						</button>
-						<span className="text-sm text-gray-500 dark:text-gray-400">Página {page} de {totalPages}</span>
+						<span className="text-sm text-gray-500 dark:text-gray-400">
+							Página {page} de {totalPages}
+						</span>
 						<button
 							type="button"
 							onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}

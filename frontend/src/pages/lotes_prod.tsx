@@ -26,7 +26,17 @@ type LotesResponse = {
 	lotes: LoteRow[];
 };
 
-const PAGE_SIZES = [5, 10, 20, 50];
+const ESTADO_LABELS: Record<string, string> = {
+	activo: "Activo",
+	finalizado: "Finalizado",
+	cuarentena: "Cuarentena",
+	cosechar: "Cosechar",
+	listo_para_carne: "Listo para carne",
+};
+
+function formatEstado(value: string): string {
+	return ESTADO_LABELS[value] || value;
+}
 
 function formatDate(value: string): string {
 	if (!value) return "-";
@@ -49,7 +59,7 @@ export default function Lotes() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(10);
+	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
 
@@ -104,7 +114,7 @@ export default function Lotes() {
 		if (!term) {
 			return lotes;
 		}
-
+	
 		return lotes.filter((lote) => {
 			return [
 				lote.nombre_lote,
@@ -112,6 +122,7 @@ export default function Lotes() {
 				lote.nombre_categoria,
 				lote.nombre_user,
 				lote.estado_lote,
+				formatEstado(lote.estado_lote),
 			]
 				.join(" ")
 				.toLowerCase()
@@ -123,7 +134,7 @@ export default function Lotes() {
 
 	return (
 		<>
-			<PageBreadcrumb pageTitle="Lotes" />
+			<PageBreadcrumb pageTitle="Producción" />
 
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
@@ -132,28 +143,14 @@ export default function Lotes() {
 							to="/lotesProd/create"
 							className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
 						>
-							Nuevo registro
+							Nueva producción
 						</Link>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Buscar lote..."
+							placeholder="Buscar producción..."
 							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-72"
 						/>
-						<select
-							value={pageSize}
-							onChange={(e) => {
-								setPage(1);
-								setPageSize(Number(e.target.value));
-							}}
-							className="h-11 rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-						>
-							{PAGE_SIZES.map((size) => (
-								<option key={size} value={size}>
-									{size} por página
-								</option>
-							))}
-						</select>
 					</div>
 				</div>
 
@@ -200,7 +197,7 @@ export default function Lotes() {
 							) : filteredLotes.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
-										No hay lotes para mostrar.
+										No hay registros de producción para mostrar.
 									</td>
 								</tr>
 							) : (
@@ -226,7 +223,7 @@ export default function Lotes() {
 
 										<td className="px-5 py-4">
 											<span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-												{lote.estado_lote}
+												{formatEstado(lote.estado_lote)}
 											</span>
 										</td>
 

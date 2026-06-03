@@ -28,8 +28,6 @@ type TratamientosResponse = {
 	tratamientos: TratamientoRow[];
 };
 
-const PAGE_SIZES = [5, 10, 20, 50];
-
 function formatDate(value: string): string {
 	if (!value) return "-";
 
@@ -49,7 +47,7 @@ export default function Tratamientos() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(10);
+	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
 
@@ -139,20 +137,6 @@ export default function Tratamientos() {
 							placeholder="Buscar tratamiento..."
 							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-72"
 						/>
-						<select
-							value={pageSize}
-							onChange={(e) => {
-								setPage(1);
-								setPageSize(Number(e.target.value));
-							}}
-							className="h-11 rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-						>
-							{PAGE_SIZES.map((size) => (
-								<option key={size} value={size}>
-									{size} por página
-								</option>
-							))}
-						</select>
 					</div>
 				</div>
 

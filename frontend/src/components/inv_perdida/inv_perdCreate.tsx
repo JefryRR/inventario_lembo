@@ -19,17 +19,11 @@ type Inv_perdFormState = {
     simbolo: string
 };
 
-// type LoteOption = {
-//     id_lote: number;
-//     nombre_lote: string;
-// };
-
 type InvProdOption = {
     id_inventario: number;
     nombre_producto: string;
     nombre_lote: string;
 };
-
 
 type Unid_medOption = {
     id_unidad: number;
@@ -74,35 +68,11 @@ export default function InvPerdCreate() {
     const [loadingUnidMedidas, setLoadingUnidMedidas] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
     const [invProd, setInvProd] = useState<InvProdOption[]>([]);
-    //const [lotes, setLotes] = useState<LoteOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         let mounted = true;
-
-        // const loadLotes = async () => {
-        //     setLoadingLotes(true);
-        //     try {
-        //         const lotesData = await apiFetch(`lotes/all-lotes_prod`);
-        //         if (!mounted) return;
-
-        //         const lotesList = Array.isArray(lotesData?.roles)
-        //             ? lotesData.roles
-        //             : Array.isArray(lotesData)
-        //                 ? lotesData
-        //                 : [];
-
-        //         setLotes(lotesList);
-        //     } catch (requestError: any) {
-        //         if (!mounted) return;
-        //         setError(requestError?.detail || requestError?.message || "No se pudieron cargar los lotes");
-        //     } finally {
-        //         if (mounted) setLoadingLotes(false);
-        //     }
-        // };
-
-        //loadLotes();
 
         const loadUnidMedidas = async () => {
             setLoadingUnidMedidas(true);
@@ -206,7 +176,6 @@ export default function InvPerdCreate() {
 
     return (
         <>
-            
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                     <div>

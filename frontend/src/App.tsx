@@ -44,11 +44,12 @@ import MortalidadEdit from "./components/mortalidad/mortalidadEdit";
 import Tratamientos from "./pages/tratamientos";
 import TratamientoCreate from "./components/tratamiento/tratamientoCreate";
 import TratamientoEdit from "./components/tratamiento/tratamientoEdit";
-import Devoluciones from "./pages/devoluciones";
-import DevolucionCreate from "./components/devoluciones/devolucionCreate";
-import DevolucionEdit from "./components/devoluciones/devolucionEdit";
 import InvPerdidas from "./pages/inv_perdidas";
 import InvPerdCreate from "./components/inv_perdida/inv_perdCreate";
+import LotesGranja from "./pages/lotes_g";
+import LotesGranjaCreate from "./components/lotes_granja/lotesGranjaCreate";
+import LotesGranjaEdit from "./components/lotes_granja/lotesGranjaEdit";
+import InvInsumos from "./pages/inv_insumos";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -94,15 +95,16 @@ export default function App() {
             <Route path="/tratamientos" element={<Tratamientos />} />
             <Route path="/tratamientos/create" element={<TratamientoCreate />} />
             <Route path="/tratamientos/edit/:id" element={<TratamientoEdit />} />
-            <Route path="/devoluciones" element={<Devoluciones />} />
-            <Route path="/devoluciones/crear" element={<DevolucionCreate />} />
-            <Route path="/devoluciones/edit/:id" element={<DevolucionEdit />} />
             <Route path="/invProd" element={<InvProduccion />} />
             <Route path="/invProd/create" element={<InvProdCreate />} />
             <Route path="/invProd/edit/:id_inventario" element={<InvProdEdit />} />
             <Route path="/invProd/report/:id_inventario" element={<InvProdReport />} />
             <Route path="/invPerd" element={<InvPerdidas />} />
             <Route path="/invPerd/create" element={<InvPerdCreate />} />
+            <Route path="/lotesGranja" element={<LotesGranja />} />
+            <Route path="/lotesGranja/create" element={<LotesGranjaCreate />} />
+            <Route path="/lotesGranja/edit/:id_lote_g" element={<LotesGranjaEdit />} />
+            <Route path="/invInsumos" element={<InvInsumos />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

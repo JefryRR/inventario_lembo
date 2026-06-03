@@ -35,7 +35,6 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
-const PAGE_SIZES = [5, 10, 20, 50];
 const TABLE_COLUMNS = 10;
 
 export default function Users() {
@@ -43,7 +42,7 @@ export default function Users() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
     const [dateRange, setDateRange] = useState<DateRangeState>({
@@ -196,20 +195,6 @@ export default function Users() {
                             placeholder="Buscar inventario..."
                             className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-20"
                         />
-                        <select
-                            value={pageSize}
-                            onChange={(e) => {
-                                setPage(1);
-                                setPageSize(Number(e.target.value));
-                            }}
-                            className="h-11 rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                        >
-                            {PAGE_SIZES.map((size) => (
-                                <option key={size} value={size}>
-                                    {size} por página
-                                </option>
-                            ))}
-                        </select>
                     </div>
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha inicio:</label>
