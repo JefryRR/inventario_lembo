@@ -189,7 +189,7 @@ export default function DetalleCreate() {
 
             setSuccess(data?.message || "Detalle de venta registrado correctamente");
             setForm(initialState);
-            navigate("/ventas");
+            navigate("/ventas", { state: { selectVentaId: form.venta_id, newDetalleId: data?.id_detalle_venta } });
         } catch (requestError: any) {
             setError(requestError?.detail || requestError?.message || "Ocurrió un error al registrar el detalle de venta");
         } finally {

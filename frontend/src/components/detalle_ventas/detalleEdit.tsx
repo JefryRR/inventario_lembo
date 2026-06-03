@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
@@ -24,12 +23,6 @@ type ProductoOption = {
 	id_inventario: number;
 	nombre_producto: string;
 	nombre_lote?: string;
-};
-
-type VentaOption = {
-	id_venta: number;
-	nombre_comprador: string;
-	fecha_venta?: string;
 };
 
 type MedidaOption = {
@@ -77,8 +70,8 @@ export default function DetalleEdit() {
 
 	const [form, setForm] = useState<DetalleFormState>(initialState);
 	const [productos, setProductos] = useState<ProductoOption[]>([]);
-	const [, setVentas] = useState<VentaOption[]>([]);
 	const [medidas, setMedidas] = useState<MedidaOption[]>([]);
+	const [originalEstado, setOriginalEstado] = useState<EstadoVenta | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [loadingCatalogs, setLoadingCatalogs] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -99,10 +92,9 @@ export default function DetalleEdit() {
 			setError(null);
 
 			try {
-				const [detalleData, productosData, ventasData, medidasData] = await Promise.all([
+				const [detalleData, productosData, medidasData] = await Promise.all([
 					apiFetch(`detalles-venta/by-id/detalle?id=${id}`),
 					apiFetch("inv_produccion/all/produccion"),
-					apiFetch("ventas/all/ventas"),
 					apiFetch("unid-medida/all-unid_medidas"),
 				]);
 
@@ -116,12 +108,6 @@ export default function DetalleEdit() {
 						? productosData
 						: [];
 
-				const ventaList = Array.isArray(ventasData?.ventas)
-					? ventasData.ventas
-					: Array.isArray(ventasData)
-						? ventasData
-						: [];
-
 				const medidaList = Array.isArray(medidasData?.medidas)
 					? medidasData.medidas
 					: Array.isArray(medidasData)
@@ -129,21 +115,22 @@ export default function DetalleEdit() {
 						: [];
 
 				setProductos(productoList);
-				setVentas(ventaList);
 				setMedidas(medidaList);
 
+				const estadoDetalle = detalle?.estado_venta ?? "Separado";
 				setForm({
 					cantidad: Number(detalle?.cantidad ?? 0),
 					unid_medida_id: Number(detalle?.unid_medida_id ?? 0),
 					precio_venta: String(detalle?.precio_venta ?? ""),
 					inv_prod_id: Number(detalle?.inv_prod_id ?? 0),
 					venta_id: Number(detalle?.venta_id ?? 0),
-					estado_venta: detalle?.estado_venta ?? "Separado",
+					estado_venta: estadoDetalle,
 					nombre_producto: detalle?.nombre_producto ?? "",
 					nombre_comprador: detalle?.nombre_comprador ?? "",
 					simbolo: detalle?.simbolo ?? "",
 					cant_convertida: Number(detalle?.cant_convertida ?? 0),
 				});
+				setOriginalEstado(estadoDetalle);
 			} catch (requestError: any) {
 				if (!mounted) return;
 				setError(requestError?.detail || requestError?.message || "No se pudo cargar el detalle de venta");
@@ -197,12 +184,34 @@ export default function DetalleEdit() {
 				inv_prod_id: Number(form.inv_prod_id),
 			};
 
-			const data = await apiFetch(`detalles-venta/update/detalle/${id}`, {
-				method: "PUT",
-				body: payload,
-			});
+			const estadoCambiado = originalEstado !== null && originalEstado !== form.estado_venta;
+			const estadoBloqueado = originalEstado === "Vendido" || originalEstado === "Anulado";
+			const estadoDestinoBloqueado = form.estado_venta === "Vendido" || form.estado_venta === "Anulado";
 
-			setSuccess(data?.message || "Detalle de venta actualizado correctamente");
+			if (estadoCambiado && estadoBloqueado) {
+				await apiFetch(`detalles-venta/estado/${id}?estado=${encodeURIComponent(form.estado_venta)}`, {
+					method: "PUT",
+				});
+			}
+
+			if (!(estadoCambiado && estadoBloqueado && estadoDestinoBloqueado)) {
+				const data = await apiFetch(`detalles-venta/update/detalle/${id}`, {
+					method: "PUT",
+					body: payload,
+				});
+
+				if (estadoCambiado && !estadoBloqueado) {
+					await apiFetch(`detalles-venta/estado/${id}?estado=${encodeURIComponent(form.estado_venta)}`, {
+						method: "PUT",
+					});
+				}
+
+				setSuccess(data?.message || "Detalle de venta actualizado correctamente");
+			} else {
+				setSuccess("Estado del detalle de venta actualizado correctamente");
+			}
+
+			setOriginalEstado(form.estado_venta);
 			setTimeout(() => navigate("/ventas"), 800);
 		} catch (requestError: any) {
 			setError(requestError?.detail || requestError?.message || "No se pudo actualizar el detalle de venta");
@@ -214,7 +223,6 @@ export default function DetalleEdit() {
 	return (
 		<>
 			<PageMeta title="Editar detalle de venta | Inventario Lembo" description="Editar detalle de venta" />
-			<PageBreadcrumb pageTitle="Editar detalle de venta" />
 
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
@@ -338,7 +346,6 @@ export default function DetalleEdit() {
 										value={form.estado_venta}
 										onChange={handleChange("estado_venta")}
 										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-										disabled
 									>
 										{ESTADO_OPTIONS.map((option) => (
 											<option key={option.value} value={option.value}>

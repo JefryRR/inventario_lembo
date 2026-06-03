@@ -23,8 +23,8 @@ def create_detalle_venta(
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        crud_detalles.create_detalle_venta(db, detalle)
-        return {"message": "Detalle de venta registrado correctamente"}
+        detalle_id = crud_detalles.create_detalle_venta(db, detalle)
+        return {"message": "Detalle de venta registrado correctamente", "id_detalle_venta": detalle_id}
     except HTTPException:
         raise
     except Exception as e:

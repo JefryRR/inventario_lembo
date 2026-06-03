@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def create_detalle_venta(db: Session, detalle: DetalleVentaCreate) -> Optional[bool]:
+def create_detalle_venta(db: Session, detalle: DetalleVentaCreate):
     try:
         query_conversion = text("""
             SELECT conversion
@@ -39,9 +39,9 @@ def create_detalle_venta(db: Session, detalle: DetalleVentaCreate) -> Optional[b
         params = detalle.model_dump()
         params["cant_convertida"] = params["cantidad"] * factor_conversion
         logger.info(f"params a insertar: {params}")
-        db.execute(query, params)
+        result = db.execute(query, params)
         db.commit()
-        return True
+        return result.lastrowid
     
     except SQLAlchemyError as e:
         db.rollback()

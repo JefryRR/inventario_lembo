@@ -106,14 +106,14 @@ export default function VentasCreate() {
                 user_id: Number(form.user_id),
             };
 
-            const data = await apiFetch("ventas/create", {
+            const data = await apiFetch("ventas/crear", {
                 method: "POST",
                 body: payload,
             });
 
             setSuccess(data?.message || "Venta registrada correctamente");
             setForm(initialState);
-            navigate("/ventas");
+            navigate("/ventas", { state: { newVentaId: data?.id_venta } });
         } catch (requestError: any) {
             setError(requestError?.detail || requestError?.message || "Ocurrió un error al registrar la venta");
         } finally {

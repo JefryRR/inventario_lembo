@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
+
+type VentasLocationState = {
+    refresh?: boolean;
+    newVentaId?: number;
+    selectVentaId?: number;
+    newDetalleId?: number;
+};
 
 type VentaRow = {
     id_venta: number;
@@ -30,12 +37,16 @@ type DetalleRow = {
 };
 
 export default function VentasPage() {
+    const location = useLocation();
+    const locationState = (location.state as VentasLocationState | null) ?? null;
     const [ventas, setVentas] = useState<VentaRow[]>([]);
     const [detalles, setDetalles] = useState<DetalleRow[]>([]);
     const [selectedVenta, setSelectedVenta] = useState<number | null>(null);
+    const [selectedDetalleId, setSelectedDetalleId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState("");
+    const selectedDetalleRef = useRef<HTMLTableRowElement | null>(null);
 
     useEffect(() => {
         let mounted = true;
@@ -54,13 +65,19 @@ export default function VentasPage() {
 
                 const ventasList = Array.isArray(ventasData?.ventas) ? ventasData.ventas : Array.isArray(ventasData) ? ventasData : [];
                 const detallesList = Array.isArray(detallesData?.detalles) ? detallesData.detalles : Array.isArray(detallesData) ? detallesData : [];
+                const ventaIdFromState = locationState?.newVentaId ?? locationState?.selectVentaId ?? null;
+                const detalleIdFromState = locationState?.newDetalleId ?? null;
 
                 setVentas(ventasList);
                 setDetalles(detallesList);
 
-                if (ventasList.length > 0 && selectedVenta === null) {
+                if (ventaIdFromState) {
+                    setSelectedVenta(ventaIdFromState);
+                } else if (ventasList.length > 0 && selectedVenta === null) {
                     setSelectedVenta(ventasList[0].id_venta);
                 }
+
+                setSelectedDetalleId(detalleIdFromState);
             } catch (err: any) {
                 if (!mounted) return;
                 setError(err?.detail || err?.message || "No se pudieron cargar las ventas");
@@ -73,29 +90,56 @@ export default function VentasPage() {
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [location.key, locationState?.refresh, locationState?.newVentaId, locationState?.selectVentaId, locationState?.newDetalleId]);
+
+    const filteredVentas = useMemo(() => {
+        const term = search.trim().toLowerCase();
+        if (!term) return ventas;
+        return ventas.filter((v) =>
+            [
+                String(v.id_venta),
+                v.nombre_comprador || "",
+                String(v.id_comprador || ""),
+                v.nombre_user || "",
+                String(v.total_venta ?? ""),
+                v.fecha_venta || "",
+            ]
+                .join(" ")
+                .toLowerCase()
+                .includes(term)
+        );
+    }, [ventas, search]);
+
+    // Sincroniza la venta seleccionada cuando el término de búsqueda cambia
+    useEffect(() => {
+        const term = search.trim();
+        if (!term) {
+            if (ventas.length > 0 && selectedVenta === null) {
+                setSelectedVenta(ventas[0].id_venta);
+            }
+            return;
+        }
+
+        if (filteredVentas.length > 0) {
+            if (!filteredVentas.find((v) => v.id_venta === selectedVenta)) {
+                setSelectedVenta(filteredVentas[0].id_venta);
+            }
+        } else {
+            setSelectedVenta(null);
+        }
+    }, [search, filteredVentas, ventas, selectedVenta]);
 
     const filteredDetalles = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        return detalles
-            .filter((d) => (selectedVenta ? d.venta_id === selectedVenta : true))
-            .filter((d) => {
-                if (!term) return true;
-                return [
-                    String(d.id_detalle_venta),
-                    d.nombre_producto || "",
-                    String(d.cantidad),
-                    String(d.precio_venta),
-                    d.simbolo || "",
-                    d.estado_venta || "",
-                ]
-                    .join(" ")
-                    .toLowerCase()
-                    .includes(term);
-            });
-    }, [detalles, selectedVenta, search]);
+        return detalles.filter((d) => (selectedVenta ? d.venta_id === selectedVenta : true));
+    }, [detalles, selectedVenta]);
 
     const selectedVentaData = ventas.find((v) => v.id_venta === selectedVenta) || null;
+
+    useEffect(() => {
+        if (!selectedDetalleId || !selectedDetalleRef.current) return;
+
+        selectedDetalleRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, [selectedDetalleId, detalles.length]);
 
     return (
         <>
@@ -119,7 +163,7 @@ export default function VentasPage() {
                                     Editar venta
                                 </Link>
                                 <Link
-                                    to={`/detalle-ventas/create?venta_id=${selectedVenta}`}
+                                    to={`/detalle-ventas/create`}
                                     className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500/80 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
                                 >
                                     Nuevo detalle
@@ -146,7 +190,7 @@ export default function VentasPage() {
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Buscar detalles..."
+                            placeholder="Buscar ventas..."
                             className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-40"
                         />
                     </div>
@@ -162,28 +206,28 @@ export default function VentasPage() {
                         <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Comprador</label>
-                                <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
                                     {selectedVentaData.nombre_comprador}
                                 </div>
                             </div>
 
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Identificación</label>
-                                <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
                                     {selectedVentaData.id_comprador ?? "-"}
                                 </div>
                             </div>
 
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de venta</label>
-                                <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
                                     {selectedVentaData.fecha_venta ? new Date(selectedVentaData.fecha_venta).toLocaleString() : "-"}
                                 </div>
                             </div>
 
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Total</label>
-                                <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
                                     {selectedVentaData.total_venta ? `$ ${selectedVentaData.total_venta}` : "-"}
                                 </div>
                             </div>
@@ -194,7 +238,7 @@ export default function VentasPage() {
                 </div>
 
                 {/* Detalles table */}
-                <div className="overflow-x-auto px-5 pb-6">
+                <div className="overflow-x-auto px-5 pb-3">
                     <table className="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-800">
                         <colgroup>
                             <col className="w-64" />
@@ -219,11 +263,15 @@ export default function VentasPage() {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {filteredDetalles.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No hay detalles para esta venta.</td>
+                                    <td colSpan={7} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No hay detalles para esta venta.</td>
                                 </tr>
                             ) : (
                                 filteredDetalles.map((det) => (
-                                    <tr key={det.id_detalle_venta} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                                    <tr
+                                        key={det.id_detalle_venta}
+                                        ref={det.id_detalle_venta === selectedDetalleId ? selectedDetalleRef : null}
+                                        className={`hover:bg-gray-50 dark:hover:bg-white/[0.02] ${det.id_detalle_venta === selectedDetalleId ? "bg-brand-50/70 dark:bg-brand-500/10" : ""}`}
+                                    >
                                         <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">{det.nombre_producto}</td>
                                         <td className="px-4 py-4 text-center text-sm text-gray-800 dark:text-gray-400">{det.cantidad}</td>
                                         <td className="px-4 py-4 text-center text-sm text-gray-800 dark:text-gray-400">{det.simbolo}</td>
@@ -231,36 +279,12 @@ export default function VentasPage() {
                                         <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">$ {det.precio_venta * det.cantidad}</td>
                                         <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{det.estado_venta}</td>
                                         <td className="px-3 py-4 text-center">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <Link
-                                                    to={`/detalle-ventas/edit/${det.id_detalle_venta}`}
-                                                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
-                                                >
-                                                    Editar
-                                                </Link>
-                                                <select
-                                                    value={det.estado_venta}
-                                                    onChange={async (e) => {
-                                                        const nuevo = e.target.value;
-                                                        const confirmar = window.confirm(`Cambiar estado a '${nuevo}' ?`);
-                                                        if (!confirmar) return;
-                                                        try {
-                                                            await apiFetch(`detalles-venta/estado/${det.id_detalle_venta}?estado=${encodeURIComponent(nuevo)}`, { method: "PUT" });
-                                                            // refrescar detalles
-                                                            const detallesData = await apiFetch("detalles-venta/all/detalles");
-                                                            const detallesList = Array.isArray(detallesData?.detalles) ? detallesData.detalles : Array.isArray(detallesData) ? detallesData : [];
-                                                            setDetalles(detallesList);
-                                                        } catch (err: any) {
-                                                            alert(err?.detail || err?.message || "No se pudo cambiar el estado");
-                                                        }
-                                                    }}
-                                                    className="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                                                >
-                                                    <option value="Separado">Separado</option>
-                                                    <option value="Vendido">Vendido</option>
-                                                    <option value="Anulado">Anulado</option>
-                                                </select>
-                                            </div>
+                                            <Link
+                                                to={`/detalle-ventas/edit/${det.id_detalle_venta}`}
+                                                className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+                                            >
+                                                Editar
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))
