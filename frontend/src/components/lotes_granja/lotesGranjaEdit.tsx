@@ -100,7 +100,8 @@ export default function LotesEdit() {
         method: "PUT",
         body: payload,
       });
-
+      
+      console.log("Payload a enviar para actualización:", payload);
       setSuccess("Lote actualizado correctamente");
       setTimeout(() => navigate("/lotesGranja"), 800);
     } catch (requestError: any) {
