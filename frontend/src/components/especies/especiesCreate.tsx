@@ -53,12 +53,6 @@ export default function EspeciesCreate() {
 
     return (
         <>
-            <PageMeta
-                title="Crear especie | Inventario Lembo"
-                description="Formulario para crear un nueva especie"
-            />
-            <PageBreadcrumb pageTitle="Crear especie" />
-
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                     <div>

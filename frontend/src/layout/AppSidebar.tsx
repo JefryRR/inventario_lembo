@@ -63,6 +63,14 @@ const modulosItems: NavItem[] = [
     name: "Módulo operativo",
     subItems: [
       {
+        name: "Categorías",
+        path: "/categorias",
+      },
+      {
+        name: "Especies",
+        path: "/especies",
+      },
+      {
         name: "Lotes de producción",
         path: "/lotesProd",
       },
@@ -70,6 +78,11 @@ const modulosItems: NavItem[] = [
         name: "Mortalidad de producción",
         path: "/mortalidad",
       },
+      {
+        name: "Lotes de granja",
+        path: "/lotesGranja",
+      },
+
       {
         name: "Tratamiento",
         path: "/tratamientos",
@@ -95,6 +108,10 @@ const modulosItems: NavItem[] = [
       {
         name: "Inventario de perdidas",
         path: "/invPerd",
+      },
+      {
+        name: "Inventario de insumos",
+        path: "/invInsumos",
       },
     ],
   },

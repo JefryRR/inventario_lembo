@@ -12,9 +12,9 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
     try:
         query = text("""
           INSERT INTO lotes_granja (
-                nombre_lote, ubicacion 
+                nombre_lote, ubicacion, latitud, longitud 
           ) VALUES (
-              :nombre_lote, :ubicacion
+              :nombre_lote, :ubicacion, :latitud, :longitud
           )
       """)
         db.execute(query, lote.model_dump())
@@ -28,7 +28,7 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
 def get_all_lotes(db: Session):
     try:
         query = text("""
-                     SELECT nombre_lote, ubicacion FROM lotes_granja
+                     SELECT nombre_lote, ubicacion, latitud, longitud FROM lotes_granja
                      """)
         result = db.execute(query).mappings().all()
         return result
@@ -38,7 +38,7 @@ def get_all_lotes(db: Session):
 
 def get_lote_by_id(db: Session, id: int):
     try:
-        query = text("""SELECT id_lote_g, nombre_lote, ubicacion FROM lotes_granja WHERE id_lote_g = :id """)
+        query = text("""SELECT id_lote_g, nombre_lote, ubicacion, latitud, longitud FROM lotes_granja WHERE id_lote_g = :id """)
         
         result = db.execute(query, {"id": id}).mappings().first()
         return result
@@ -55,9 +55,9 @@ def update_lote_by_id(db: Session, lote_id_g: int, lote: LoteUpdate) -> Optional
          # Construir dinámicamente la sentencia UPDATE
         set_clauses = ", ".join([f"{key} = :{key}" for key in lote_data.keys()])
         sentencia = text(f"""
-             UPDATE lote_produccion
+             UPDATE lotes_granja
              SET {set_clauses}
-             WHERE id_lote = :id_lote
+             WHERE id_lote_g = :id_lote
          """)
          # Agregar el id_lote
         lote_data["id_lote"] = lote_id_g
@@ -85,7 +85,7 @@ def get_all_lotes_granja_pag(db: Session, skip: int = 0, limit: int = 10):
 
         # Lotes paginados
         data_query = text(""" 
-                    SELECT id_lote_g, nombre_lote, ubicacion
+                    SELECT id_lote_g, nombre_lote, ubicacion, latitud, longitud
                     FROM lotes_granja
                         LIMIT :limit OFFSET :skip
                     """)

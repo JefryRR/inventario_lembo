@@ -44,9 +44,6 @@ import MortalidadEdit from "./components/mortalidad/mortalidadEdit";
 import Tratamientos from "./pages/tratamientos";
 import TratamientoCreate from "./components/tratamiento/tratamientoCreate";
 import TratamientoEdit from "./components/tratamiento/tratamientoEdit";
-import Devoluciones from "./pages/devoluciones";
-import DevolucionCreate from "./components/devoluciones/devolucionCreate";
-import DevolucionEdit from "./components/devoluciones/devolucionEdit";
 import Ventas from "./pages/ventas";
 import VentasCreate from "./components/ventas/ventasCreate";
 import VentasEdit from "./components/ventas/ventasEdit";
@@ -108,9 +105,6 @@ export default function App() {
             <Route path="/tratamientos" element={<Tratamientos />} />
             <Route path="/tratamientos/create" element={<TratamientoCreate />} />
             <Route path="/tratamientos/edit/:id" element={<TratamientoEdit />} />
-            <Route path="/devoluciones" element={<Devoluciones />} />
-            <Route path="/devoluciones/crear" element={<DevolucionCreate />} />
-            <Route path="/devoluciones/edit/:id" element={<DevolucionEdit />} />
             <Route path="/invProd" element={<InvProduccion />} />
             <Route path="/invProd/create" element={<InvProdCreate />} />
             <Route path="/invProd/edit/:id_inventario" element={<InvProdEdit />} />

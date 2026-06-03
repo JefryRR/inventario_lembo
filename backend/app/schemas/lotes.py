@@ -5,6 +5,8 @@ from typing import Optional, List
 class LoteBase(BaseModel):
     nombre_lote: str = Field(max_length=25)
     ubicacion: str = Field(max_length=50)
+    latitud: Optional[str] = Field(default=None, max_length=45)
+    longitud: Optional[str] = Field(default=None, max_length=45)
 
 class LoteCreate(LoteBase):
    pass
@@ -12,6 +14,8 @@ class LoteCreate(LoteBase):
 class LoteUpdate(BaseModel):
    nombre_lote: Optional[str] = Field(default= None, min_length=2, max_length=25)
    ubicacion: Optional[str] = Field(default=None, max_length=50)
+   latitud: Optional[str] =Field(default=None, max_length=45)
+   longitud: Optional[str] =Field(default=None, max_length=45)
 
 class LoteOut(LoteBase):
    id_lote_g: int

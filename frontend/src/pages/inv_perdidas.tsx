@@ -92,7 +92,7 @@ export default function Users() {
             return [
                 inv_perd.nombre_producto,
                 String(inv_perd.cantidad),
-                inv_perd.motivo,
+                (inv_perd.motivo),
                 inv_perd.nombre_user,
                 inv_perd.fecha_reporte,
                 inv_perd.observaciones,
