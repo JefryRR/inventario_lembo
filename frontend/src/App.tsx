@@ -47,6 +47,11 @@ import TratamientoEdit from "./components/tratamiento/tratamientoEdit";
 import Devoluciones from "./pages/devoluciones";
 import DevolucionCreate from "./components/devoluciones/devolucionCreate";
 import DevolucionEdit from "./components/devoluciones/devolucionEdit";
+import Ventas from "./pages/ventas";
+import VentasCreate from "./components/ventas/ventasCreate";
+import VentasEdit from "./components/ventas/ventasEdit";
+import DetalleCreate from "./components/detalle_ventas/detalleCreate";
+import DetalleEdit from "./components/detalle_ventas/detalleEdit";
 import InvPerdidas from "./pages/inv_perdidas";
 import InvPerdCreate from "./components/inv_perdida/inv_perdCreate";
 import AppLayout from "./layout/AppLayout";
@@ -103,6 +108,11 @@ export default function App() {
             <Route path="/invProd/report/:id_inventario" element={<InvProdReport />} />
             <Route path="/invPerd" element={<InvPerdidas />} />
             <Route path="/invPerd/create" element={<InvPerdCreate />} />
+            <Route path="/ventas" element={< Ventas />} />
+            <Route path="/ventas/create" element={<VentasCreate />} />
+            <Route path="/ventas/edit/:id" element={<VentasEdit />} />
+            <Route path="/detalle-ventas/create" element={< DetalleCreate />} />
+            <Route path="/detalle-ventas/edit/:id" element={< DetalleEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

@@ -12,10 +12,10 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
     try:
         query = text("""
           INSERT INTO lote_produccion (
-                nombre_lote, fecha_siembra, fecha_cosecha, cantidad_inicial,
+                lote_granj_id, fecha_siembra, fecha_cosecha, cantidad_inicial,
                 especie_id, categoria_id, estado_lote, user_id 
           ) VALUES (
-              :nombre_lote, :fecha_siembra, :fecha_cosecha, :cantidad_inicial,
+              :lote_granj_id, :fecha_siembra, :fecha_cosecha, :cantidad_inicial,
               :especie_id, :categoria_id, :estado_lote, :user_id
           )
       """)
@@ -30,10 +30,11 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
 def get_all_lotes(db: Session):
     try:
         query = text("""
-                     SELECT  l_p.id_lote, l_p.nombre_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
-                              l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id,
+                     SELECT  l_p.id_lote, l_p.lote_granj_id, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
+                              l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id, l_g.nombre_lote,
                               e.nombre_especie, c.nombre_categoria, u.nombre_user
                      FROM lote_produccion AS l_p
+                     LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN users AS u ON l_p.user_id = u.id_user
@@ -47,10 +48,11 @@ def get_all_lotes(db: Session):
 def get_lote_by_id(db: Session, id: int):
     try:
         query = text("""
-                     SELECT  l_p.id_lote, l_p.nombre_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
-                     l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id,
+                     SELECT  l_p.id_lote, l_p.lote_granj_id, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
+                     l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id, l_g.nombre_lote,
                      e.nombre_especie, c.nombre_categoria, u.nombre_user
                      FROM lote_produccion AS l_p
+                     LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN users AS u ON l_p.user_id = u.id_user
@@ -111,6 +113,7 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
         count_query = text("""
             SELECT COUNT(l_p.id_lote) AS total
             FROM lote_produccion AS l_p
+            LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
             LEFT JOIN especies ON l_p.especie_id = especies.id_especie
             LEFT JOIN categorias ON l_p.categoria_id = categorias.id_categoria
             LEFT JOIN users ON l_p.user_id = users.id_user
@@ -120,10 +123,11 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
 
         # Lotes paginados
         data_query = text(""" 
-                        SELECT  l_p.id_lote, l_p.nombre_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
-                        l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id,
+                        SELECT l_p.id_lote, l_p.lote_granj_id, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
+                        l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id, l_g.nombre_lote,
                         e.nombre_especie, c.nombre_categoria, u.nombre_user
                         FROM lote_produccion AS l_p
+                        INNER JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
                         INNER JOIN especies AS e ON l_p.especie_id = e.id_especie
                         INNER JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                         INNER JOIN users AS u ON l_p.user_id = u.id_user

@@ -1,0 +1,274 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import PageMeta from "@/components/common/PageMeta";
+// @ts-ignore: api helper is a JS module without generated declarations
+import { apiFetch } from "@/services/api";
+
+type VentaRow = {
+    id_venta: number;
+    nombre_comprador: string;
+    id_comprador?: string | null;
+    fecha_venta?: string;
+    user_id?: number;
+    nombre_user?: string;
+    total_venta?: number | null;
+};
+
+type DetalleRow = {
+    id_detalle_venta: number;
+    cantidad: number;
+    unid_medida_id: number;
+    precio_venta: number;
+    inv_prod_id: number;
+    venta_id: number;
+    estado_venta: string;
+    cant_convertida?: number;
+    nombre_producto?: string;
+    nombre_comprador?: string;
+    simbolo?: string;
+};
+
+export default function VentasPage() {
+    const [ventas, setVentas] = useState<VentaRow[]>([]);
+    const [detalles, setDetalles] = useState<DetalleRow[]>([]);
+    const [selectedVenta, setSelectedVenta] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
+
+    useEffect(() => {
+        let mounted = true;
+
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const [ventasData, detallesData] = await Promise.all([
+                    apiFetch("ventas/all/ventas"),
+                    apiFetch("detalles-venta/all/detalles"),
+                ]);
+
+                if (!mounted) return;
+
+                const ventasList = Array.isArray(ventasData?.ventas) ? ventasData.ventas : Array.isArray(ventasData) ? ventasData : [];
+                const detallesList = Array.isArray(detallesData?.detalles) ? detallesData.detalles : Array.isArray(detallesData) ? detallesData : [];
+
+                setVentas(ventasList);
+                setDetalles(detallesList);
+
+                if (ventasList.length > 0 && selectedVenta === null) {
+                    setSelectedVenta(ventasList[0].id_venta);
+                }
+            } catch (err: any) {
+                if (!mounted) return;
+                setError(err?.detail || err?.message || "No se pudieron cargar las ventas");
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+
+        load();
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const filteredDetalles = useMemo(() => {
+        const term = search.trim().toLowerCase();
+        return detalles
+            .filter((d) => (selectedVenta ? d.venta_id === selectedVenta : true))
+            .filter((d) => {
+                if (!term) return true;
+                return [
+                    String(d.id_detalle_venta),
+                    d.nombre_producto || "",
+                    String(d.cantidad),
+                    String(d.precio_venta),
+                    d.simbolo || "",
+                    d.estado_venta || "",
+                ]
+                    .join(" ")
+                    .toLowerCase()
+                    .includes(term);
+            });
+    }, [detalles, selectedVenta, search]);
+
+    const selectedVentaData = ventas.find((v) => v.id_venta === selectedVenta) || null;
+
+    return (
+        <>
+            <PageMeta title="Ventas | Inventario Lembo" description="Listado de ventas y sus detalles" />
+            <PageBreadcrumb pageTitle="Ventas" />
+
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                        <Link
+                            to="/ventas/create"
+                            className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                            Nueva venta
+                        </Link>
+                        {selectedVenta && (
+                            <>
+                                <Link
+                                    to={`/ventas/edit/${selectedVenta}`}
+                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700"
+                                >
+                                    Editar venta
+                                </Link>
+                                <Link
+                                    to={`/detalle-ventas/create?venta_id=${selectedVenta}`}
+                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500/80 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+                                >
+                                    Nuevo detalle
+                                </Link>
+                            </>
+                        )}
+                        <select
+                            value={selectedVenta ?? 0}
+                            onChange={(e) => setSelectedVenta(Number(e.target.value) || null)}
+                            className="h-11 w-80 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                        >
+                            <option value={0} disabled>
+                                {loading ? "Cargando ventas..." : "Selecciona una venta"}
+                            </option>
+                            {ventas.map((v) => (
+                                <option key={v.id_venta} value={v.id_venta}>
+                                    {v.nombre_comprador} {v.fecha_venta ? ` - ${new Date(v.fecha_venta).toLocaleDateString()}` : ""}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
+                        <input
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Buscar detalles..."
+                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-40"
+                        />
+                    </div>
+                </div>
+
+                {/* Venta summary */}
+                <div className="p-5 lg:p-6">
+                    {loading ? (
+                        <div className="p-6 text-center text-sm text-gray-500">Cargando ventas...</div>
+                    ) : error ? (
+                        <div className="p-6 text-center text-sm text-error-500">{error}</div>
+                    ) : selectedVentaData ? (
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Comprador</label>
+                                <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                    {selectedVentaData.nombre_comprador}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Identificación</label>
+                                <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                    {selectedVentaData.id_comprador ?? "-"}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de venta</label>
+                                <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                    {selectedVentaData.fecha_venta ? new Date(selectedVentaData.fecha_venta).toLocaleString() : "-"}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Total</label>
+                                <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                    {selectedVentaData.total_venta ? `$ ${selectedVentaData.total_venta}` : "-"}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-3 text-sm text-gray-500">No hay venta seleccionada.</div>
+                    )}
+                </div>
+
+                {/* Detalles table */}
+                <div className="overflow-x-auto px-5 pb-6">
+                    <table className="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-800">
+                        <colgroup>
+                            <col className="w-64" />
+                            <col className="w-28" />
+                            <col className="w-28" />
+                            <col className="w-28" />
+                            <col className="w-36" />
+                            <col className="w-32" />
+                        </colgroup>
+                        <thead className="bg-gray-50 dark:bg-gray-900/40">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Producto</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cantidad</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Unidad</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Precio</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Total</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado</th>
+                                <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                            {filteredDetalles.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No hay detalles para esta venta.</td>
+                                </tr>
+                            ) : (
+                                filteredDetalles.map((det) => (
+                                    <tr key={det.id_detalle_venta} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">{det.nombre_producto}</td>
+                                        <td className="px-4 py-4 text-center text-sm text-gray-800 dark:text-gray-400">{det.cantidad}</td>
+                                        <td className="px-4 py-4 text-center text-sm text-gray-800 dark:text-gray-400">{det.simbolo}</td>
+                                        <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">$ {det.precio_venta}</td>
+                                        <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">$ {det.precio_venta * det.cantidad}</td>
+                                        <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{det.estado_venta}</td>
+                                        <td className="px-3 py-4 text-center">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <Link
+                                                    to={`/detalle-ventas/edit/${det.id_detalle_venta}`}
+                                                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+                                                >
+                                                    Editar
+                                                </Link>
+                                                <select
+                                                    value={det.estado_venta}
+                                                    onChange={async (e) => {
+                                                        const nuevo = e.target.value;
+                                                        const confirmar = window.confirm(`Cambiar estado a '${nuevo}' ?`);
+                                                        if (!confirmar) return;
+                                                        try {
+                                                            await apiFetch(`detalles-venta/estado/${det.id_detalle_venta}?estado=${encodeURIComponent(nuevo)}`, { method: "PUT" });
+                                                            // refrescar detalles
+                                                            const detallesData = await apiFetch("detalles-venta/all/detalles");
+                                                            const detallesList = Array.isArray(detallesData?.detalles) ? detallesData.detalles : Array.isArray(detallesData) ? detallesData : [];
+                                                            setDetalles(detallesList);
+                                                        } catch (err: any) {
+                                                            alert(err?.detail || err?.message || "No se pudo cambiar el estado");
+                                                        }
+                                                    }}
+                                                    className="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                                >
+                                                    <option value="Separado">Separado</option>
+                                                    <option value="Vendido">Vendido</option>
+                                                    <option value="Anulado">Anulado</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </>
+    );
+}

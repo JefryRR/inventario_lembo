@@ -12,7 +12,7 @@ class LoteEstado(str, Enum):
     listo_para_carne = "listo_para_carne"
 
 class LoteBase(BaseModel):
-    nombre_lote: str = Field(max_length=25)
+    lote_granj_id: int
     fecha_siembra: datetime
     fecha_cosecha: datetime
     cantidad_inicial: int
@@ -25,7 +25,7 @@ class LoteCreate(LoteBase):
    pass
 
 class LoteUpdate(BaseModel):
-   nombre_lote: Optional[str] = Field(default= None, min_length=2, max_length=25)
+   lote_granj_id: Optional[int] = None
    fecha_siembra: Optional[datetime] = None
    fecha_cosecha: Optional[datetime] = None
    cantidad_inicial: Optional[int] = None
@@ -36,6 +36,7 @@ class LoteUpdate(BaseModel):
 
 class LoteOut(LoteBase):
    id_lote: int
+   nombre_lote: str
    nombre_especie: str
    nombre_categoria: str
    nombre_user: str
