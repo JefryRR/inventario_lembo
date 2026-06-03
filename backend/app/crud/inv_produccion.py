@@ -140,7 +140,7 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
                 pr.fecha_vencimiento,
                 pr.valor_unitario,
                 um.simbolo,
-                l.nombre_lote,
+                l_g.nombre_lote,
 
                 -- Cantidad inicial: stock actual + todo lo que salió
                 pr.cantidad 
@@ -155,6 +155,7 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
 
             FROM inv_produccion pr
             LEFT JOIN lote_produccion l ON pr.lote_id = l.id_lote
+            LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
 
             -- Vendido neto: suma cant_convertida actual (ya descontada por el trigger)
             LEFT JOIN (

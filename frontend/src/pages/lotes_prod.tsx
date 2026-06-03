@@ -67,7 +67,7 @@ export default function Lotes() {
 			setError(null);
 
 			try {
-				const data = (await apiFetch(`lotes/paginated?page=${page}&page_size=${pageSize}`)) as LotesResponse;
+				const data = (await apiFetch(`lotes_prod/paginated?page=${page}&page_size=${pageSize}`)) as LotesResponse;
 
 				if (!isMounted) {
 					return;
@@ -129,10 +129,10 @@ export default function Lotes() {
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 						<Link
-							to="/lotes/create"
+							to="/lotesProd/create"
 							className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
 						>
-							Nuevo lote
+							Nuevo registro
 						</Link>
 						<input
 							value={search}
@@ -232,7 +232,7 @@ export default function Lotes() {
 
 										<td className="px-5 py-4">
 											<Link
-												to={`/lotes/edit/${lote.id_lote}`}
+												to={`/lotesProd/edit/${lote.id_lote}`}
 												className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
 											>
 												Editar
