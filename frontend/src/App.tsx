@@ -44,12 +44,13 @@ import MortalidadEdit from "./components/mortalidad/mortalidadEdit";
 import Tratamientos from "./pages/tratamientos";
 import TratamientoCreate from "./components/tratamiento/tratamientoCreate";
 import TratamientoEdit from "./components/tratamiento/tratamientoEdit";
+import Ventas from "./pages/ventas";
+import VentasCreate from "./components/ventas/ventasCreate";
+import VentasEdit from "./components/ventas/ventasEdit";
+import DetalleCreate from "./components/detalle_ventas/detalleCreate";
+import DetalleEdit from "./components/detalle_ventas/detalleEdit";
 import InvPerdidas from "./pages/inv_perdidas";
 import InvPerdCreate from "./components/inv_perdida/inv_perdCreate";
-import LotesGranja from "./pages/lotes_g";
-import LotesGranjaCreate from "./components/lotes_granja/lotesGranjaCreate";
-import LotesGranjaEdit from "./components/lotes_granja/lotesGranjaEdit";
-import InvInsumos from "./pages/inv_insumos";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -101,10 +102,7 @@ export default function App() {
             <Route path="/invProd/report/:id_inventario" element={<InvProdReport />} />
             <Route path="/invPerd" element={<InvPerdidas />} />
             <Route path="/invPerd/create" element={<InvPerdCreate />} />
-            <Route path="/lotesGranja" element={<LotesGranja />} />
-            <Route path="/lotesGranja/create" element={<LotesGranjaCreate />} />
-            <Route path="/lotesGranja/edit/:id_lote_g" element={<LotesGranjaEdit />} />
-            <Route path="/invInsumos" element={<InvInsumos />} />
+            
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

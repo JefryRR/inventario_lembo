@@ -13,9 +13,9 @@ def create_venta(db: Session, venta: VentasCreate):
                     (nombre_comprador, id_comprador, fecha_venta, user_id)
                     VALUES (:nombre_comprador, :id_comprador, :fecha_venta, :user_id)
         """)
-        db.execute(query, venta.model_dump())
+        result = db.execute(query, venta.model_dump())
         db.commit()
-        return True
+        return result.lastrowid
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"Error al crear venta: {e}")

@@ -23,8 +23,8 @@ def create_venta(
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        crud_ventas.create_venta(db, venta)
-        return {"message": "Venta registrada correctamente"}
+        venta_id = crud_ventas.create_venta(db, venta)
+        return {"message": "Venta registrada correctamente", "id_venta": venta_id}
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     

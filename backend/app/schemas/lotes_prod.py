@@ -34,6 +34,7 @@ class LoteUpdate(BaseModel):
 
 class LoteOut(LoteBase):
    id_lote: int
+   nombre_lote: str
    nombre_especie: str
    nombre_categoria: str
    nombre_user: str

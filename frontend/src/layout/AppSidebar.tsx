@@ -7,6 +7,11 @@ import {
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
+  UserCircleIcon,
+  FolderIcon,
+  TableIcon,
+  DollarLineIcon,
+  FileIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -32,7 +37,7 @@ const navItems: NavItem[] = [
 
 const modulosItems: NavItem[] = [
   {
-    icon: <GridIcon />,
+    icon: <UserCircleIcon />,
     name: "Módulo usuarios",
     subItems: [
       {
@@ -54,7 +59,7 @@ const modulosItems: NavItem[] = [
     ],
   },
   {
-    icon: <GridIcon />,
+    icon: <FolderIcon />,
     name: "Módulo operativo",
     subItems: [
       {
@@ -66,7 +71,7 @@ const modulosItems: NavItem[] = [
         path: "/especies",
       },
       {
-        name: "Producción",
+        name: "Lotes de producción",
         path: "/lotesProd",
       },
       {
@@ -89,7 +94,7 @@ const modulosItems: NavItem[] = [
     ],
   },
   {
-    icon: <GridIcon />,
+    icon: <TableIcon />,
     name: "Módulo de inventarios",
     subItems: [
       {
@@ -103,6 +108,38 @@ const modulosItems: NavItem[] = [
       {
         name: "Inventario de insumos",
         path: "/invInsumos",
+      },
+    ],
+  },
+  {
+    icon: <DollarLineIcon />,
+    name: "Módulo de ventas",
+    subItems: [
+      {
+        name: "Ventas",
+        path: "/ventas",
+      },
+    ],
+  },
+  {
+    icon: <FileIcon />,
+    name: "Módulo de categorias",
+    subItems: [
+      {
+        name: "Categorías",
+        path: "/categorias",
+      },
+      {
+        name: "Especies",
+        path: "/especies",
+      },
+      {
+        name: "Unidades de medida",
+        path: "/unidades",
+      },
+      {
+        name: "Tipos de insumos",
+        path: "/tipos-insumos",
       },
     ],
   },
