@@ -96,7 +96,7 @@ export default function LotesEdit() {
 
       try {
         const [loteData, especiesData, categoriasData, usersData] = await Promise.all([
-          apiFetch(`lotes/by-id?lote_id=${id}`),
+          apiFetch(`lotes_prod/by-id?lote_id=${id}`),
           apiFetch("especies/all-especies"),
           apiFetch("categorias/all-categorias"),
           apiFetch("users/all-users-except-admins"),
@@ -205,7 +205,7 @@ export default function LotesEdit() {
         };
 
         // Primero actualizar campos editables por LoteUpdate
-        await apiFetch(`lotes/by-id/${id}?id_lote=${id}`, {
+        await apiFetch(`lotes_prod/by-id/${id}?id_lote=${id}`, {
           method: "PUT",
           body: payload,
         });
@@ -213,13 +213,13 @@ export default function LotesEdit() {
         // Si el estado cambió, llamar al endpoint específico de estado
         if (originalEstado && originalEstado !== form.estado_lote) {
           // El router espera 'estado' (query) y toma 'id_lote' desde query también
-          await apiFetch(`lotes/estado/${id}?id_lote=${id}&estado=${form.estado_lote}`, {
+          await apiFetch(`lotes_prod/estado/${id}?id_lote=${id}&estado=${form.estado_lote}`, {
             method: "PUT",
           });
         }
 
         setSuccess("Lote actualizado correctamente");
-        setTimeout(() => navigate("/lotes"), 800);
+        setTimeout(() => navigate("/lotesProd"), 800);
       } catch (requestError: any) {
         setError(requestError?.detail || requestError?.message || "No se pudo actualizar el lote");
       } finally {
@@ -239,7 +239,7 @@ export default function LotesEdit() {
           </div>
 
           <Link
-            to="/lotes"
+            to="/lotesProd"
             className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
           >
             Volver a lotes
@@ -414,7 +414,7 @@ export default function LotesEdit() {
                   {saving ? "Guardando..." : "Actualizar lote"}
                 </button>
                 <Link
-                  to="/lotes"
+                  to="/lotesProd"
                   className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                 >
                   Cancelar

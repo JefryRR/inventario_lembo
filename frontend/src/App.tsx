@@ -35,9 +35,9 @@ import CategoriasEdit from "./components/categorias/categoriasEdit";
 import Especies from "./pages/especies";
 import EspeciesCreate from "./components/especies/especiesCreate";
 import EspeciesEdit from "./components/especies/especiesEdit";
-import Lotes from "./pages/lotes";
-import LotesCreate from "./components/lotes/lotesCreate";
-import LotesEdit from "./components/lotes/lotesEdit";
+import Lotes from "./pages/lotes_prod";
+import LotesCreate from "./components/lotes_prod/lotesCreate";
+import LotesEdit from "./components/lotes_prod/lotesEdit";
 import Mortalidad from "./pages/mortalidad";
 import MortalidadCreate from "./components/mortalidad/mortalidadCreate";
 import MortalidadEdit from "./components/mortalidad/mortalidadEdit";
@@ -87,9 +87,9 @@ export default function App() {
             <Route path="/especies" element={<Especies />} />
             <Route path="/especies/create" element={<EspeciesCreate />} />
             <Route path="/especies/edit/:id" element={<EspeciesEdit />} />
-            <Route path="/lotes" element={<Lotes />} />
-            <Route path="/lotes/create" element={<LotesCreate />} />
-            <Route path="/lotes/edit/:id" element={<LotesEdit />} />
+            <Route path="/lotesProd" element={<Lotes />} />
+            <Route path="/lotesProd/create" element={<LotesCreate />} />
+            <Route path="/lotesProd/edit/:id" element={<LotesEdit />} />
             <Route path="/mortalidad" element={<Mortalidad />} />
             <Route path="/mortalidad/create" element={<MortalidadCreate />} />
             <Route path="/mortalidad/edit/:id" element={<MortalidadEdit />} />

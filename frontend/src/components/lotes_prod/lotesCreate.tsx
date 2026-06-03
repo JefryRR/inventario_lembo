@@ -178,14 +178,14 @@ export default function LotesCreate() {
         user_id: Number(form.user_id),
       };
 
-      const data = await apiFetch("lotes/create", {
+      const data = await apiFetch("lotes_prod/create", {
         method: "POST",
         body: payload,
       });
 
       setSuccess(data?.message || "Lote creado correctamente");
       setForm(initialState);
-      navigate("/lotes");
+      navigate("/lotesProd");
     } catch (requestError: any) {
       setError(requestError?.detail || requestError?.message || "Ocurrió un error al crear el lote");
     } finally {
@@ -208,7 +208,7 @@ export default function LotesCreate() {
           </div>
 
           <Link
-            to="/lotes"
+            to="/lotesProd"
             className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
           >
             Volver a lotes
@@ -377,7 +377,7 @@ export default function LotesCreate() {
               {loading ? "Guardando..." : "Guardar lote"}
             </button>
             <Link
-              to="/lotes"
+              to="/lotesProd"
               className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
             >
               Cancelar

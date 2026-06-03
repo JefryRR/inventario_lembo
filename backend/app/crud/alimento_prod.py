@@ -28,11 +28,12 @@ def get_all_alimentos(db: Session):
     try:
         query = text("""
                      SELECT a_p.id_alimento, a_p.lote_id, a_p.insumo_id, a_p.fecha_alimento, a_p.cantidad, a_p.unid_medida_id,
-                     e.nombre_especie, c.nombre_categoria, u_m.simbolo, in_ins.nombre_producto, l_p.nombre_lote
+                     e.nombre_especie, c.nombre_categoria, u_m.simbolo, in_ins.nombre_producto, l_g.nombre_lote
                      FROM alimento_produccion AS a_p
                      INNER JOIN lote_produccion AS l_p ON a_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+                     LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
                      LEFT JOIN inv_insumos AS in_ins ON a_p.insumo_id = in_ins.id_insumo
                      LEFT JOIN unidades_medida AS u_m ON a_p.unid_medida_id = u_m.id_unidad
                      ORDER BY a_p.id_alimento DESC
@@ -47,11 +48,12 @@ def get_alimento_by_id(db: Session, id: int):
     try:
         query = text("""
                      SELECT a_p.id_alimento, a_p.lote_id, a_p.insumo_id, a_p.fecha_alimento, a_p.cantidad, a_p.unid_medida_id,
-                     e.nombre_especie, c.nombre_categoria, u_m.simbolo, in_ins.nombre_producto, l_p.nombre_lote
+                     e.nombre_especie, c.nombre_categoria, u_m.simbolo, in_ins.nombre_producto, l_g.nombre_lote
                      FROM alimento_produccion AS a_p
                      INNER JOIN lote_produccion AS l_p ON a_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+                     LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
                      LEFT JOIN inv_insumos AS in_ins ON a_p.insumo_id = in_ins.id_insumo
                      LEFT JOIN unidades_medida AS u_m ON a_p.unid_medida_id = u_m.id_unidad
                     WHERE a_p.id_alimento = :id
@@ -99,6 +101,7 @@ def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10):
             INNER JOIN lote_produccion AS l_p ON a_p.lote_id = l_p.id_lote
             LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
             LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+            LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
         """)
 
         total_result = db.execute(count_query).scalar()
@@ -106,11 +109,12 @@ def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10):
         # Registros paginados
         data_query = text(""" 
                         SELECT a_p.id_alimento, a_p.lote_id, a_p.insumo_id, a_p.fecha_alimento, a_p.cantidad, a_p.unid_medida_id,
-                        e.nombre_especie, c.nombre_categoria, u_m.simbolo, in_ins.nombre_producto, l_p.nombre_lote
+                        e.nombre_especie, c.nombre_categoria, u_m.simbolo, in_ins.nombre_producto, l_g.nombre_lote
                         FROM alimento_produccion AS a_p
                         INNER JOIN lote_produccion AS l_p ON a_p.lote_id = l_p.id_lote
                         LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                         LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+                        LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
                         LEFT JOIN inv_insumos AS in_ins ON a_p.insumo_id = in_ins.id_insumo
                         LEFT JOIN unidades_medida AS u_m ON a_p.unid_medida_id = u_m.id_unidad
                         ORDER BY a_p.id_alimento DESC
