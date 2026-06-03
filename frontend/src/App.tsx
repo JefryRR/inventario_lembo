@@ -54,6 +54,12 @@ import DetalleCreate from "./components/detalle_ventas/detalleCreate";
 import DetalleEdit from "./components/detalle_ventas/detalleEdit";
 import InvPerdidas from "./pages/inv_perdidas";
 import InvPerdCreate from "./components/inv_perdida/inv_perdCreate";
+import Unidades from "./pages/unidad";
+import UnidadCreate from "./components/unidad_medida/unidadCreate";
+import UnidadEdit from "./components/unidad_medida/unidadEdit";
+import TiposInsumos from "./pages/tipo-insumos";
+import TipoCreate from "./components/tipo_insumos/tipoCreate";
+import TipoEdit from "./components/tipo_insumos/tipoEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -108,11 +114,17 @@ export default function App() {
             <Route path="/invProd/report/:id_inventario" element={<InvProdReport />} />
             <Route path="/invPerd" element={<InvPerdidas />} />
             <Route path="/invPerd/create" element={<InvPerdCreate />} />
+            <Route path="/unidades" element={<Unidades />} />
+            <Route path="/unidades/crear" element={<UnidadCreate />} />
+            <Route path="/unidades/edit/:id" element={<UnidadEdit />} />
             <Route path="/ventas" element={< Ventas />} />
             <Route path="/ventas/create" element={<VentasCreate />} />
             <Route path="/ventas/edit/:id" element={<VentasEdit />} />
             <Route path="/detalle-ventas/create" element={< DetalleCreate />} />
             <Route path="/detalle-ventas/edit/:id" element={< DetalleEdit />} />
+            <Route path="/tipos-insumos" element={<TiposInsumos />} />
+            <Route path="/tipos-insumos/crear" element={<TipoCreate />} />
+            <Route path="/tipos-insumos/edit/:id" element={<TipoEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

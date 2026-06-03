@@ -113,6 +113,10 @@ def update_detalle_venta_by_id(db: Session, id: int, detalle_update: DetalleVent
         if not actual:
             raise Exception("Detalle de venta no encontrado")
 
+        # No permitir ninguna modificación si el detalle ya está anulado
+        if actual["estado_venta"] == "Anulado":
+            raise Exception("No se puede modificar un detalle en estado 'Anulado'")
+
         if "cantidad" in detalle_data and actual["estado_venta"] in ("Vendido", "Devuelto"):
             raise Exception(f"No se puede modificar la cantidad de una venta en estado '{actual['estado_venta']}'")
 
@@ -152,6 +156,28 @@ def update_detalle_venta_by_id(db: Session, id: int, detalle_update: DetalleVent
 
 def change_status_det_venta(db: Session, id_det_venta: int, estado: EstadoVenta) -> Optional[bool]:
     try:
+        actual = db.execute(
+            text("""
+                SELECT estado_venta
+                FROM detalle_ventas
+                WHERE id_detalle_venta = :id_detalle_venta
+            """),
+            {"id_detalle_venta": id_det_venta}
+        ).mappings().first()
+
+        if not actual:
+            raise Exception("Detalle de venta no encontrado")
+
+        estado_actual = actual["estado_venta"]
+        estado_nuevo = estado.value
+
+        if estado_actual == "Vendido" and estado_nuevo != "Anulado":
+            raise Exception("Una vez vendido solo se puede cambiar a estado 'Anulado'")
+
+        # Si ya está anulado, no permitir cambios de estado
+        if estado_actual == "Anulado":
+            raise Exception("No se puede modificar un detalle en estado 'Anulado'")
+
         sentencia = text("""
             UPDATE detalle_ventas
             SET estado_venta = :estado

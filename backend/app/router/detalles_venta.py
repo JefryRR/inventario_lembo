@@ -86,10 +86,8 @@ def update_detalle_venta_by_id(
         estado_venta = crud_detalles.get_detalle_venta_by_id(db, id)
         if not estado_venta:
             raise HTTPException(status_code=404, detail="Detalle de venta no encontrado")
-        
-        print(estado_venta)  
-        
-        # 3. Verificar estado de la venta (con paréntesis correctos)
+                
+        # 3. Verificar estado de la venta
         estados_bloqueados = ["Vendido", "Anulado"]
         if estado_venta.estado_venta in estados_bloqueados:
             raise HTTPException(
@@ -115,18 +113,21 @@ def change_status_detalle_venta(
     id_detalle_venta: int, 
     estado: EstadoVenta, 
     db: Session = Depends(get_db),
-    user_token: UserOut = Depends(get_current_user)):
-  try:
-      id_rol = user_token.rol_id
-      if not verify_permissions(db, id_rol, modulo, 'actualizar'):
-             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'actualizar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
 
-      success = crud_detalles.change_status_det_venta(db, id_detalle_venta, estado=estado)
-      if not success:
-          raise HTTPException(status_code=400, detail="No se pudo cambiar el estado del detalle de la venta")
-      return {"message": "Estado del detalle de la venta actualizado correctamente"}
-  except Exception as e:
-      raise HTTPException(status_code=500, detail=str(e))
+        success = crud_detalles.change_status_det_venta(db, id_detalle_venta, estado=estado)
+        if not success:
+            raise HTTPException(status_code=400, detail="No se pudo cambiar el estado del detalle de la venta")
+        return {"message": "Estado del detalle de la venta actualizado correctamente"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/paginated-detalle")
 def get_detalles_venta_paginated(
