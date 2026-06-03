@@ -54,6 +54,15 @@ import DetalleCreate from "./components/detalle_ventas/detalleCreate";
 import DetalleEdit from "./components/detalle_ventas/detalleEdit";
 import InvPerdidas from "./pages/inv_perdidas";
 import InvPerdCreate from "./components/inv_perdida/inv_perdCreate";
+import Unidades from "./pages/unidad";
+import UnidadCreate from "./components/unidad_medida/unidadCreate";
+import UnidadEdit from "./components/unidad_medida/unidadEdit";
+import TiposInsumos from "./pages/tipo-insumos";
+import TipoCreate from "./components/tipo_insumos/tipoCreate";
+import TipoEdit from "./components/tipo_insumos/tipoEdit";
+import Alimentos from "./pages/alimentos";
+import AlimentosCreate from "./components/alimentos/alimentoCreate";
+import AlimentosEdit from "./components/alimentos/alimentosEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -110,10 +119,20 @@ export default function App() {
             <Route path="/lotesGranja/create" element={<LotesGranjaCreate />} />
             <Route path="/lotesGranja/edit/:id_lote_g" element={<LotesGranjaEdit />} />
             <Route path="/ventas" element={<Ventas />} />
+            <Route path="/unidades" element={<Unidades />} />
+            <Route path="/unidades/crear" element={<UnidadCreate />} />
+            <Route path="/unidades/edit/:id" element={<UnidadEdit />} />
+            <Route path="/ventas" element={< Ventas />} />
             <Route path="/ventas/create" element={<VentasCreate />} />
             <Route path="/ventas/edit/:id" element={<VentasEdit />} />
-            <Route path="/detalleVentas/create/:id_venta" element={<DetalleCreate />} />
-            <Route path="/detalleVentas/edit/:id_detalle" element={<DetalleEdit />} />
+            <Route path="/detalle-ventas/create" element={< DetalleCreate />} />
+            <Route path="/detalle-ventas/edit/:id" element={< DetalleEdit />} />
+            <Route path="/tipos-insumos" element={<TiposInsumos />} />
+            <Route path="/tipos-insumos/crear" element={<TipoCreate />} />
+            <Route path="/tipos-insumos/edit/:id" element={<TipoEdit />} />
+            <Route path="/alimentos" element={<Alimentos />} />
+            <Route path="/alimentos/create" element={<AlimentosCreate />} />
+            <Route path="/alimentos/edit/:id" element={<AlimentosEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 
