@@ -12,10 +12,10 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
     try:
         query = text("""
           INSERT INTO lote_produccion (
-                nombre_lote, fecha_siembra, fecha_cosecha, cantidad_inicial,
+            fecha_siembra, fecha_cosecha, cantidad_inicial, lote_granj_id,
                 especie_id, categoria_id, estado_lote, user_id 
           ) VALUES (
-              :nombre_lote, :fecha_siembra, :fecha_cosecha, :cantidad_inicial,
+              :fecha_siembra, :fecha_cosecha, :cantidad_inicial, :lote_granj_id,
               :especie_id, :categoria_id, :estado_lote, :user_id
           )
       """)
@@ -31,7 +31,7 @@ def get_all_lotes(db: Session):
     try:
         query = text("""
                      SELECT  l_p.id_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
-                     l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id, l_p.lote_granj_id,
+                     l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id,
                      e.nombre_especie, c.nombre_categoria, u.nombre_user, l_g.nombre_lote
                      FROM lote_produccion AS l_p
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie

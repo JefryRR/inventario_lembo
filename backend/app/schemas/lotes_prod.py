@@ -12,6 +12,7 @@ class LoteEstado(str, Enum):
     listo_para_carne = "listo_para_carne"
 
 class LoteBase(BaseModel):
+    lote_granj_id: int
     fecha_siembra: datetime
     fecha_cosecha: datetime
     cantidad_inicial: int

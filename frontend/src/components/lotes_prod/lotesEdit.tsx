@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
@@ -409,7 +408,7 @@ export default function LotesEdit() {
                   disabled={saving}
                   className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {saving ? "Guardando..." : "Actualizar lote"}
+                  {saving ? "Guardando..." : "Actualizar producción"}
                 </button>
                 <Link
                   to="/lotesProd"
