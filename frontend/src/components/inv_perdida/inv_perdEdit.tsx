@@ -3,15 +3,14 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-type Inv_prodFormState = {
+type Inv_perdFormState = {
     id_perdida: number
     cantidad: number
     motivo: string
-    unid_medida_id: number
+    unid_medida_id: string
     observaciones: string
     simbolo: string
 };
-
 
 type Unid_medOption = {
     id_unidad: number;
@@ -31,35 +30,26 @@ const motivoOptions: MotivoOption[] = [
     { value: "daño_fisico", label: "Daño físico" },
 ];
 
-const emptyState: Inv_prodFormState = {
+const emptyState: Inv_perdFormState = {
     id_perdida: 0,
     cantidad: 0,
     motivo: "",
-    unid_medida_id: 0,
+    unid_medida_id: "",
     observaciones: "",
     simbolo: ""
 };
 
-export default function Inv_prodEdit() {
+export default function Inv_perdEdit() {
     const navigate = useNavigate();
     const params = useParams();
-    const id = params.id_inventario;
+    const id = params.id;
 
-    const [form, setForm] = useState<Inv_prodFormState>(emptyState);
+    const [form, setForm] = useState<Inv_perdFormState>(emptyState);
     const [loading, setLoading] = useState(false);
-    const [loadingInvperd, setLoadingInvperd] = useState(false);
-    const [loadingUnidMedidas, setLoadingUnidMedidas] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
-
-    const toDateInputValue = (value: string | number | Date | undefined) => {
-        if (!value) return "";
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return "";
-        return date.toISOString().slice(0, 10);
-    };
 
     useEffect(() => {
         if (!id) return;
@@ -70,7 +60,7 @@ export default function Inv_prodEdit() {
             setError(null);
             try {
                 const [invPerdData, UnidMedidasData] = await Promise.all([
-                    apiFetch(`nv_perdida/update-perdida-by-id/=${id}`),
+                    apiFetch(`inv_perdida/by-id?id=${id}`),
                     apiFetch(`unid-medida/all-unid_medidas`),
                   
                 ]);
@@ -82,7 +72,7 @@ export default function Inv_prodEdit() {
                 setForm({
                     id_perdida: Number(invPerdData?.id_perdida ?? 0),
                     cantidad: Number(invPerdData?.cantidad ?? 0),
-                    unid_medida_id: Number(invPerdData?.unid_medida_id ?? 0),
+                    unid_medida_id: invPerdData?.unid_medida_id ? String(invPerdData.unid_medida_id) : "",
                     motivo: invPerdData?.motivo || "",
                     observaciones: invPerdData?.observaciones || "",
                     simbolo: invPerdData?.simbolo || ""
@@ -104,7 +94,7 @@ export default function Inv_prodEdit() {
     }, [id]);
 
     const handleChange =
-        (field: keyof Inv_prodFormState) =>
+        (field: keyof Inv_perdFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
                 const value = event.target.value;
                 setForm((current) => ({ ...current, [field]: value }));
@@ -127,9 +117,9 @@ export default function Inv_prodEdit() {
                 simbolo: form.simbolo.trim()
             };
 
-            await apiFetch(`inv_perdida/update/${id}`, { method: "PUT", body: payload });
+            await apiFetch(`inv_perdida/update-perdida-by-id/${id}`, { method: "PUT", body: payload });
             setSuccess("Perdida actualizada correctamente");
-            setTimeout(() => navigate("/invPerd/update"), 800);
+            setTimeout(() => navigate("/invPerd"), 800);
         } catch (err: any) {
             setError(err?.detail || err?.message || "No se pudo actualizar la perdida");
         } finally {
@@ -142,26 +132,21 @@ export default function Inv_prodEdit() {
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Editar producto</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Actualiza los datos del producto.</p>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Editar perdida</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Actualiza los datos de la perdida.</p>
                     </div>
 
-                    <Link to="/inv_produccion" className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Volver a productos</Link>
+                    <Link to="/invPerd" className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Volver a perdidas</Link>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-5 lg:p-6">
                     {loading ? (
-                        <div className="p-6 text-center text-sm text-gray-500">Cargando producto...</div>
+                        <div className="p-6 text-center text-sm text-gray-500">Cargando perdida...</div>
                     ) : error ? (
                         <div className="p-6 text-center text-sm text-error-500">{error}</div>
                     ) : (
                         <>
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del producto <span className="text-error-500">*</span></label>
-                                    <input value={form.nombre_producto} onChange={handleChange("nombre_producto")} placeholder="Carne cerdo" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
-                                </div>
-
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Cantidad <span className="text-error-500">*</span></label>
                                     <input type="number" value={form.cantidad} onChange={handleChange("cantidad")} placeholder="100" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
@@ -181,53 +166,21 @@ export default function Inv_prodEdit() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha vencimiento <span className="text-error-500">*</span></label>
-                                    <input type="date" value={form.fecha_vencimiento} onChange={handleChange("fecha_vencimiento")} placeholder="usuario@correo.com" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
-                                </div>
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre lote <span className="text-error-500">*</span></label>
-                                    <select value={form.lote_id} onChange={handleChange("lote_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.lote_id && !lotes.some((lote) => String(lote.id_lote) === form.lote_id) && (
-                                            <option value={form.lote_id}>{form.nombre_lote || "Lote asignado"}</option>
-                                        )}
-                                        {lotes.map((lote) => (
-                                            <option key={lote.id_lote} value={String(lote.id_lote)}>
-                                                {lote.nombre_lote}
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Motivo <span className="text-error-500">*</span></label>
+                                    <select value={form.motivo} onChange={handleChange("motivo")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                        <option value="">Seleccione un motivo</option>
+                                        {motivoOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Valor unitario</label>
-                                    <input type="number" value={form.valor_unitario} onChange={handleChange("valor_unitario")} placeholder="12785.00" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" minLength={1} />
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Observaciones</label>
+                                    <input type="text" value={form.observaciones} onChange={handleChange("observaciones")} placeholder="Ingrese observaciones" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" />
                                 </div>
 
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Categoría producto <span className="text-error-500">*</span></label>
-                                    <select value={form.categoria_id} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.categoria_id && !categorias.some((categoria) => String(categoria.id_categoria) === form.categoria_id) && (
-                                            <option value={form.categoria_id}>{form.nombre_categoria || "Categoría asignada"}</option>
-                                        )}
-                                        {categorias.map((categoria) => (
-                                            <option key={categoria.id_categoria} value={String(categoria.id_categoria)}>
-                                                {categoria.nombre_categoria}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Especie producto <span className="text-error-500">*</span></label>
-                                    <select value={form.especie_id} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.especie_id && !especies.some((especie) => String(especie.id_especie) === form.especie_id) && (
-                                            <option value={form.especie_id}>{form.nombre_especie || "Especie asignada"}</option>
-                                        )}
-                                        {especies.map((especie) => (
-                                            <option key={especie.id_especie} value={String(especie.id_especie)}>
-                                                {especie.nombre_especie}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
                             </div>
 
                             {error && (
@@ -243,7 +196,7 @@ export default function Inv_prodEdit() {
                                     disabled={saving}
                                     className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "Guardando..." : "Actualizar producto"}
                                 </button>
-                                <Link to="/invProd"
+                                <Link to="/invPerd"
                                     className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
                                     Cancelar
                                 </Link>
