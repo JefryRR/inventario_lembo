@@ -115,7 +115,7 @@ export default function App() {
             <Route path="/invProd/report/:id_inventario" element={<InvProdReport />} />
             <Route path="/invPerd" element={<InvPerdidas />} />
             <Route path="/invPerd/create" element={<InvPerdCreate />} />
-            <Route path="/invPerd/edit/:id_perdida" element={<InvPerdEdit />} />
+            <Route path="/invPerd/edit/:id" element={<InvPerdEdit />} />
             <Route path="/lotesGranja" element={<LotesGranja />} />
             <Route path="/lotesGranja/create" element={<LotesGranjaCreate />} />
             <Route path="/lotesGranja/edit/:id_lote_g" element={<LotesGranjaEdit />} />
