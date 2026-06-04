@@ -118,7 +118,7 @@ export default function DetalleCreate() {
                 }
             } catch (requestError: any) {
                 if (!mounted) return;
-                setError(requestError?.detail || requestError?.message || "No se pudieron cargar los catálogos");
+                setError(requestError?.detail || requestError?.message || "No se pudieron cargar los detalles");
             } finally {
                 if (mounted) {
                     setLoadingProductos(false);

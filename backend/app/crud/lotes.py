@@ -28,7 +28,7 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
 def get_all_lotes(db: Session):
     try:
         query = text("""
-                     SELECT nombre_lote, ubicacion, latitud, longitud FROM lotes_granja
+                     SELECT id_lote_g, nombre_lote, ubicacion, latitud, longitud FROM lotes_granja
                      """)
         result = db.execute(query).mappings().all()
         return result

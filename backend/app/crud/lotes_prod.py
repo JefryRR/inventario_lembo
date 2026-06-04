@@ -12,11 +12,11 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
     try:
         query = text("""
           INSERT INTO lote_produccion (
-                nombre_lote, fecha_siembra, fecha_cosecha, cantidad_inicial,
-                especie_id, categoria_id, estado_lote, user_id 
+                fecha_siembra, fecha_cosecha, cantidad_inicial,
+                especie_id, categoria_id, estado_lote, user_id, lote_granj_id
           ) VALUES (
-              :nombre_lote, :fecha_siembra, :fecha_cosecha, :cantidad_inicial,
-              :especie_id, :categoria_id, :estado_lote, :user_id
+              :fecha_siembra, :fecha_cosecha, :cantidad_inicial,
+              :especie_id, :categoria_id, :estado_lote, :user_id, :lote_granj_id
           )
       """)
         db.execute(query, lote.model_dump())
@@ -113,6 +113,7 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
         count_query = text("""
             SELECT COUNT(l_p.id_lote) AS total
             FROM lote_produccion AS l_p
+            LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
             LEFT JOIN especies ON l_p.especie_id = especies.id_especie
             LEFT JOIN categorias ON l_p.categoria_id = categorias.id_categoria
             LEFT JOIN users ON l_p.user_id = users.id_user

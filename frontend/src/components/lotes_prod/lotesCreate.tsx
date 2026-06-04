@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
@@ -13,6 +11,7 @@ type LoteEstado =
   | "listo_para_carne";
 
 type LoteFormState = {
+  lote_granj_id: number;
   nombre_lote: string;
   fecha_siembra: string;
   fecha_cosecha: string;
@@ -33,12 +32,18 @@ type CategoriaOption = {
   nombre_categoria: string;
 };
 
+type GranjaOption = {
+  id_lote_g: number;
+  nombre_lote: string;
+};
+
 type UserOption = {
   id_user: number;
   nombre_user: string;
 };
 
 const initialState: LoteFormState = {
+  lote_granj_id: 0,
   nombre_lote: "",
   fecha_siembra: "",
   fecha_cosecha: "",
@@ -63,9 +68,11 @@ export default function LotesCreate() {
   const [loading, setLoading] = useState(false);
   const [loadingEspecies, setLoadingEspecies] = useState(false);
   const [loadingCategorias, setLoadingCategorias] = useState(false);
+  const [loadingLotes, setLoadingLotes] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [especies, setEspecies] = useState<EspecieOption[]>([]);
   const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
+  const [lotes, setLotes] = useState<GranjaOption[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,12 +83,14 @@ export default function LotesCreate() {
     const loadCatalogs = async () => {
       setLoadingEspecies(true);
       setLoadingCategorias(true);
+      setLoadingLotes(true);
       setLoadingUsers(true);
 
       try {
-        const [especiesData, categoriasData, usersData] = await Promise.all([
+        const [especiesData, categoriasData, lotesData, usersData] = await Promise.all([
           apiFetch("especies/all-especies"),
           apiFetch("categorias/all-categorias"),
+          apiFetch("lotes/all-lotes_prod"),
           apiFetch("users/all-users-except-admins"),
         ]);
 
@@ -99,6 +108,12 @@ export default function LotesCreate() {
             ? categoriasData
             : [];
 
+        const loteList = Array.isArray(lotesData?.lotes)
+          ? lotesData.lotes
+          : Array.isArray(lotesData)
+            ? lotesData
+            : [];
+
         const userList = Array.isArray(usersData?.users)
           ? usersData.users
           : Array.isArray(usersData)
@@ -107,7 +122,19 @@ export default function LotesCreate() {
 
         setEspecies(especieList);
         setCategorias(categoriaList);
+        setLotes(loteList);
         setUsers(userList);
+
+        // Preseleccionar lote desde query string si existe
+        try {
+          const params = new URLSearchParams(location.search);
+          const loteIdParam = Number(params.get("lote_granj_id") || 0);
+            if (loteIdParam > 0) {
+              setForm((current) => ({ ...current, lote_granj_id: loteIdParam }));
+            }
+        } catch (e) {
+          // ignore
+        }
       } catch (requestError: any) {
         if (!mounted) return;
         setError(requestError?.detail || requestError?.message || "No se pudieron cargar los lotes");
@@ -115,6 +142,7 @@ export default function LotesCreate() {
         if (mounted) {
           setLoadingEspecies(false);
           setLoadingCategorias(false);
+          setLoadingLotes(false);
           setLoadingUsers(false);
         }
       }
@@ -168,6 +196,7 @@ export default function LotesCreate() {
 
     try {
       const payload = {
+        lote_granj_id: Number(form.lote_granj_id),
         nombre_lote: form.nombre_lote.trim(),
         fecha_siembra: form.fecha_siembra,
         fecha_cosecha: form.fecha_cosecha,
@@ -216,17 +245,25 @@ export default function LotesCreate() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Nombre del lote <span className="text-error-500">*</span>
+                  Nombre del lote <span className="text-error-500">*</span>
               </label>
-              <input
-                value={form.nombre_lote}
-                onChange={handleChange("nombre_lote")}
-                placeholder="Lote A1"
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-                required
-                maxLength={25}
-              />
-            </div>
+              <select
+                  value={form.lote_granj_id}
+                  onChange={handleChange("lote_granj_id")}
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                  required
+                  disabled={loadingLotes || lotes.length === 0}
+              >
+                  <option value={0} disabled>
+                      {loadingLotes ? "Cargando lotes..." : "Selecciona un lote"}
+                  </option>
+                  {lotes.map((lote) => (
+                      <option key={lote.id_lote_g} value={lote.id_lote_g}>
+                          {lote.nombre_lote}
+                      </option>
+                  ))}
+              </select>
+          </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
