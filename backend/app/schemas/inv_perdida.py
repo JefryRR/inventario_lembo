@@ -11,9 +11,13 @@ class TipoPerdida(str, Enum):
     daño_fisico = "daño_fisico"
     muerte = "muerte animal"
 
+class TipoOrigen(str, Enum):
+    insumo = "insumo"
+    produccion = "produccion"
 class PerdidaBase(BaseModel):
     inv_prod_id: int
     cantidad: int
+    origen: TipoOrigen
     motivo: TipoPerdida
     fecha_reporte: datetime
     unid_medida_id: int
@@ -25,6 +29,7 @@ class PerdidaCreate(PerdidaBase):
 class PerdidaUpdate(BaseModel):
     cantidad: Optional[int] = None
     motivo: Optional[TipoPerdida] = None
+    origen: Optional[TipoOrigen] = None
     unid_medida_id: Optional[int] = None
     observaciones: Optional[str] = Field(default=None, min_length=3, max_length=255)
 

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from datetime import date, timedelta
+from datetime import date
 from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate
 
 import logging
@@ -87,7 +87,6 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
 
     return {"dias_restantes": dias, "nivel_alerta": nivel}
 
-# En inv_produccion.py - agregar esta función
 def registrar_vencidos_como_perdidas(db: Session):
     try:
         query = text("""
@@ -301,12 +300,10 @@ def all_produccion(db: Session):
 
         for row in result:
             data = dict(row)
-            alerta = get_nivel_alerta(data.get("fecha_vencimiento"), data.get("cantidad", 0))
+            alerta = get_nivel_alerta(data.get("fecha_vencimiento", ""), data.get("cantidad", 0))
             data["dias_restantes"] = alerta["dias_restantes"]
             data["nivel_alerta"] = alerta["nivel_alerta"]
             resultado.append(data)
-        
-
 
         return resultado
     except SQLAlchemyError as e:
@@ -361,7 +358,7 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         for row in prod_list:
             data = dict(row)
-            alerta = get_nivel_alerta(data.get("fecha_vencimiento"), data.get("cantidad", 0))
+            alerta = get_nivel_alerta(data.get("fecha_vencimiento", ""), data.get("cantidad", 0))
             data["dias_restantes"] = alerta["dias_restantes"]
             data["nivel_alerta"] = alerta["nivel_alerta"]
             resultado.append(data)

@@ -27,6 +27,8 @@ class InsumoOut(InsumoBase):
     id_insumo: int
     nombre_tipo: str
     simbolo: str
+    dias_restantes: int = 0
+    nivel_alerta: Optional[str] = None
 
 class Paginatedinsumos(BaseModel):
     page: int

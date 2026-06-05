@@ -1,3 +1,4 @@
+from datetime import date
 from sqlalchemy.orm import Session
 from sqlalchemy import text 
 from sqlalchemy.exc import SQLAlchemyError 
@@ -54,8 +55,19 @@ def get_all_insumos(db: Session):
                      INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
                      LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
                      """)
-        result = db.execute(query).fetchall()
-        return result
+        
+        result = db.execute(query).mappings().all()
+
+        resultado = []
+
+        for row in result:
+            data = dict(row)
+            alerta = get_nivel_alerta(data.get("fecha_vencimiento", ""), data.get("cantidad", 0))
+            data["dias_restantes"] = alerta["dias_restantes"]
+            data["nivel_alerta"] = alerta["nivel_alerta"]
+            resultado.append(data)
+            
+        return resultado
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las insumoses: {e}")
         raise
@@ -82,6 +94,50 @@ def update_insumo_by_id(db: Session, insumo_id: int, insumo: InsumoUpdate):
             db.rollback()
             logger.error(f"Error al actualizar insumo {insumo_id}: {e}")
             raise Exception("Error de base de datos al actualizar el insumo")
+
+def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict:
+    """Calcula días restantes y nivel de alerta considerando la cantidad.
+
+    - Si `fecha_vencimiento` es None devuelve estado OK.
+    - Si `cantidad` es <= 0 devuelve `sin_stock` (sin alerta por vencimiento).
+    - En otro caso, calcula `dias_restantes` y clasifica la alerta.
+    """
+    if fecha_vencimiento is None:
+        return {"dias_restantes": 0, "nivel_alerta": "ok"}
+
+    # Normalizar si viene con time (datetime)
+    if hasattr(fecha_vencimiento, "date"):
+        fecha_vencimiento = fecha_vencimiento.date()
+
+    # Normalizar cantidad segura
+    try:
+        cantidad_val = float(cantidad or 0)
+    except Exception:
+        cantidad_val = 0
+
+    # Si no hay stock, marcar sin_stock
+    if cantidad_val <= 0:
+        return {"dias_restantes": 0, "nivel_alerta": "Sin stock"}
+
+    hoy = date.today()
+    dias = (fecha_vencimiento - hoy).days
+
+    # Si es el mismo día, contar como 1 día restante
+    if fecha_vencimiento == hoy:
+        dias = 1
+
+    if dias <= 0:
+        nivel = "Este insumo está vencido"
+    elif dias <= 7:
+        nivel = f"Crítico: El insumo debe ser priorizado, días restantes: {dias}."
+    elif dias <= 15:
+        nivel = f"Urgente: El insumo está próximo a vencer, días restantes: {dias}."
+    elif dias <= 30:
+        nivel = f"El insumo está próximo a vencer, días restantes: {dias}."
+    else:
+        nivel = "El insumo está en buen estado"
+
+    return {"dias_restantes": dias, "nivel_alerta": nivel}
 
 def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10):
     """
@@ -116,9 +172,18 @@ def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10):
             }
         ).mappings().all()
 
+        resultado = []
+
+        for row in insumos_list:
+            data = dict(row)
+            alerta = get_nivel_alerta(data.get("fecha_vencimiento", ""), data.get("cantidad", 0))
+            data["dias_restantes"] = alerta["dias_restantes"]
+            data["nivel_alerta"] = alerta["nivel_alerta"]
+            resultado.append(data)
+
         return {
             "total": total_result or 0,
-            "insumos": insumos_list
+            "insumos": resultado
         }
 
     except SQLAlchemyError as e:

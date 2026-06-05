@@ -133,7 +133,6 @@ def obtener_produccion_por_rango_fechas(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener los registros de producción: {e}")
 
-
 @router.get("/reporte/{inv_prod_id}")
 def get_reporte_produccion(
     inv_prod_id: int,

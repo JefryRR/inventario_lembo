@@ -15,7 +15,7 @@ type invInsumoRow = {
     tipo_id: number,
     nombre_tipo: string,
     precio_unitario: number,
-    //nivel_alerta: string,
+    nivel_alerta: string,
     simbolo: string
 };
 
@@ -33,7 +33,7 @@ type invInsumoResponse = {
 // };
 
 
-export default function Users() {
+export default function InvInsumo() {
     const [invInsumo, setInvInsumo] = useState<invInsumoRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export default function Users() {
     useEffect(() => {
         let isMounted = true;
 
-        const loadUsers = async () => {
+        const loadInvInsumo = async () => {
             setLoading(true);
             setError(null);
 
@@ -94,7 +94,7 @@ export default function Users() {
             }
         };
 
-        loadUsers();
+        loadInvInsumo();
 
         return () => {
             isMounted = false;
@@ -116,7 +116,8 @@ export default function Users() {
                 inv_insumo.nombre_tipo,
                 SoloFecha(inv_insumo.fecha_ingreso),
                 SoloFecha(inv_insumo.fecha_vencimiento),
-                 String(inv_insumo.precio_unitario),
+                String(inv_insumo.precio_unitario),
+                inv_insumo.nivel_alerta
             ]
                 .join(" ")
                 .toLowerCase()
@@ -189,10 +190,10 @@ export default function Users() {
                                     Nombre producto
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad / unidad
+                                    cantidad
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad minima / unidad
+                                    cantidad min.
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Tipo insumo
@@ -209,9 +210,9 @@ export default function Users() {
                                 <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     precio total
                                 </th>
-                                {/* <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Estado
-                                </th> */}
+                                </th>
                                 <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Accciones
                                 </th>
@@ -268,9 +269,9 @@ export default function Users() {
                                         <td className="px-5 py-4 text-left text-xs text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_insumo.precio_unitario * inv_insumo.cantidad}</div>
                                         </td>
-                                        {/* <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             <div >{inv_insumo.nivel_alerta}</div>
-                                        </td> */}
+                                        </td>
                                         <td className="px-3 py-4 text-center">
                                             <div className="flex flex-col items-center gap-2">
                                                 <Link

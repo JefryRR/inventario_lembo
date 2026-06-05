@@ -64,6 +64,7 @@ import TipoEdit from "./components/tipo_insumos/tipoEdit";
 import Alimentos from "./pages/alimentos";
 import AlimentosCreate from "./components/alimentos/alimentoCreate";
 import AlimentosEdit from "./components/alimentos/alimentosEdit";
+import Invinsumo from "./pages/inv_insumos";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -134,6 +135,7 @@ export default function App() {
             <Route path="/alimentos" element={<Alimentos />} />
             <Route path="/alimentos/create" element={<AlimentosCreate />} />
             <Route path="/alimentos/edit/:id" element={<AlimentosEdit />} />
+            <Route path="/invInsumos" element={<Invinsumo />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

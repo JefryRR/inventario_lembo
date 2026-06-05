@@ -8,6 +8,7 @@ type Inv_perdFormState = {
     inv_prod_id: number
     cantidad: number
     motivo: string
+    origen: string
     fecha_reporte: string
     unid_medida_id: number
     user_id: number
@@ -35,14 +36,25 @@ type MotivoOption = {
     label: string;
 };
 
+type InvInsumoOption = {
+    id_insumo: number;
+    nombre_producto: string;
+};
+
+
+
 const motivoOptions: MotivoOption[] = [
     { value: "contaminacion", label: "Contaminación" },
     { value: "extravio", label: "Extravio" },
     { value: "vencimiento", label: "Vencimiento" },
     { value: "robo", label: "Robo" },
-    { value: "daño_fisico", label: "Daño físico" },
+    { value: "daño_fisico", label: "Dañado" },
 ];
 
+const origenOptions: MotivoOption[] = [
+    { value: "produccion", label: "Producción" },
+    { value: "insumo", label: "Insumo" },
+];
 
 const initialState: Inv_perdFormState = {
     id_perdida: 0,
@@ -57,17 +69,21 @@ const initialState: Inv_perdFormState = {
     nombre_producto: "",
     valor_unitario: 0,
     nombre_lote: "",
-    simbolo: ""
+    simbolo: "",
+    origen: ""
 };
+
 
 export default function InvPerdCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<Inv_perdFormState>(initialState);
     const [loading, setLoading] = useState(false);
     const [loadingInvprod, setLoadingInvprod] = useState(false);
+    const [loadingInvinsumo, setLoadingInvinsumo] = useState(false);
     const [loadingUnidMedidas, setLoadingUnidMedidas] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
     const [invProd, setInvProd] = useState<InvProdOption[]>([]);
+    const [invInsumo, setInvInsumo] = useState<InvInsumoOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -119,6 +135,29 @@ export default function InvPerdCreate() {
         };
 
         loadInvProd();
+        
+        const loadInvInsumo = async () => {
+            setLoadingInvinsumo(true);
+            try {
+                const inv_insumoData = await apiFetch(`inv_insumos/all_insumos`);
+                if (!mounted) return;
+
+                const invInsumoList = Array.isArray(inv_insumoData?.inv_insumos)
+                    ? inv_insumoData.inv_insumos
+                    : Array.isArray(inv_insumoData)
+                        ? inv_insumoData
+                        : [];
+
+                setInvInsumo(invInsumoList);
+            } catch (requestError: any) {
+                if (!mounted) return;
+                setError(requestError?.detail || requestError?.message || "No se pudieron cargar los insumos");
+            } finally {
+                if (mounted) setLoadingInvinsumo(false);
+            }
+        };
+
+        loadInvInsumo();
 
         return () => {
             mounted = false;
@@ -134,7 +173,7 @@ export default function InvPerdCreate() {
                     [field]: value,
                 }));
             };
-    
+
     const getLocalISODateTime = () => {
         const now = new Date();
         const offsetMs = now.getTimezoneOffset() * 60000;
@@ -152,7 +191,8 @@ export default function InvPerdCreate() {
                 inv_prod_id: Number(form.inv_prod_id),
                 cantidad: Number(form.cantidad),
                 unid_medida_id: Number(form.unid_medida_id),
-                motivo: form.motivo.trim(),
+                motivo: form.motivo.value,
+                origen: form.origen.value,
                 fecha_reporte: getLocalISODateTime(),
                 observaciones: form.observaciones.trim() || null,
             };
@@ -199,19 +239,48 @@ export default function InvPerdCreate() {
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Origen <span className="text-error-500">*</span>
+                            </label>
+                            <select
+                                value={form.origen}
+                                onChange={handleChange("origen")}
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                required
+                            >
+                                <option value="" disabled>
+                                    Selecciona el origen
+                                </option>
+                                {origenOptions.map((origen) => (
+                                    <option key={origen.value} value={origen.value}>
+                                        {origen.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Nombre producto <span className="text-error-500">*</span>
                             </label>
-                            <select value={form.inv_prod_id || ""} onChange={handleChange("inv_prod_id")} 
-                                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                                    required disabled={loadingInvprod || invProd.length === 0}>
+                            <select value={form.inv_prod_id || ""} onChange={handleChange("inv_prod_id")}
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                required disabled={(form.origen === "produccion" && (loadingInvprod || invProd.length === 0)) || (loadingInvinsumo && form.origen === "insumo" && invInsumo.length === 0)}>
                                 <option value="" disabled>
                                     {loadingInvprod ? "Cargando productos..." : "Selecciona un producto"}
                                 </option>
-                                {invProd.map((prod) => (
-                                    <option key={prod.id_inventario} value={String(prod.id_inventario)}>
-                                        {prod.nombre_producto} - Lote {prod.nombre_lote} - ID inventario {prod.id_inventario}
-                                    </option>
-                                ))}
+                                {form.origen === "insumo" && (
+                                    invInsumo.map((insumo) => (
+                                        <option key={insumo.id_insumo} value={String(insumo.id_insumo)}>
+                                            {insumo.nombre_producto} - ID insumo {insumo.id_insumo}
+                                        </option>
+                                    ))
+                                )}
+                                {form.origen === "produccion" && (
+                                    invProd.map((prod) => (
+                                        <option key={prod.id_inventario} value={String(prod.id_inventario)}>
+                                            {prod.nombre_producto} - Lote {prod.nombre_lote} - ID inventario {prod.id_inventario}
+                                        </option>
+                                    ))
+                                )}
                             </select>
                         </div>
 
@@ -249,14 +318,14 @@ export default function InvPerdCreate() {
                                 ))}
                             </select>
                         </div>
-
+                        
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Unidad <span className="text-error-500">*</span>
                             </label>
-                            <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")} 
-                                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                                    required disabled={loadingUnidMedidas || unidMedidas.length === 0}>
+                            <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")}
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                required disabled={loadingUnidMedidas || unidMedidas.length === 0}>
                                 <option value="" disabled>
                                     {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
                                 </option>

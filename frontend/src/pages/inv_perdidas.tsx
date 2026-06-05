@@ -12,6 +12,7 @@ type invPerdRow = {
     fecha_reporte: string
     unid_medida_id: number
     user_id: number
+    origen: string
     observaciones: string
     nombre_user: string
     nombre_producto: string
@@ -95,6 +96,7 @@ export default function Users() {
                 inv_perd.fecha_reporte,
                 inv_perd.observaciones,
                 inv_perd.simbolo,
+                inv_perd.origen,
                 String(inv_perd.valor_unitario),
                 inv_perd.nombre_lote
             ]
@@ -166,6 +168,9 @@ export default function Users() {
                                     Motivo
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    Origen
+                                </th>
+                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Registrado por
                                 </th>
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -218,6 +223,9 @@ export default function Users() {
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div>{inv_perd.motivo}</div>
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                            <div>{inv_perd.origen}</div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div>{inv_perd.nombre_user}</div>
