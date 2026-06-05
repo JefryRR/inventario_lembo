@@ -6,6 +6,7 @@ import { apiFetch } from "@/services/api";
 
 type LoteRow = {
 	id_lote: number;
+	lote_granj_id: number;
 	nombre_lote: string;
 	fecha_siembra: string;
 	fecha_cosecha: string;

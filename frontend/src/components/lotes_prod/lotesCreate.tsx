@@ -11,6 +11,7 @@ type LoteEstado =
   | "listo_para_carne";
 
 type LoteFormState = {
+  lote_granj_id: number;
   nombre_lote: string;
   fecha_siembra: string;
   fecha_cosecha: string;
@@ -19,7 +20,6 @@ type LoteFormState = {
   categoria_id: number;
   estado_lote: LoteEstado;
   user_id: number;
-  lote_granj_id: number;
 };
 
 type EspecieOption = {
@@ -32,17 +32,18 @@ type CategoriaOption = {
   nombre_categoria: string;
 };
 
+type GranjaOption = {
+  id_lote_g: number;
+  nombre_lote: string;
+};
+
 type UserOption = {
   id_user: number;
   nombre_user: string;
 };
 
-type LotesGOption = {
-  id_lote_g: number;
-  nombre_lote: string;
-};
-
 const initialState: LoteFormState = {
+  lote_granj_id: 0,
   nombre_lote: "",
   fecha_siembra: "",
   fecha_cosecha: "",
@@ -51,7 +52,6 @@ const initialState: LoteFormState = {
   categoria_id: 0,
   estado_lote: "activo",
   user_id: 0,
-  lote_granj_id: 0,
 };
 
 const ESTADO_OPTIONS: Array<{ value: LoteEstado; label: string }> = [
@@ -68,12 +68,12 @@ export default function LotesCreate() {
   const [loading, setLoading] = useState(false);
   const [loadingEspecies, setLoadingEspecies] = useState(false);
   const [loadingCategorias, setLoadingCategorias] = useState(false);
+  const [loadingLotes, setLoadingLotes] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
-  const [loadingLotesGranja, setLoadingLotesGranja] = useState(false);
   const [especies, setEspecies] = useState<EspecieOption[]>([]);
   const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
+  const [lotes, setLotes] = useState<GranjaOption[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
-  const [lotesGranja, setLotesGranja] = useState<LotesGOption[]>([]);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,13 +83,13 @@ export default function LotesCreate() {
     const loadCatalogs = async () => {
       setLoadingEspecies(true);
       setLoadingCategorias(true);
+      setLoadingLotes(true);
       setLoadingUsers(true);
-      setLoadingLotesGranja(true);
-
       try {
-        const [especiesData, categoriasData, usersData, lotesGranjaData] = await Promise.all([
+        const [especiesData, categoriasData, lotesData, usersData] = await Promise.all([
           apiFetch("especies/all-especies"),
           apiFetch("categorias/all-categorias"),
+          apiFetch("lotes/all-lotes_prod"),
           apiFetch("users/all-users-except-admins"),
           apiFetch("lotes/all-lotes_prod"),
         ]);
@@ -108,6 +108,12 @@ export default function LotesCreate() {
             ? categoriasData
             : [];
 
+        const loteList = Array.isArray(lotesData?.lotes)
+          ? lotesData.lotes
+          : Array.isArray(lotesData)
+            ? lotesData
+            : [];
+
         const userList = Array.isArray(usersData?.users)
           ? usersData.users
           : Array.isArray(usersData)
@@ -116,14 +122,19 @@ export default function LotesCreate() {
 
         setEspecies(especieList);
         setCategorias(categoriaList);
+        setLotes(loteList);
         setUsers(userList);
-        const lotesGranjaList = Array.isArray(lotesGranjaData?.lotes_granja)
-          ? lotesGranjaData.lotes_granja
-          : Array.isArray(lotesGranjaData)
-            ? lotesGranjaData
-            : [];
 
-        setLotesGranja(lotesGranjaList);
+        // Preseleccionar lote desde query string si existe
+        try {
+          const params = new URLSearchParams(location.search);
+          const loteIdParam = Number(params.get("lote_granj_id") || 0);
+            if (loteIdParam > 0) {
+              setForm((current) => ({ ...current, lote_granj_id: loteIdParam }));
+            }
+        } catch (e) {
+          // ignore
+        }
       } catch (requestError: any) {
         if (!mounted) return;
         setError(requestError?.detail || requestError?.message || "No se pudieron cargar los lotes");
@@ -131,8 +142,8 @@ export default function LotesCreate() {
         if (mounted) {
           setLoadingEspecies(false);
           setLoadingCategorias(false);
+          setLoadingLotes(false);
           setLoadingUsers(false);
-          setLoadingLotesGranja(false);
         }
       }
     };
@@ -185,6 +196,8 @@ export default function LotesCreate() {
 
     try {
       const payload = {
+        lote_granj_id: Number(form.lote_granj_id),
+        nombre_lote: form.nombre_lote.trim(),
         fecha_siembra: form.fecha_siembra,
         fecha_cosecha: form.fecha_cosecha,
         cantidad_inicial: Number(form.cantidad_inicial),
@@ -192,7 +205,6 @@ export default function LotesCreate() {
         categoria_id: Number(form.categoria_id),
         estado_lote: form.estado_lote,
         user_id: Number(form.user_id),
-        lote_granj_id: Number(form.lote_granj_id),
       };
       const data = await apiFetch("lotes_prod/create", {
         method: "POST",
@@ -230,27 +242,28 @@ export default function LotesCreate() {
 
         <form onSubmit={handleSubmit} className="p-5 lg:p-6">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Lote <span className="text-error-500">*</span>
-                </label>
-                <select
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Nombre del lote <span className="text-error-500">*</span>
+              </label>
+              <select
                   value={form.lote_granj_id}
                   onChange={handleChange("lote_granj_id")}
                   className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                   required
-                  disabled={loadingLotesGranja || lotesGranja.length === 0}
-                >
+                  disabled={loadingLotes || lotes.length === 0}
+              >
                   <option value={0} disabled>
-                    {loadingLotesGranja ? "Cargando lotes..." : "Selecciona un lote"}
+                      {loadingLotes ? "Cargando lotes..." : "Selecciona un lote"}
                   </option>
-                  {lotesGranja.map((lote) => (
+                  {lotes.map((lote) => (
                       <option key={lote.id_lote_g} value={lote.id_lote_g}>
-                      {lote.nombre_lote}
-                    </option>
+                          {lote.nombre_lote}
+                      </option>
                   ))}
-                </select>
-              </div>
+              </select>
+          </div>
+
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Cantidad inicial <span className="text-error-500">*</span>

@@ -32,7 +32,6 @@ class LoteUpdate(BaseModel):
    categoria_id: Optional[int] = None
    user_id: Optional[int] = None
 
-
 class LoteOut(LoteBase):
    id_lote: int
    nombre_lote: str

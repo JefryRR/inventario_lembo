@@ -20,8 +20,8 @@ def create_lote(lote: LoteCreate, db: Session = Depends(get_db),
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        crud_lotes_prod.create_lote(db, lote)
-        return {"message": "Lote creado correctamente"}
+        lote_id = crud_lotes_prod.create_lote(db, lote)
+        return {"message": "Lote creado correctamente", "lote_id": lote_id}
     
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
