@@ -6,6 +6,7 @@ from app.crud.permisos import verify_permissions
 from app.schemas.lotes_prod import LoteCreate, LoteEstado, LoteOut, LoteUpdate
 from app.schemas.users import UserOut
 from app.crud import lotes_prod as crud_lotes_prod
+from typing import Optional
 
 router = APIRouter()
 modulo = 5 # ID del módulo de lotes para verificar permisos
@@ -28,20 +29,21 @@ def create_lote(lote: LoteCreate, db: Session = Depends(get_db),
 
 @router.get("/all-lotes_prod")
 def get_all_lotes_prod(db: Session = Depends(get_db),
-            user_token: UserOut = Depends(get_current_user)
+            user_token: UserOut = Depends(get_current_user),
+            estado: Optional[str] = None,
             ):
     try:
         id_rol = user_token.rol_id
         if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
-             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+             raise HTTPException(status_code=401, detail='Usuario no autorizado')
          
-        lote = crud_lotes_prod.get_all_lotes(db)
+        lote = crud_lotes_prod.get_all_lotes(db, estado)
         if not lote:
           raise HTTPException(status_code=404, detail="Lotes no encontrados")
         return lote
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
-  
+     
 @router.get("/by-id", response_model=LoteOut)
 def get_lote_by_id(lote_id: int, db: Session = Depends(get_db),
             user_token: UserOut = Depends(get_current_user)

@@ -222,9 +222,12 @@ export default function InformesInsumo() {
                     </div>
 
                     <div className="grid gap-4 lg:grid-cols-2">
+
+                        {/* Datos generales */}
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">Datos generales</h2>
-                            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+                            <h2 className="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Datos generales</h2>
+
+                            <dl className="grid grid-cols-2 gap-4">
                                 <div>
                                     <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha de ingreso</dt>
                                     <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{formatearFecha(encabezado.fecha_ingreso)}</dd>
@@ -234,11 +237,35 @@ export default function InformesInsumo() {
                                     <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{formatearFecha(encabezado.fecha_vencimiento)}</dd>
                                 </div>
                             </dl>
+
+                            <hr className="my-4 border-gray-100 dark:border-gray-800" />
+
+                            <dl className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Cant. inicial</dt>
+                                    <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">
+                                        {formatearCantidad(encabezado.cantidad_inicial, encabezado.simbolo)}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Stock actual</dt>
+                                    <dd className="mt-1 text-sm font-medium text-green-600 dark:text-green-400">
+                                        {formatearCantidad(encabezado.stock_actual, encabezado.simbolo)}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total perdido</dt>
+                                    <dd className="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
+                                        {formatearCantidad(encabezado.total_perdido, encabezado.simbolo)}
+                                    </dd>
+                                </div>
+                            </dl>
                         </div>
 
+                        {/* Resumen financiero */}
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">Resumen financiero</h2>
-                            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                            <h2 className="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Resumen financiero</h2>
+                            <div className="grid grid-cols-2 gap-3">
                                 <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900/40">
                                     <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Costo total inicial</span>
                                     <p className="mt-2 text-base font-semibold text-gray-800 dark:text-white/90">
@@ -246,6 +273,12 @@ export default function InformesInsumo() {
                                     </p>
                                 </div>
                                 <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900/40">
+                                    <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor total pérdida</span>
+                                    <p className="mt-2 text-base font-semibold text-red-600 dark:text-red-400">
+                                        {formatearMoneda(encabezado.total_perdido * encabezado.precio_unitario)}
+                                    </p>
+                                </div>
+                                <div className="col-span-2 rounded-xl bg-gray-50 p-4 dark:bg-gray-900/40">
                                     <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor stock actual</span>
                                     <p className="mt-2 text-base font-semibold text-gray-800 dark:text-white/90">
                                         {formatearMoneda(encabezado.stock_actual * encabezado.precio_unitario)}
@@ -253,6 +286,7 @@ export default function InformesInsumo() {
                                 </div>
                             </div>
                         </div>
+
                     </div>
 
                     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">

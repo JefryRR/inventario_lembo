@@ -58,7 +58,7 @@ const initialState: Inv_prodFormState = {
     simbolo: ""
 };
 
-export default function UsersCreate() {
+export default function Inv_prodCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<Inv_prodFormState>(initialState);
     const [loading, setLoading] = useState(false);
@@ -79,14 +79,11 @@ export default function UsersCreate() {
         const loadLotes = async () => {
             setLoadingLotes(true);
             try {
-                const lotesData = await apiFetch(`lotes/all-lotes_prod`);
+                const lotesData = await apiFetch(`lotes_prod/all-lotes_prod?estado=listo_cosecha`);
                 if (!mounted) return;
 
-                const lotesList = Array.isArray(lotesData?.roles)
-                    ? lotesData.roles
-                    : Array.isArray(lotesData)
-                        ? lotesData
-                        : [];
+                // El backend retorna directamente un array
+                const lotesList = Array.isArray(lotesData) ? lotesData : [];
 
                 setLotes(lotesList);
             } catch (requestError: any) {
@@ -180,7 +177,7 @@ export default function UsersCreate() {
                     [field]: value,
                 }));
             };
-    
+
     const getLocalISODateTime = () => {
         const now = new Date();
         const offsetMs = now.getTimezoneOffset() * 60000;
@@ -277,9 +274,9 @@ export default function UsersCreate() {
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Unidad <span className="text-error-500">*</span>
                             </label>
-                            <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")} 
-                                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                                    required disabled={loadingUnidMedidas || unidMedidas.length === 0}>
+                            <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")}
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                required disabled={loadingUnidMedidas || unidMedidas.length === 0}>
                                 <option value="" disabled>
                                     {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
                                 </option>
@@ -308,7 +305,13 @@ export default function UsersCreate() {
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Nombre lote <span className="text-error-500">*</span>
                             </label>
-                            <select value={form.lote_id || ""} onChange={handleChange("lote_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingLotes || lotes.length === 0}>
+                            <select
+                                value={form.lote_id || ""}
+                                onChange={handleChange("lote_id")}
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                required
+                                disabled={loadingLotes}
+                            >
                                 <option value="" disabled>
                                     {loadingLotes ? "Cargando lotes..." : "Selecciona un lote"}
                                 </option>
