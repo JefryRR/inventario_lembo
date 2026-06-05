@@ -191,8 +191,8 @@ export default function InvPerdCreate() {
                 inv_prod_id: Number(form.inv_prod_id),
                 cantidad: Number(form.cantidad),
                 unid_medida_id: Number(form.unid_medida_id),
-                motivo: form.motivo.value,
-                origen: form.origen.value,
+                motivo: form.motivo,
+                origen: form.origen,
                 fecha_reporte: getLocalISODateTime(),
                 observaciones: form.observaciones.trim() || null,
             };

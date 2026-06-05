@@ -99,7 +99,7 @@ const modulosItems: NavItem[] = [
       },
       {
         name: "Inventario de insumos",
-        path: "/invInsumos",
+        path: "/invInsumo",
       },
     ],
   },

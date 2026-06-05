@@ -83,24 +83,44 @@ def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optiona
            
 def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
     try:
-        query = text("""
-            SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo, p.origen,
-                   p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                   u.nombre_user, um.simbolo, pr.nombre_producto, pr.valor_unitario, l_g.nombre_lote
+        result = db.execute(text("""
+            SELECT 
+                p.*,
+                CASE 
+                    WHEN p.origen = 'produccion' THEN ip.nombre_producto
+                    WHEN p.origen = 'insumo' THEN ii.nombre_producto
+                END AS nombre_producto,
+                CASE 
+                    WHEN p.origen = 'produccion' THEN ip.valor_unitario
+                    WHEN p.origen = 'insumo' THEN ii.precio_unitario
+                END AS valor_unitario,
+                lg.nombre_lote,
+                u.nombre_user, um.simbolo
             FROM inv_perdidas p
-            LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
-            LEFT JOIN users AS u ON p.user_id = u.id_user
-            LEFT JOIN unidades_medida AS um ON p.unid_medida_id = um.id_unidad
-            LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
-            LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
+            LEFT JOIN inv_produccion ip 
+                ON p.origen = 'produccion' AND p.inv_prod_id = ip.id_inventario
+            LEFT JOIN lote_produccion lp
+                ON ip.lote_id = lp.id_lote
+            LEFT JOIN lotes_granja lg
+                ON lp.lote_granj_id = lg.id_lote_g
+            LEFT JOIN inv_insumos ii 
+                ON p.origen = 'insumo' AND p.inv_prod_id = ii.id_insumo
+            LEFT JOIN users u
+                ON p.user_id = u.id_user
+            LEFT JOIN unidades_medida um
+                ON p.unid_medida_id = um.id_unidad
             WHERE p.id_perdida = :id
-        """)
-        result = db.execute(query, {"id": id}).mappings().first()
+        """), {"id": id}).mappings().first()
+
+        if not result:
+            raise ValueError("Pérdida no encontrada")
+
         return result
+    except ValueError:
+        raise
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener pérdida por id: {e}")
         raise Exception("Error de base de datos al obtener la pérdida")
-
 def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
     try:
     # Solo los campos enviados por el usuario
@@ -127,16 +147,25 @@ def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
 def all_perdidas(db: Session) -> list[PerdidaOut]:
     try:
         query = text("""
-                    SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo, p.origen,
-                        p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                        pr.nombre_producto, u.nombre_user, um.simbolo, pr.valor_unitario, l_g.nombre_lote
-                    FROM inv_perdidas AS p
-                    LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
-                    LEFT JOIN users AS u ON p.user_id = u.id_user
-                    LEFT JOIN unidades_medida AS um ON p.unid_medida_id = um.id_unidad
-                    LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
-                    LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
-                    ORDER BY p.fecha_reporte DESC
+                        SELECT p.*,
+                            CASE 
+                                WHEN p.origen = 'produccion' THEN ip.nombre_producto
+                                WHEN p.origen = 'insumo' THEN ii.nombre_producto
+                            END AS nombre_producto,
+                            CASE 
+                                WHEN p.origen = 'produccion' THEN ip.valor_unitario
+                                WHEN p.origen = 'insumo' THEN ii.precio_unitario
+                            END AS valor_unitario,
+                            lg.nombre_lote,
+                            u.nombre_user, um.simbolo
+                        FROM inv_perdidas p
+                        LEFT JOIN inv_produccion ip ON p.origen = 'produccion' AND p.inv_prod_id = ip.id_inventario
+                        LEFT JOIN lote_produccion lp ON ip.lote_id = lp.id_lote
+                        LEFT JOIN lotes_granja lg ON lp.lote_granj_id = lg.id_lote_g
+                        LEFT JOIN inv_insumos ii ON p.origen = 'insumo' AND p.inv_prod_id = ii.id_insumo
+                        LEFT JOIN users u ON p.user_id = u.id_user
+                        LEFT JOIN unidades_medida um ON p.unid_medida_id = um.id_unidad
+                        ORDER BY p.fecha_reporte DESC
                     """)
         results = db.execute(query).mappings().all()
         return results
@@ -152,19 +181,27 @@ def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
         """)
         total_result = db.execute(count_query).scalar()
 
-        data_query = text("""
-            SELECT p.id_perdida, p.inv_prod_id, p.cantidad, p.motivo, p.origen,
-                   p.fecha_reporte, p.user_id, p.observaciones, p.unid_medida_id,
-                   pr.nombre_producto, u.nombre_user, um.simbolo, pr.valor_unitario, l_g.nombre_lote
-            FROM inv_perdidas AS p
-            LEFT JOIN inv_produccion AS pr ON p.inv_prod_id = pr.id_inventario
-            LEFT JOIN users AS u ON p.user_id = u.id_user
-            LEFT JOIN unidades_medida AS um ON p.unid_medida_id = um.id_unidad
-            LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
-            LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
-            ORDER BY p.fecha_reporte DESC
-            LIMIT :limit OFFSET :skip
-        """)
+        data_query = text("""SELECT p.*,
+                                CASE 
+                                    WHEN p.origen = 'produccion' THEN ip.nombre_producto
+                                    WHEN p.origen = 'insumo' THEN ii.nombre_producto
+                                END AS nombre_producto,
+                                CASE 
+                                    WHEN p.origen = 'produccion' THEN ip.valor_unitario
+                                    WHEN p.origen = 'insumo' THEN ii.precio_unitario
+                                END AS valor_unitario,
+                                lg.nombre_lote,
+                                u.nombre_user, um.simbolo
+                            FROM inv_perdidas p
+                            LEFT JOIN inv_produccion ip ON p.origen = 'produccion' AND p.inv_prod_id = ip.id_inventario
+                            LEFT JOIN lote_produccion lp ON ip.lote_id = lp.id_lote
+                            LEFT JOIN lotes_granja lg ON lp.lote_granj_id = lg.id_lote_g
+                            LEFT JOIN inv_insumos ii ON p.origen = 'insumo' AND p.inv_prod_id = ii.id_insumo
+                            LEFT JOIN users u ON p.user_id = u.id_user
+                            LEFT JOIN unidades_medida um ON p.unid_medida_id = um.id_unidad
+                            ORDER BY p.fecha_reporte DESC
+                            LIMIT :limit OFFSET :skip
+                        """)
 
         perdidas_list = db.execute(
             data_query,

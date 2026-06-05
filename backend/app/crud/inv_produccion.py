@@ -117,7 +117,7 @@ def registrar_vencidos_como_perdidas(db: Session):
                 "unid_medida_id": row["unid_medida_id"],
                 "motivo": "vencimiento",
                 "fecha_reporte": date.today(),
-                "user_id": None,
+                "user_id": "None",
                 "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}",
                 "cant_convertida": row["cantidad"]  # Se asume que la cantidad ya está en la unidad base o que el trigger lo ajustará
             })

@@ -193,9 +193,6 @@ export default function InvInsumo() {
                                     cantidad
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad min.
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Tipo insumo
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -203,6 +200,9 @@ export default function InvInsumo() {
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     fecha vencimiento
+                                </th>
+                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    cantidad min.
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     precio unitario
@@ -250,9 +250,6 @@ export default function InvInsumo() {
                                         <td className="px-4 py-4 text-center">
                                             <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.cantidad} {inv_insumo.simbolo}</div>
                                         </td>
-                                        <td className="px-4 py-4 text-center">
-                                            <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.min_stock} {inv_insumo.simbolo}</div>
-                                        </td>
                                         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div className="truncate">{inv_insumo.nombre_tipo}</div>
                                         </td>
@@ -262,7 +259,9 @@ export default function InvInsumo() {
                                         <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             <div>{SoloFecha(inv_insumo.fecha_vencimiento)}</div>
                                         </td>
-                                        
+                                        <td className="px-4 py-4 text-center">
+                                            <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.min_stock} {inv_insumo.simbolo}</div>
+                                        </td>
                                         <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_insumo.precio_unitario}</div>
                                         </td>
@@ -279,11 +278,11 @@ export default function InvInsumo() {
                                                     className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
                                                     Editar
                                                 </Link>
-                                                {/* <Link
+                                                <Link
                                                     to={`/invInsumo/report/${inv_insumo.id_insumo}`}
                                                     className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
                                                     Informe
-                                                </Link> */}
+                                                </Link>
                                             </div>
                                         </td>
                                     </tr>
