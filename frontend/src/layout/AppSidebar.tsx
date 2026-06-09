@@ -353,9 +353,9 @@ const AppSidebar: React.FC = () => {
             <>
               <img
                 className="dark:hidden"
-                src="../images/task/google-drive.svg"
+                src="/images/logo/icono.png"
                 alt="Logo"
-                width={150}
+                width={60}
                 height={40}
               />
               <img
@@ -368,7 +368,7 @@ const AppSidebar: React.FC = () => {
             </>
           ) : (
             <img
-              src="/images/logo/logo-icon.svg"
+              src="/images/logo/icono.png"
               alt="Logo"
               width={32}
               height={32}
