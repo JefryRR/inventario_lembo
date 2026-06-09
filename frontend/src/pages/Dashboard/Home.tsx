@@ -11,7 +11,7 @@ export default function Home() {
     <>
       <PageMeta
         title="Inventario Lembo"
-        description="Software de gestión de inventarios para sena del Lembo"
+        description="Software de gestión de inventarios para la sede El Lembo del SENA"
       />
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12 space-y-6 xl:col-span-7">

@@ -248,7 +248,7 @@ export default function UsersCreate() {
                                 type="checkbox"
                                 checked={form.estado}
                                 onChange={handleChange("estado")}
-                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
                             />
                             <label htmlFor="estado" className="text-sm text-gray-700 dark:text-gray-300">
                                 Usuario activo
@@ -272,7 +272,7 @@ export default function UsersCreate() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {loading ? "Guardando..." : "Guardar usuario"}
                         </button>

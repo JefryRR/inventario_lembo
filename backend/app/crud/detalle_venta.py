@@ -54,7 +54,7 @@ def create_detalle_venta(db: Session, detalle: DetalleVentaCreate):
             or "no hay suficiente stock" in mensaje_completo
             or "no se puede crear el detalle de venta" in mensaje_completo
         ):
-            raise Exception(f"Error: No hay suficiente stock para realizar esta venta o apartado")
+            raise Exception(f"No hay suficiente stock para realizar esta venta")
         raise Exception("Error de base de datos al crear el detalle de venta")
     
 def get_detalle_venta_by_id(db: Session, id: int) -> Optional[DetalleVentaOut]:
