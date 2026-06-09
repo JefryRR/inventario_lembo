@@ -85,13 +85,13 @@ export default function LotesCreate() {
       setLoadingCategorias(true);
       setLoadingLotes(true);
       setLoadingUsers(true);
-
       try {
         const [especiesData, categoriasData, lotesData, usersData] = await Promise.all([
           apiFetch("especies/all-especies"),
           apiFetch("categorias/all-categorias"),
           apiFetch("lotes/all-lotes_prod"),
           apiFetch("users/all-users-except-admins"),
+          apiFetch("lotes/all-lotes_prod"),
         ]);
 
         if (!mounted) return;
@@ -157,30 +157,30 @@ export default function LotesCreate() {
 
   const handleChange =
     (field: keyof LoteFormState) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value = event.target.value;
+      (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const value = event.target.value;
 
-      if (field === "cantidad_inicial" || field === "especie_id" || field === "categoria_id" || field === "user_id") {
+        if (field === "cantidad_inicial" || field === "especie_id" || field === "categoria_id" || field === "user_id") {
+          setForm((current) => ({
+            ...current,
+            [field]: Number(value),
+          }));
+          return;
+        }
+
+        if (field === "estado_lote") {
+          setForm((current) => ({
+            ...current,
+            estado_lote: value as LoteEstado,
+          }));
+          return;
+        }
+
         setForm((current) => ({
           ...current,
-          [field]: Number(value),
+          [field]: value,
         }));
-        return;
-      }
-
-      if (field === "estado_lote") {
-        setForm((current) => ({
-          ...current,
-          estado_lote: value as LoteEstado,
-        }));
-        return;
-      }
-
-      setForm((current) => ({
-        ...current,
-        [field]: value,
-      }));
-    };
+      };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -206,7 +206,6 @@ export default function LotesCreate() {
         estado_lote: form.estado_lote,
         user_id: Number(form.user_id),
       };
-
       const data = await apiFetch("lotes_prod/create", {
         method: "POST",
         body: payload,

@@ -15,7 +15,7 @@ type invInsumoRow = {
     tipo_id: number,
     nombre_tipo: string,
     precio_unitario: number,
-    //nivel_alerta: string,
+    nivel_alerta: string,
     simbolo: string
 };
 
@@ -33,7 +33,7 @@ type invInsumoResponse = {
 // };
 
 
-export default function Users() {
+export default function InvInsumo() {
     const [invInsumo, setInvInsumo] = useState<invInsumoRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export default function Users() {
     useEffect(() => {
         let isMounted = true;
 
-        const loadUsers = async () => {
+        const loadInvInsumo = async () => {
             setLoading(true);
             setError(null);
 
@@ -94,7 +94,7 @@ export default function Users() {
             }
         };
 
-        loadUsers();
+        loadInvInsumo();
 
         return () => {
             isMounted = false;
@@ -116,7 +116,8 @@ export default function Users() {
                 inv_insumo.nombre_tipo,
                 SoloFecha(inv_insumo.fecha_ingreso),
                 SoloFecha(inv_insumo.fecha_vencimiento),
-                 String(inv_insumo.precio_unitario),
+                String(inv_insumo.precio_unitario),
+                inv_insumo.nivel_alerta
             ]
                 .join(" ")
                 .toLowerCase()
@@ -189,10 +190,7 @@ export default function Users() {
                                     Nombre producto
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad / unidad
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad minima / unidad
+                                    cantidad
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Tipo insumo
@@ -203,15 +201,18 @@ export default function Users() {
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     fecha vencimiento
                                 </th>
+                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    cantidad min.
+                                </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     precio unitario
                                 </th>
                                 <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     precio total
                                 </th>
-                                {/* <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Estado
-                                </th> */}
+                                </th>
                                 <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Accciones
                                 </th>
@@ -249,9 +250,6 @@ export default function Users() {
                                         <td className="px-4 py-4 text-center">
                                             <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.cantidad} {inv_insumo.simbolo}</div>
                                         </td>
-                                        <td className="px-4 py-4 text-center">
-                                            <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.min_stock} {inv_insumo.simbolo}</div>
-                                        </td>
                                         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div className="truncate">{inv_insumo.nombre_tipo}</div>
                                         </td>
@@ -261,16 +259,18 @@ export default function Users() {
                                         <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             <div>{SoloFecha(inv_insumo.fecha_vencimiento)}</div>
                                         </td>
-                                        
+                                        <td className="px-4 py-4 text-center">
+                                            <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.min_stock} {inv_insumo.simbolo}</div>
+                                        </td>
                                         <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_insumo.precio_unitario}</div>
                                         </td>
                                         <td className="px-5 py-4 text-left text-xs text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_insumo.precio_unitario * inv_insumo.cantidad}</div>
                                         </td>
-                                        {/* <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             <div >{inv_insumo.nivel_alerta}</div>
-                                        </td> */}
+                                        </td>
                                         <td className="px-3 py-4 text-center">
                                             <div className="flex flex-col items-center gap-2">
                                                 <Link
@@ -278,11 +278,11 @@ export default function Users() {
                                                     className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
                                                     Editar
                                                 </Link>
-                                                {/* <Link
+                                                <Link
                                                     to={`/invInsumo/report/${inv_insumo.id_insumo}`}
                                                     className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
                                                     Informe
-                                                </Link> */}
+                                                </Link>
                                             </div>
                                         </td>
                                     </tr>

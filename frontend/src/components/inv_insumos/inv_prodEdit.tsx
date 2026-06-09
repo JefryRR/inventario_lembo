@@ -85,7 +85,7 @@ export default function Inv_prodEdit() {
             try {
                 const [invProdData, lotesData, UnidMedidasData, CategoriasData, EspeciesData] = await Promise.all([
                     apiFetch(`inv_produccion/by-id?id=${id}`),
-                    apiFetch(`lotes_prod/all-lotes_prod`),
+                    apiFetch(`lotes/all-lotes_prod`),
                     apiFetch(`unid-medida/all-unid_medidas`),
                     apiFetch(`categorias/all-categorias`),
                     apiFetch(`especies/all-especies`),

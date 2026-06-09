@@ -37,7 +37,7 @@ type DateRangeState = {
 
 const TABLE_COLUMNS = 10;
 
-export default function Users() {
+export default function Inv_prod() {
     const [invProd, setInvProd] = useState<invProdRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -55,7 +55,7 @@ export default function Users() {
     useEffect(() => {
         let isMounted = true;
 
-        const loadUsers = async () => {
+        const loadInv_prod = async () => {
             setLoading(true);
             setError(null);
 
@@ -98,7 +98,7 @@ export default function Users() {
             }
         };
 
-        loadUsers();
+        loadInv_prod();
 
         return () => {
             isMounted = false;
@@ -252,7 +252,7 @@ export default function Users() {
                                     Nombre producto
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad / unidad
+                                    cantidad
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     fecha registro

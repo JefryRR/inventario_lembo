@@ -6,6 +6,7 @@ from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.inv_insumos import InsumoCreate, InsumoUpdate, InsumoOut, Paginatedinsumos
 from app.crud import inv_insumos as crud_insumos
+from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
@@ -15,7 +16,7 @@ modulo = 10
 def create_insumo(
     insumo: InsumoCreate, 
     db: Session = Depends(get_db),
-    user_token = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user)
 ):
     try:
         id_rol = user_token.rol_id
@@ -36,7 +37,7 @@ def create_insumo(
 @router.get("/by-id/", response_model=InsumoOut)
 def get_insumo_by_id(id_insumo: int, 
               db: Session = Depends(get_db),
-              user_token = Depends(get_current_user)
+              user_token: UserOut = Depends(get_current_user)
               ):
     try:
         id_rol=user_token.rol_id
@@ -53,7 +54,7 @@ def get_insumo_by_id(id_insumo: int,
 @router.get("/all_insumos", response_model=List[InsumoOut])
 def get_all_insumos(
     db: Session = Depends(get_db),
-    user_token = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user)
 ):
     try:
         id_rol = user_token.rol_id
@@ -64,13 +65,34 @@ def get_all_insumos(
         return insumos
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@router.get("/reporte/{inv_insumo_id}")
+def get_reporte_insumo(
+    inv_insumo_id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        reporte = crud_insumos.get_reporte_insumo_detallado(db, inv_insumo_id)
+        if not reporte:
+            raise HTTPException(status_code=404, detail="Insumo no encontrado")
+        return reporte
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.put("/update_by_id/{id_insumo}")
 def update_insumo(
     id_insumo: int,
     insumo: InsumoUpdate,
     db: Session = Depends(get_db),
-    user_token = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user)
 ):
     try:
         id_rol = user_token.rol_id
@@ -87,7 +109,7 @@ def get_paginated_insumos(
     page: int = 1,
     page_size: int = 10,
     db: Session = Depends(get_db),
-    user_token = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user)
 ):
     try:
         id_rol = user_token.rol_id

@@ -99,7 +99,7 @@ const modulosItems: NavItem[] = [
       },
       {
         name: "Inventario de insumos",
-        path: "/invInsumos",
+        path: "/invInsumo",
       },
     ],
   },
@@ -338,7 +338,7 @@ const AppSidebar: React.FC = () => {
             ? "w-[290px]"
             : "w-[90px]"
         }
-        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+        ${isMobileOpen ? "translate-x-5" : "-translate-x-full"}
         lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

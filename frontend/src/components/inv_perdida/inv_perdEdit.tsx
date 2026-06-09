@@ -27,7 +27,7 @@ const motivoOptions: MotivoOption[] = [
     { value: "extravio", label: "Extravio" },
     { value: "vencimiento", label: "Vencimiento" },
     { value: "robo", label: "Robo" },
-    { value: "daño_fisico", label: "Daño físico" },
+    { value: "daño_fisico", label: "Dañado" },
 ];
 
 const emptyState: Inv_perdFormState = {
