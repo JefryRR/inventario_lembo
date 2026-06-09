@@ -3,14 +3,14 @@ import { Link, useNavigate } from "react-router";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
+// import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
 // @ts-ignore: auth service is a JS module without types
 import { login } from "../../services/auth";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
+  // const [isChecked, setIsChecked] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -110,7 +110,7 @@ export default function SignInForm() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Checkbox checked={isChecked} onChange={setIsChecked} />
                     <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
@@ -123,7 +123,7 @@ export default function SignInForm() {
                   >
                     Olvidé mi contraseña
                   </Link>
-                </div>
+                </div> */}
 
                 {error && (
                   <div className="text-sm text-center text-error-500">{error}</div>
@@ -141,14 +141,6 @@ export default function SignInForm() {
                 </div>
               </div>
             </form>
-            <div className="mt-5">
-              <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                No tienes cuenta? {" "}
-                <Link to="/signup" className="text-brand-500 hover:text-brand-600 dark:text-brand-400">
-                  Regístrate
-                </Link>
-              </p>
-            </div>
           </div>
         </div>
       </div>
