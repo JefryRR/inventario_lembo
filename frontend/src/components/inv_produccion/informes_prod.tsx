@@ -125,9 +125,10 @@ export default function InformesProd() {
     const encabezado = reporte?.encabezado;
 
     const totalVenta = reporte?.movimientos
-        .filter((m) => m.tipo === "venta") // ajusta el string según lo que devuelve tu API
+        .filter((m) => m.tipo === "venta"  && m.estado === "Vendido") // ajusta el string según lo que devuelve tu API
         .reduce((acc, m) => acc + (Number(m.cantidad ?? 0) * Number(m.valor ?? 0)), 0) ?? 0;
 
+    const perdidaGanancia = (totalVenta - (encabezado?.total_perdido ?? 0) * (encabezado?.valor_unitario ?? 0));
     return (
 
         <div className="space-y-6">
@@ -249,10 +250,6 @@ export default function InformesProd() {
                                     <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{formatearCantidad(encabezado.total_vendido, encabezado.simbolo)}</dd>
                                 </div>
                                 <div>
-                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Perdidos</dt>
-                                    <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{formatearCantidad(encabezado.total_perdido, encabezado.simbolo)}</dd>
-                                </div>
-                                <div>
                                     <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Lote</dt>
                                     <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{encabezado.nombre_lote}</dd>
                                 </div>
@@ -278,6 +275,12 @@ export default function InformesProd() {
                                     <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor total venta</span>
                                     <p className="mt-2 text-base font-semibold text-gray-800 dark:text-white/90">
                                         {formatearMoneda(totalVenta)}
+                                    </p>
+                                </div>
+                                <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900/40">
+                                    <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Perdida o ganancia</span>
+                                    <p className="mt-2 text-base font-semibold text-gray-800 dark:text-white/90">
+                                        {formatearMoneda(perdidaGanancia)} {perdidaGanancia >= 0 ? "ganancia" : "pérdida"}
                                     </p>
                                 </div>
                             </div>

@@ -27,6 +27,8 @@ def create_perdida(
         return {"message": "Pérdida registrada correctamente"}
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:                                        # ← agrega este
+        raise HTTPException(status_code=400, detail=str(e))
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     

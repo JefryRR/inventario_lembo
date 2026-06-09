@@ -30,7 +30,7 @@ type invPerdResponse = {
 };
 
 
-export default function Users() {
+export default function InvPerd() {
     const [invPerd, setInvPerd] = useState<invPerdRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

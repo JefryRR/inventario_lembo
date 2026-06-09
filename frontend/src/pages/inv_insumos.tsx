@@ -208,9 +208,6 @@ export default function InvInsumo() {
                                     precio unitario
                                 </th>
                                 <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    precio total
-                                </th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Estado
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -264,9 +261,6 @@ export default function InvInsumo() {
                                         </td>
                                         <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_insumo.precio_unitario}</div>
-                                        </td>
-                                        <td className="px-5 py-4 text-left text-xs text-gray-600 dark:text-gray-300">
-                                            <div>$ {inv_insumo.precio_unitario * inv_insumo.cantidad}</div>
                                         </td>
                                         <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             <div >{inv_insumo.nivel_alerta}</div>

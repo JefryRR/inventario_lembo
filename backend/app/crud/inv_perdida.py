@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
@@ -34,6 +36,27 @@ def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optiona
 
             if float(disponible["cantidad"] or 0) <= 0:
                 raise ValueError("No se puede descontar la pérdida porque el inventario de producción está en 0")
+            
+            # Validación de vencimiento según origen
+            if perdida.origen == "produccion":
+                vencimiento = db.execute(text("""
+                    SELECT fecha_vencimiento
+                    FROM inv_produccion
+                    WHERE id_inventario = :inv_prod_id
+                """), {"inv_prod_id": perdida.inv_prod_id}).scalar()
+
+                if vencimiento and vencimiento.date() < date.today():
+                    raise ValueError("No se puede registrar la pérdida porque el inventario ya está vencido.")
+
+            if perdida.origen == "insumo":
+                vencimiento = db.execute(text("""
+                    SELECT fecha_vencimiento
+                    FROM inv_insumos
+                    WHERE id_insumo = :inv_prod_id
+                """), {"inv_prod_id": perdida.inv_prod_id}).scalar()
+
+                if vencimiento and vencimiento.date() < date.today():
+                    raise ValueError("No se puede registrar la pérdida porque el insumo ya está vencido.")
             
         if perdida.origen == "insumo":
             insumo_disp = db.execute(text("""
@@ -121,6 +144,7 @@ def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener pérdida por id: {e}")
         raise Exception("Error de base de datos al obtener la pérdida")
+    
 def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
     try:
     # Solo los campos enviados por el usuario

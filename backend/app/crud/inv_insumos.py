@@ -208,10 +208,25 @@ def get_reporte_encabezado_insumo(db: Session, id_insumo: int):
 
                 -- Cantidad inicial: stock actual + todo lo que se perdió
                 ii.cantidad 
-                + COALESCE(pe.total_perdido, 0)     AS cantidad_inicial,
+                + COALESCE(pe.total_perdido, 0)
+                AS cantidad_inicial,
+                
+                CASE 
+                    WHEN ii.fecha_vencimiento IS NOT NULL 
+                         AND ii.fecha_vencimiento < CURRENT_DATE 
+                    THEN 0
+                    ELSE ii.cantidad
+                END AS stock_actual,
 
-                ii.cantidad                          AS stock_actual,
-                COALESCE(pe.total_perdido, 0)        AS total_perdido
+                -- Total perdido: pérdidas registradas + stock restante si venció
+                COALESCE(pe.total_perdido, 0) + 
+                CASE 
+                    WHEN ii.fecha_vencimiento IS NOT NULL 
+                         AND ii.fecha_vencimiento < CURRENT_DATE 
+                         AND pe.total_perdido IS NULL
+                    THEN ii.cantidad
+                    ELSE 0
+                END AS total_perdido
 
             FROM inv_insumos ii
             LEFT JOIN unidades_medida um ON ii.unid_medida_id = um.id_unidad

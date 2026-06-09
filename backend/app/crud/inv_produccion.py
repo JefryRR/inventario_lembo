@@ -117,7 +117,7 @@ def registrar_vencidos_como_perdidas(db: Session):
                 "unid_medida_id": row["unid_medida_id"],
                 "motivo": "vencimiento",
                 "fecha_reporte": date.today(),
-                "user_id": "None",
+                "user_id": None,
                 "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}",
                 "cant_convertida": row["cantidad"]  # Se asume que la cantidad ya está en la unidad base o que el trigger lo ajustará
             })
@@ -132,31 +132,41 @@ def registrar_vencidos_como_perdidas(db: Session):
 def get_reporte_encabezado(db: Session, inv_prod_id: int):
     try:
         query = text("""
-            SELECT 
-                pr.id_inventario,
-                pr.nombre_producto,
-                pr.fecha_ingreso,
-                pr.fecha_vencimiento,
-                pr.valor_unitario,
-                um.simbolo,
-                l_g.nombre_lote,
-
-                -- Cantidad inicial: stock actual + todo lo que salió
-                pr.cantidad 
-                + COALESCE(ventas_netas.total_vendido_neto, 0)
-                + COALESCE(pe.total_perdido, 0)            AS cantidad_inicial,
-
-                pr.cantidad                                AS stock_actual,
-
-                -- Vendido neto = lo vendido MENOS lo devuelto
-                COALESCE(ventas_netas.total_vendido_neto, 0) AS total_vendido,
-                COALESCE(pe.total_perdido, 0)              AS total_perdido
-
+           SELECT 
+            pr.id_inventario,
+            pr.nombre_producto,
+            pr.fecha_ingreso,
+            pr.fecha_vencimiento,
+            pr.valor_unitario,
+            um.simbolo,
+            l_g.nombre_lote,
+    
+            -- Cantidad inicial: reconstruida sumando todo lo que salió
+            CASE
+                WHEN pr.fecha_vencimiento IS NOT NULL
+                     AND pr.fecha_vencimiento < CURRENT_DATE
+                THEN COALESCE(ventas_netas.total_vendido_neto, 0)
+                     + COALESCE(pe.total_perdido, 0)
+                ELSE pr.cantidad
+                    + COALESCE(ventas_netas.total_vendido_neto, 0)
+                    + COALESCE(pe.total_perdido, 0)
+            END AS cantidad_inicial,
+    
+            -- Stock actual: pr.cantidad ya tiene descontado ventas y pérdidas
+            CASE 
+                WHEN pr.fecha_vencimiento IS NOT NULL 
+                     AND pr.fecha_vencimiento < CURRENT_DATE 
+                THEN 0
+                ELSE pr.cantidad
+            END AS stock_actual,
+    
+            COALESCE(ventas_netas.total_vendido_neto, 0) AS total_vendido,
+            COALESCE(pe.total_perdido, 0)                AS total_perdido
+    
             FROM inv_produccion pr
             LEFT JOIN lote_produccion l ON pr.lote_id = l.id_lote
             LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
-
-            -- Vendido neto: suma cant_convertida actual (ya descontada por el trigger)
+        
             LEFT JOIN (
                 SELECT 
                     inv_prod_id, 
@@ -165,8 +175,7 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
                 WHERE estado_venta = 'Vendido'
                 GROUP BY inv_prod_id
             ) ventas_netas ON ventas_netas.inv_prod_id = pr.id_inventario
-
-            -- Pérdidas
+        
             LEFT JOIN (
                 SELECT inv_prod_id, SUM(cant_convertida) AS total_perdido
                 FROM inv_perdidas
@@ -174,14 +183,14 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
             ) pe ON pe.inv_prod_id = pr.id_inventario
                      
             LEFT JOIN unidades_medida um ON pr.unid_medida_id = um.id_unidad
-
-            WHERE pr.id_inventario = :inv_prod_id    
+        
+            WHERE pr.id_inventario = :inv_prod_id   
         """)
         return db.execute(query, {"inv_prod_id": inv_prod_id}).mappings().first()
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener encabezado del reporte: {e}")
         raise Exception("Error al obtener encabezado del reporte")
-
+    
 def get_reporte_movimientos(db: Session, inv_prod_id: int):
     try:
         query = text("""
