@@ -19,6 +19,7 @@ type DetalleFormState = {
 type ProductoOption = {
     id_inventario: number;
     nombre_producto: string;
+    fecha_vencimiento: string;
     nombre_lote?: string;
     cantidad?: number;
     simbolo?: string;
@@ -103,8 +104,14 @@ export default function DetalleCreate() {
                         ? medidasData
                         : [];
 
-                setProductos(productoList);
-                setVentas(ventaList);
+                const fecha_actual = new Date().toISOString().slice(0, 10);
+                const productosVigentes = productoList.filter((p: ProductoOption) =>
+                    p.fecha_vencimiento ? p.fecha_vencimiento.slice(0, 10) > fecha_actual : true
+                );
+                setProductos(productosVigentes);
+                const hoy = new Date().toISOString().slice(0, 10);
+                const ventasHoy = ventaList.filter((v: VentaOption) => v.fecha_venta?.slice(0, 10) === hoy);
+                setVentas(ventasHoy);
                 setMedidas(medidaList);
                 // Preseleccionar venta desde query string si existe
                 try {
@@ -354,7 +361,7 @@ export default function DetalleCreate() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {loading ? "Guardando..." : "Guardar detalle"}
                         </button>

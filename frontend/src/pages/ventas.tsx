@@ -74,7 +74,10 @@ export default function VentasPage() {
                 if (ventaIdFromState) {
                     setSelectedVenta(ventaIdFromState);
                 } else if (ventasList.length > 0 && selectedVenta === null) {
-                    setSelectedVenta(ventasList[0].id_venta);
+                    const hoy = new Date().toISOString().slice(0, 10);
+                    const hoyList = ventasList.filter((v: VentaRow) => v.fecha_venta?.slice(0, 10) === hoy);
+                    const ultima = hoyList[hoyList.length - 1];
+                    setSelectedVenta(ultima ? ultima.id_venta : ventasList[0].id_venta);
                 }
 
                 setSelectedDetalleId(detalleIdFromState);
@@ -109,6 +112,11 @@ export default function VentasPage() {
                 .includes(term)
         );
     }, [ventas, search]);
+
+    const ventasHoy = useMemo(() => {
+        const hoy = new Date().toISOString().slice(0, 10);
+        return ventas.filter((v) => v.fecha_venta?.slice(0, 10) === hoy);
+    }, [ventas]);
 
     // Sincroniza la venta seleccionada cuando el término de búsqueda cambia
     useEffect(() => {
@@ -151,20 +159,20 @@ export default function VentasPage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <Link
                             to="/ventas/create"
-                            className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                            className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                             Nueva venta
                         </Link>
                         {selectedVenta && (
                             <>
                                 <Link
                                     to={`/ventas/edit/${selectedVenta}`}
-                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700"
+                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-[#71277A] px-4 text-sm font-medium text-white transition hover:bg-[#71277A]/90"
                                 >
                                     Editar venta
                                 </Link>
                                 <Link
                                     to={`/detalle-ventas/create`}
-                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500/80 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-[#f8c315] px-4 text-sm font-medium text-white transition hover:bg-[#f1bb0a]"
                                 >
                                     Nuevo detalle
                                 </Link>
@@ -178,7 +186,7 @@ export default function VentasPage() {
                             <option value={0} disabled>
                                 {loading ? "Cargando ventas..." : "Selecciona una venta"}
                             </option>
-                            {ventas.map((v) => (
+                            {ventasHoy.map((v) => (
                                 <option key={v.id_venta} value={v.id_venta}>
                                     {v.nombre_comprador} {v.fecha_venta ? ` - ${new Date(v.fecha_venta).toLocaleDateString()}` : ""}
                                 </option>
@@ -206,28 +214,28 @@ export default function VentasPage() {
                         <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Comprador</label>
-                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-black">
                                     {selectedVentaData.nombre_comprador}
                                 </div>
                             </div>
 
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Identificación</label>
-                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-black">
                                     {selectedVentaData.id_comprador ?? "-"}
                                 </div>
                             </div>
 
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de venta</label>
-                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-black">
                                     {selectedVentaData.fecha_venta ? new Date(selectedVentaData.fecha_venta).toLocaleString() : "-"}
                                 </div>
                             </div>
 
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Total</label>
-                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90">
+                                <div className="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-black">
                                     {selectedVentaData.total_venta ? `$ ${selectedVentaData.total_venta}` : "-"}
                                 </div>
                             </div>
@@ -281,7 +289,7 @@ export default function VentasPage() {
                                         <td className="px-3 py-4 text-center">
                                             <Link
                                                 to={`/detalle-ventas/edit/${det.id_detalle_venta}`}
-                                                className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+                                                className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
                                             >
                                                 Editar
                                             </Link>

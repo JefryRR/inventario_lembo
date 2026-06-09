@@ -112,7 +112,7 @@ export default function Mortalidad() {
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 						<Link
 							to="/mortalidad/create"
-							className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
 						>
 							Nuevo registro
 						</Link>
@@ -120,7 +120,7 @@ export default function Mortalidad() {
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							placeholder="Buscar..."
-							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-72"
+							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800 sm:w-72"
 						/>
 					</div>
 				</div>
@@ -194,7 +194,7 @@ export default function Mortalidad() {
 										<td className="px-5 py-4">
 											<Link
 												to={`/mortalidad/edit/${mortalidad.id_mortalidad}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
 											>
 												Editar
 											</Link>

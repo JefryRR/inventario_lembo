@@ -122,7 +122,7 @@ export default function Alimentos() {
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 						<Link
 							to="/alimentos/create"
-							className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
 						>
 							Nuevo alimento
 						</Link>
@@ -197,7 +197,7 @@ export default function Alimentos() {
 										<td className="px-5 py-4">
 											<Link
 												to={`/alimentos/edit/${alimento.id_alimento}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
 											>
 												Editar
 											</Link>

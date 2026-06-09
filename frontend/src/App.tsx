@@ -66,6 +66,8 @@ import AlimentosCreate from "./components/alimentos/alimentoCreate";
 import AlimentosEdit from "./components/alimentos/alimentosEdit";
 import Invinsumo from "./pages/inv_insumos";
 import InformeInsumo from "./components/inv_insumos/informes_insumo";
+import ResetPassword from "./pages/resetPassword";
+import ForgotPassword from "./pages/forgotPassword";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -78,6 +80,8 @@ export default function App() {
         <Routes>
           {/* Public/Auth Layout */}
           <Route path="/" element={<SignIn />} />
+          <Route path="/forgotPassword" element={<ForgotPassword />} />
+          <Route path="/resetPassword" element={<ResetPassword />} />
 
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>

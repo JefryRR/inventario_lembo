@@ -186,14 +186,14 @@ export default function Inv_prod() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <Link
                             to="/invProd/create"
-                            className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                            className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                             Nuevo inventario
                         </Link>
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar inventario..."
-                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-20"
+                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800 sm:w-20"
                         />
                     </div>
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
@@ -337,7 +337,7 @@ export default function Inv_prod() {
                                             <div className="flex flex-col items-center gap-2">
                                             <Link
                                                 to={`/invProd/edit/${inv_prod.id_inventario}`}
-                                                className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                                                className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                                                 Editar
                                             </Link>
                                             <Link

@@ -42,7 +42,9 @@ export default function RecentOrders() {
           : [];
 
         // Toma solo las últimas 5
-        const ultimas5 = lista.slice(-5).reverse();
+        const ultimas5 = lista
+          .sort((a: DetalleVenta, b: DetalleVenta) => b.id_detalle_venta - a.id_detalle_venta)
+          .slice(0, 5);
         setVentas(ultimas5);
       } catch (err: any) {
         if (!mounted) return;

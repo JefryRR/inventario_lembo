@@ -10,10 +10,10 @@ a bases de datos relacionales en aplicaciones FastAPI.
 from typing import Generator
 import logging
 
-from sqlalchemy import create_engine, text, MetaData
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.exc import SQLAlchemyError, OperationalError, DisconnectionError
-from sqlalchemy.pool import QueuePool
+from sqlalchemy import create_engine, text, MetaData #type: ignore
+from sqlalchemy.orm import sessionmaker, declarative_base #type: ignore
+from sqlalchemy.exc import SQLAlchemyError, OperationalError, DisconnectionError #type: ignore
+from sqlalchemy.pool import QueuePool #type: ignore
 
 from .config import settings
 

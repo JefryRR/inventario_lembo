@@ -90,7 +90,7 @@ export default function Categorias() {
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                             <Link
                                 to="/categorias/crear"
-                                className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                                className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                                 Nueva categoría
                             </Link>
                             <input
@@ -147,7 +147,7 @@ export default function Categorias() {
                                             <td className="px-5 py-4">
                                                 <Link
                                                     to={`/categorias/edit/${categorias.id_categoria}`}
-                                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                                                     Editar
                                                 </Link>
                                             </td>

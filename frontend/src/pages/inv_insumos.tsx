@@ -169,7 +169,7 @@ export default function InvInsumo() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <Link
                             to="/invInsumo/create"
-                            className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                            className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                             Nuevo insumo
                         </Link>
                         <input
@@ -269,7 +269,7 @@ export default function InvInsumo() {
                                             <div className="flex flex-col items-center gap-2">
                                                 <Link
                                                     to={`/invInsumo/edit/${inv_insumo.id_insumo}`}
-                                                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+                                                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                                                     Editar
                                                 </Link>
                                                 <Link

@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
@@ -102,7 +100,7 @@ export default function ModulosCreate() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {loading ? "Guardando..." : "Guardar módulo"}
                         </button>
