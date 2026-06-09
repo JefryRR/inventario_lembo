@@ -12,18 +12,25 @@ type ProduccionAlert = {
   fecha_vencimiento: string;
 };
 
+type InsumoAlert = {
+  id_insumo: number;
+  nombre_producto: string;
+  fecha_vencimiento: string;
+};
+
 type AlertCard = {
   id: number;
   title: string;
   subtitle: string;
   daysLeft: number;
   dateLabel: string;
+  origen: "produccion" | "insumo";
 };
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifying, setNotifying] = useState(false);
-  const [alerts, setAlerts] = useState<ProduccionAlert[]>([]);
+  const [notifying, setNotifying] = useState(false);// El estado acepta ambos tipos
+  const [alerts, setAlerts] = useState<((ProduccionAlert & { origen: "produccion" }) | (InsumoAlert & { origen: "insumo" }))[]>([]);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
   const [alertsError, setAlertsError] = useState<string | null>(null);
 
@@ -38,10 +45,19 @@ export default function NotificationDropdown() {
         const data = await apiFetch("inv_produccion/all/produccion");
         if (!mounted) return;
 
+        const dataInsumo = await apiFetch("inv_insumos/all_insumos");
+        if (!mounted) return;
+
         const list = Array.isArray(data)
           ? data
           : Array.isArray(data?.produccion)
             ? data.produccion
+            : [];
+
+        const insumosList = Array.isArray(dataInsumo)
+          ? dataInsumo
+          : Array.isArray(dataInsumo?.insumos)
+            ? dataInsumo.insumos
             : [];
 
         const today = new Date();
@@ -50,20 +66,31 @@ export default function NotificationDropdown() {
         const limit = new Date(today);
         limit.setDate(limit.getDate() + 30);
 
-        const filteredAlerts = list
-          .filter((item: ProduccionAlert) => {
+        const filtrarPorVencimiento = (items: any[]) =>
+          items.filter((item) => {
             const expiryDate = new Date(item.fecha_vencimiento);
             if (Number.isNaN(expiryDate.getTime())) return false;
-
             expiryDate.setHours(0, 0, 0, 0);
             return expiryDate >= today && expiryDate <= limit;
-          })
-          .sort((a: ProduccionAlert, b: ProduccionAlert) => {
-            return new Date(a.fecha_vencimiento).getTime() - new Date(b.fecha_vencimiento).getTime();
           });
+
+        const produccionFiltrada = filtrarPorVencimiento(list).map((item: ProduccionAlert) => ({
+          ...item,
+          origen: "produccion" as const,
+        }));
+
+        const insumosFiltrados = filtrarPorVencimiento(insumosList).map((item: InsumoAlert) => ({
+          ...item,
+          origen: "insumo" as const,
+        }));
+
+        const filteredAlerts = [...produccionFiltrada, ...insumosFiltrados].sort(
+          (a, b) => new Date(a.fecha_vencimiento).getTime() - new Date(b.fecha_vencimiento).getTime()
+        );
 
         setAlerts(filteredAlerts);
         setNotifying(filteredAlerts.length > 0);
+
       } catch (error: any) {
         if (!mounted) return;
         setAlertsError(error?.detail || error?.message || "No se pudieron cargar las alertas");
@@ -92,15 +119,18 @@ export default function NotificationDropdown() {
     );
 
     return {
-      id: item.id_inventario,
+      id: item.origen === "produccion" ? item.id_inventario : item.id_insumo,
       title: item.nombre_producto,
-      subtitle: item.nombre_lote || "Inventario de producción",
+      subtitle: item.origen === "produccion"
+        ? (item as ProduccionAlert).nombre_lote || "Inventario de producción"
+        : "Inventario de insumos",         // 👈 etiqueta para insumos
       daysLeft,
       dateLabel: expiryDate.toLocaleDateString("es-CO", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       }),
+      origen: item.origen,
     };
   });
 
@@ -116,9 +146,8 @@ export default function NotificationDropdown() {
         onClick={handleClick}
       >
         <span
-          className={`absolute right-0 top-0.5 z-10 h-2 w-2 rounded-full bg-orange-400 ${
-            notifying ? "flex" : "hidden"
-          }`}
+          className={`absolute right-0 top-0.5 z-10 h-2 w-2 rounded-full bg-orange-400 ${notifying ? "flex" : "hidden"
+            }`}
         >
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
         </span>
@@ -183,7 +212,7 @@ export default function NotificationDropdown() {
                 <DropdownItem
                   onItemClick={() => setIsOpen(false)}
                   className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
-                  to="/invProd"
+                  to={item.origen === "produccion" ? "/invProd" : "/invInsumo"}
                 >
                   <span className="relative block h-10 w-full max-w-10 rounded-full z-1">
                     <img
@@ -217,12 +246,20 @@ export default function NotificationDropdown() {
           )}
         </ul>
 
-        <Link
-          to="/invProd"
-          className="mt-3 block rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
-        >
-          Ver inventario de producción
-        </Link>
+        <div className="mt-3 flex gap-2">
+          <Link
+            to="/invProd"
+            className="flex-1 block rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+          >
+            Producción
+          </Link>
+          <Link
+            to="/invInsumo"
+            className="flex-1 block rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+          >
+            Insumos
+          </Link>
+        </div>
       </Dropdown>
     </div>
   );
