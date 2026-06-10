@@ -97,6 +97,7 @@ def registrar_vencidos_como_perdidas(db: Session):
             AND pr.id_inventario NOT IN (
                 SELECT inv_prod_id FROM inv_perdidas
                 WHERE motivo = 'vencimiento'
+                AND origen = 'produccion'
             )
         """)
         vencidos = db.execute(query).mappings().all()
@@ -104,16 +105,19 @@ def registrar_vencidos_como_perdidas(db: Session):
         for row in vencidos:
             insert = text("""
                 INSERT INTO inv_perdidas (
-                    inv_prod_id, cantidad, motivo,
-                    fecha_reporte, user_id, cant_convertida, unid_medida_id, observaciones
+                    inv_prod_id, cantidad, origen, motivo,
+                    fecha_reporte, user_id, cant_convertida, 
+                    unid_medida_id, observaciones
                 ) VALUES (
-                    :inv_prod_id, :cantidad, :motivo,
-                    :fecha_reporte, :user_id, :cant_convertida, :unid_medida_id, :observaciones
+                    :inv_prod_id, :cantidad, :origen, :motivo,
+                    :fecha_reporte, :user_id, :cant_convertida,
+                    :unid_medida_id, :observaciones
                 )
             """)
             db.execute(insert, {
                 "inv_prod_id": row["id_inventario"],
                 "cantidad": row["cantidad"],
+                "origen": "produccion",
                 "unid_medida_id": row["unid_medida_id"],
                 "motivo": "vencimiento",
                 "fecha_reporte": date.today(),
@@ -288,7 +292,7 @@ def get_produccion_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
         return [dict(row) for row in result]
 
     except SQLAlchemyError as e:
-        raise Exception(f"Error al consultar los aislamientos por rango de fechas: {e}")
+        raise Exception(f"Error al consultar los productos por rango de fechas: {e}")
 
 def all_produccion(db: Session):
     registrar_vencidos_como_perdidas(db)

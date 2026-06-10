@@ -42,6 +42,7 @@ class PerdidaOut(PerdidaBase):
     valor_unitario: Optional[float] = None
     nombre_lote: Optional[str] = None
     simbolo: Optional[str] = None
+    
 
 class PaginatedPerdidas(BaseModel):
     page: int

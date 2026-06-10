@@ -86,7 +86,6 @@ def get_reporte_insumo(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.put("/update_by_id/{id_insumo}")
 def update_insumo(
     id_insumo: int,
