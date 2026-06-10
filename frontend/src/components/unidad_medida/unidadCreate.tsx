@@ -8,13 +8,13 @@ import { apiFetch } from "@/services/api";
 type UnidadFormState = {
     unidad: string;
     simbolo: string;
-    conversion: number;
+    conversion: string | number;
 };
 
-const initialState: UnidadFormState = {
+const initialState = {
     unidad: "",
     simbolo: "",
-    conversion: 1,
+    conversion: "" as string | number,
 };
 
 export default function UnidadesCreate() {
@@ -29,12 +29,19 @@ export default function UnidadesCreate() {
         setLoading(true);
         setError(null);
         setSuccess(null);
+
+        const conversionValue = parseFloat(String(form.conversion));
+
+        if (isNaN(conversionValue) || conversionValue <= 0) {
+            setError("El factor de conversión debe ser un número mayor a 0");
+            return;
+        }
     
         try {
             const payload = {
                 unidad: form.unidad,
                 simbolo: form.simbolo,
-                conversion: form.conversion,
+                conversion: conversionValue,
             };
 
             const data = await apiFetch("unid-medida/crear", {
@@ -117,9 +124,9 @@ export default function UnidadesCreate() {
                                 type="number"
                                 id="conversion"
                                 value={form.conversion}
-                                onChange={(e) => setForm({ ...form, conversion: parseFloat(e.target.value) || 1 })}
+                                onChange={(e) => setForm({ ...form, conversion: e.target.value })}
                                 className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
-                                placeholder="Factor de conversión"
+                                placeholder="0"
                             />
                         </div>
                     </div>

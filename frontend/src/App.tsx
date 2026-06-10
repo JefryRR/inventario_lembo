@@ -68,6 +68,7 @@ import Invinsumo from "./pages/inv_insumos";
 import InformeInsumo from "./components/inv_insumos/informes_insumo";
 import ResetPassword from "./pages/resetPassword";
 import ForgotPassword from "./pages/forgotPassword";
+import HistorialVentas from "./pages/historial_ventas";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -126,6 +127,7 @@ export default function App() {
             <Route path="/lotesGranja/create" element={<LotesGranjaCreate />} />
             <Route path="/lotesGranja/edit/:id_lote_g" element={<LotesGranjaEdit />} />
             <Route path="/ventas" element={<Ventas />} />
+            <Route path="/ventas/historial" element={<HistorialVentas />} />
             <Route path="/unidades" element={<Unidades />} />
             <Route path="/unidades/crear" element={<UnidadCreate />} />
             <Route path="/unidades/edit/:id" element={<UnidadEdit />} />

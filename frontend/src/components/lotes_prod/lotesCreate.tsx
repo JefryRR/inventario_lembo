@@ -15,7 +15,7 @@ type LoteFormState = {
   nombre_lote: string;
   fecha_siembra: string;
   fecha_cosecha: string;
-  cantidad_inicial: number;
+  cantidad_inicial: string | number;
   especie_id: number;
   categoria_id: number;
   estado_lote: LoteEstado;
@@ -47,7 +47,7 @@ const initialState: LoteFormState = {
   nombre_lote: "",
   fecha_siembra: "",
   fecha_cosecha: "",
-  cantidad_inicial: 0,
+  cantidad_inicial: "" as string | number,
   especie_id: 0,
   categoria_id: 0,
   estado_lote: "activo",
@@ -85,6 +85,7 @@ export default function LotesCreate() {
       setLoadingCategorias(true);
       setLoadingLotes(true);
       setLoadingUsers(true);
+
       try {
         const [especiesData, categoriasData, lotesData, usersData] = await Promise.all([
           apiFetch("especies/all-especies"),
@@ -194,13 +195,20 @@ export default function LotesCreate() {
       return;
     }
 
+    const cantidadValue = parseFloat(String(form.cantidad_inicial));
+
+    if (isNaN(cantidadValue) || cantidadValue <= 0) {
+        setError("La cantidad inicial debe ser un número mayor a 0");
+        return;
+    }
+
     try {
       const payload = {
         lote_granj_id: Number(form.lote_granj_id),
         nombre_lote: form.nombre_lote.trim(),
         fecha_siembra: form.fecha_siembra,
         fecha_cosecha: form.fecha_cosecha,
-        cantidad_inicial: Number(form.cantidad_inicial),
+        cantidad_inicial: cantidadValue,
         especie_id: Number(form.especie_id),
         categoria_id: Number(form.categoria_id),
         estado_lote: form.estado_lote,
@@ -271,9 +279,9 @@ export default function LotesCreate() {
               <input
                 type="number"
                 value={form.cantidad_inicial}
-                onChange={handleChange("cantidad_inicial")}
-                min={1}
+                onChange={(e) => setForm({ ...form, cantidad_inicial: e.target.value })}
                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                placeholder="0"
                 required
               />
             </div>

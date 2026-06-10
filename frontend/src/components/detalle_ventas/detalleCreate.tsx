@@ -8,7 +8,7 @@ import { apiFetch } from "@/services/api";
 type EstadoVenta = "Vendido" | "Separado" | "Anulado";
 
 type DetalleFormState = {
-    cantidad: number;
+    cantidad: string | number;
     unid_medida_id: number;
     precio_venta: string;
     inv_prod_id: number;
@@ -43,7 +43,7 @@ const ESTADO_OPTIONS: Array<{ value: EstadoVenta; label: string }> = [
 ];
 
 const initialState: DetalleFormState = {
-    cantidad: 0,
+    cantidad: "" as string | number,
     unid_medida_id: 0,
     precio_venta: "",
     inv_prod_id: 0,
@@ -167,8 +167,10 @@ export default function DetalleCreate() {
         setError(null);
         setSuccess(null);
 
-        if (form.cantidad <= 0) {
-            setError("La cantidad debe ser mayor a cero");
+        const cantidadValue = parseFloat(String(form.cantidad));
+
+        if (isNaN(cantidadValue) || cantidadValue <= 0) {
+            setError("La cantidad debe ser un número mayor a 0");
             setLoading(false);
             return;
         }
@@ -181,7 +183,7 @@ export default function DetalleCreate() {
 
         try {
             const payload = {
-                cantidad: Number(form.cantidad),
+                cantidad: cantidadValue,
                 unid_medida_id: Number(form.unid_medida_id),
                 precio_venta: Number(form.precio_venta),
                 inv_prod_id: Number(form.inv_prod_id),
