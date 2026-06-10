@@ -36,6 +36,8 @@ class PerdidaUpdate(BaseModel):
 
 class PerdidaOut(PerdidaBase):
     id_perdida: int
+    origen: Optional[TipoOrigen] = None
+    motivo: Optional[TipoPerdida] = None
     user_id: Optional[int]
     nombre_user: Optional[str]
     nombre_producto: Optional[str]

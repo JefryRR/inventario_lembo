@@ -28,7 +28,7 @@ def get_venta_by_id(db: Session, id: int):
                      FROM ventas v
                      LEFT JOIN users u ON v.user_id = u.id_user
                      LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
-                        AND d.estado_venta NOT IN ('Cancelado', 'Devuelto')
+                        AND d.estado_venta NOT IN ('Cancelado', 'Anulado')
                      WHERE v.id_venta = :id
                      GROUP BY v.id_venta, v.nombre_comprador, v.id_comprador, 
                      v.fecha_venta, v.user_id, u.nombre_user
@@ -46,7 +46,7 @@ def all_ventas(db: Session):
                      FROM ventas v
                      LEFT JOIN users u ON v.user_id = u.id_user
                      LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
-                        AND d.estado_venta NOT IN ('Cancelado', 'Devuelto')
+                        AND d.estado_venta NOT IN ('Cancelado', 'Anulado')
                      GROUP BY v.id_venta, v.nombre_comprador, v.id_comprador, 
                      v.fecha_venta, v.user_id, u.nombre_user
                     """)
@@ -92,6 +92,32 @@ def ventas_by_user(db: Session, user_id: int):
         logger.error(f"Error al obtener ventas por usuario: {e}")
         raise Exception("Error de base de datos al obtener ventas por usuario")
     
+def get_ventas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
+    """
+    Obtiene las ventas cuya fecha de inicio o fin esté dentro de un rango de fechas.
+    Ignora las horas (usa DATE(fecha_hora_init) y DATE(fecha_hora_fin)).
+    """
+    try:
+        query = text("""
+            SELECT v.id_venta, v.nombre_comprador, v.id_comprador, v.fecha_venta, v.user_id, u.nombre_user, 
+            COALESCE(SUM(d.precio_venta * d.cantidad), 0) AS total_venta
+            FROM ventas v
+            LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
+            LEFT JOIN users u ON v.user_id = u.id_user
+            WHERE DATE(v.fecha_venta) BETWEEN :fecha_inicio AND :fecha_fin
+            GROUP BY v.id_venta, v.nombre_comprador, v.id_comprador, v.fecha_venta, v.user_id, u.nombre_user
+            ORDER BY v.fecha_venta DESC
+        """)
+        result = db.execute(query, {
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin
+        }).mappings().all()
+
+        return [dict(row) for row in result]
+
+    except SQLAlchemyError as e:
+        raise Exception(f"Error al consultar las ventas por rango de fechas: {e}")
+                     
 def ventas_paginated(db: Session, skip: int = 0, limit: int = 10):
     """
     Obtiene ventas con paginación.
@@ -114,7 +140,7 @@ def ventas_paginated(db: Session, skip: int = 0, limit: int = 10):
                         FROM ventas AS v
                         LEFT JOIN users AS u ON v.user_id = u.id_user
                         LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
-                            AND d.estado_venta NOT IN ('Cancelado', 'Devuelto')
+                            AND d.estado_venta NOT IN ('Cancelado', 'Anulado')
                         GROUP BY v.id_venta, v.nombre_comprador, v.id_comprador, v.fecha_venta, v.user_id, u.nombre_user
                         LIMIT :limit OFFSET :skip
                     """)
