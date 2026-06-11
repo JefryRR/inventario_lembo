@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session   # type: ignore
+from sqlalchemy import text  # type: ignore
+from sqlalchemy.exc import SQLAlchemyError  # type: ignore
 from typing import Optional
 import logging
 from app.schemas.tratamiento import TratamientoCreate,TratamientoUpdate
@@ -79,6 +79,7 @@ def get_tratamiento_by_id(db: Session, id: int):
                      t_p.cant_convertida, t_p.user_id,
                      in_ins.nombre_producto, l_g.nombre_lote, u_m.simbolo, u.nombre_user
                      FROM tratamientos AS t_p
+                     LEFT JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
@@ -151,10 +152,10 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
         count_query = text("""
             SELECT COUNT(t_p.id_tratamiento) AS total
             FROM tratamientos AS t_p
-            INNER JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
+            LEFT JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
             LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
             LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
-            LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
+            LEFT JOIN lotes_granja AS l_g ON t_p.lote_id = l_g.id_lote_g
             LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
             LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
             LEFT JOIN users AS u ON t_p.user_id = u.id_user
@@ -175,6 +176,7 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
                         LEFT JOIN lotes_granja AS l_g ON t_p.lote_id = l_g.id_lote_g
                         LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
+                        LEFT JOIN lotes_granja AS l_g ON t_p.lote_id = l_g.id_lote_g
                         LEFT JOIN users AS u ON t_p.user_id = u.id_user
                         ORDER BY t_p.id_tratamiento DESC
                         LIMIT :limit OFFSET :skip

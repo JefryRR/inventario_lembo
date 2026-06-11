@@ -20,7 +20,7 @@ type TratamientoFormState = {
 };
 
 type LoteOption = {
-    id_lote: number;
+    id_lote_g: number;
     nombre_lote: string;
 };
 
@@ -32,11 +32,6 @@ type MedicinaOption = {
 type MedidaOption = {
     id_unidad: number;
     simbolo: string;
-};
-
-type UserOption = {
-    id_user: number;
-    nombre_user: string;
 };
 
 const initialState: TratamientoFormState = {
@@ -62,11 +57,9 @@ export default function TratamientoCreate() {
   const [loadingLotes, setLoadingLotes] = useState(false);
   const [loadingMedicinas, setLoadingMedicinas] = useState(false);
   const [loadingMedidas, setLoadingMedidas] = useState(false);
-  const [loadingUsers, setLoadingUsers] = useState(false);
   const [lotes, setLotes] = useState<LoteOption[]>([]);
   const [medicinas, setMedicinas] = useState<MedicinaOption[]>([]);
   const [medidas, setMedidas] = useState<MedidaOption[]>([]);
-  const [users, setUsers] = useState<UserOption[]>([]);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,14 +70,12 @@ export default function TratamientoCreate() {
       setLoadingLotes(true);
       setLoadingMedicinas(true);
       setLoadingMedidas(true);
-      setLoadingUsers(true);
 
       try {
-        const [lotesData, medicinasData, medidasData, usersData] = await Promise.all([
+        const [lotesData, medicinasData, medidasData] = await Promise.all([
           apiFetch("lotes/all-lotes_prod"),
           apiFetch("inv_insumos/all_insumos"),
           apiFetch("unid-medida/all-unid_medidas"),
-          apiFetch("users/all-users-except-admins"),
         ]);
 
         if (!mounted) return;
@@ -107,25 +98,19 @@ export default function TratamientoCreate() {
             ? medidasData
             : [];
 
-        const userList = Array.isArray(usersData?.users)
-          ? usersData.users
-          : Array.isArray(usersData)
-            ? usersData
-            : [];
-
         setLotes(LoteList);
         setMedicinas(medicinaList);
         setMedidas(medidaList);
-        setUsers(userList);
+
       } catch (requestError: any) {
         if (!mounted) return;
         setError(requestError?.detail || requestError?.message || "No se pudieron cargar los lotes");
+        
       } finally {
         if (mounted) {
           setLoadingLotes(false);
           setLoadingMedicinas(false);
           setLoadingMedidas(false);
-          setLoadingUsers(false);
         }
       }
     };
@@ -142,7 +127,7 @@ export default function TratamientoCreate() {
         (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
             const value = event.target.value;
 
-            if (field === "cantidad" || field === "medicina_id" || field === "unid_medida_id" || field === "lote_id" || field === "user_id") {
+            if (field === "cantidad" || field === "medicina_id" || field === "unid_medida_id" || field === "lote_id") {
                 setForm((current) => ({ ...current, [field]: Number(value) }));
                 return;
             }
@@ -179,8 +164,6 @@ export default function TratamientoCreate() {
         medicina_id: Number(form.medicina_id),
         unid_medida_id: Number(form.unid_medida_id),
         observacion: form.observacion ? form.observacion.trim() : null,
-        user_id: Number(form.user_id),
-        nombre_user: form.nombre_user.trim(),
         cantidad_convertida: Number(form.cant_convertida),
       };
 
@@ -227,7 +210,7 @@ export default function TratamientoCreate() {
               <select
                 value={form.lote_id}
                 onChange={handleChange("lote_id")}
-                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                 required
                 disabled={loadingLotes || lotes.length === 0}
               >
@@ -235,7 +218,7 @@ export default function TratamientoCreate() {
                   {loadingLotes ? "Cargando lotes..." : "Selecciona un lote"}
                 </option>
                 {lotes.map((lote) => (
-                  <option key={lote.id_lote} value={lote.id_lote}>
+                  <option key={lote.id_lote_g} value={lote.id_lote_g}>
                     {lote.nombre_lote}
                   </option>
                 ))}
@@ -335,31 +318,9 @@ export default function TratamientoCreate() {
                     id="observacion"
                     value={form.observacion || ""}
                     onChange={(e) => setForm({ ...form, observacion: e.target.value })}
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                    className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                     placeholder="Observación del tratamiento"
                 />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Usuario responsable <span className="text-error-500">*</span>
-              </label>
-              <select
-                value={form.user_id}
-                onChange={handleChange("user_id")}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                required
-                disabled={loadingUsers || users.length === 0}
-              >
-                <option value={0} disabled>
-                  {loadingUsers ? "Cargando usuarios..." : "Selecciona un usuario"}
-                </option>
-                {users.map((user) => (
-                  <option key={user.id_user} value={user.id_user}>
-                    {user.nombre_user}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 

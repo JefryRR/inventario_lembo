@@ -159,7 +159,7 @@ export default function MortalidadCreate() {
 							<select
 								value={form.lote_id}
 								onChange={handleChange("lote_id")}
-								className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+								className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
 								required
 								disabled={loadingLotes || lotes.length === 0}
 							>
@@ -182,7 +182,7 @@ export default function MortalidadCreate() {
 								type="datetime-local"
 								value={form.fecha_reporte}
 								onChange={handleChange("fecha_reporte")}
-								className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+								className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
 								required
 							/>
 						</div>
@@ -196,18 +196,22 @@ export default function MortalidadCreate() {
 								value={form.cantidad}
 								onChange={handleChange("cantidad")}
 								min={1}
-								className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+								className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
 								required
 							/>
 						</div>
 
 						<div>
-							<label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Observación</label>
-							<textarea
+							<label htmlFor="observacion" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+								Observación
+							</label>
+							<input
+								type="text"
+								id="observacion"
 								value={form.observacion || ""}
-								onChange={handleChange("observacion")}
-								className="h-28 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-								maxLength={255}
+								onChange={(e) => setForm({ ...form, observacion: e.target.value })}
+								className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+								placeholder="Observación"
 							/>
 						</div>
 					</div>
