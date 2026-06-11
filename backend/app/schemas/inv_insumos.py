@@ -5,7 +5,7 @@ from datetime import datetime
 class InsumoBase(BaseModel):
     nombre_producto: str = Field(min_length=1, max_length=100)
     cantidad: int
-    min_stock: int
+    min_stock: Optional[int] = None
     unid_medida_id: int
     precio_unitario: float
     fecha_ingreso: datetime

@@ -4,7 +4,7 @@ from app.core.database import get_db
 from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
 from app.schemas.mortalidad import MortalidadCreate, MortalidadUpdate, PaginatedMortalidad, MortalidadOut
-from app.crud import lotes as crud_lotes
+from app.crud import lotes_prod as crud_lotes
 from app.schemas.users import UserOut
 from app.crud import mortalidad as crud_mortalidad
 
@@ -28,7 +28,7 @@ def create_mortalidad(mortalidad: MortalidadCreate, db: Session = Depends(get_db
         if lote["estado_lote"] == "finalizado":
             raise HTTPException(status_code=400, detail="No se puede registrar mortalidad porque el lote ya fue finalizado")
         
-        crud_mortalidad.create_lote(db, mortalidad)
+        crud_mortalidad.create_mortalidad(db, mortalidad, user_token.id_user)
         return {"message": "Registro de mortalidad creado correctamente"}
     
     except Exception as e:

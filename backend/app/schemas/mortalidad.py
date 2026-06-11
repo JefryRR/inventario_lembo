@@ -9,7 +9,6 @@ class MortalidadBase(BaseModel):
     fecha_reporte: datetime
     cantidad: int
     observacion: Optional[str] = Field(default=None, max_length=255)
-    user_id: int
 
 class MortalidadCreate(MortalidadBase):
    pass
@@ -18,11 +17,11 @@ class MortalidadUpdate(BaseModel):
     lote_id: Optional[int] = None
     cantidad: Optional[int] = None
     observacion: Optional[str] = Field(default=None, max_length=255)
-    user_id: Optional[int] = None
 
 
 class MortalidadOut(MortalidadBase):
    id_mortalidad: int
+   user_id: int
    nombre_especie: Optional[str] = None
    nombre_categoria: Optional[str] = None
    nombre_lote: str

@@ -8,7 +8,7 @@ from app.schemas.mortalidad import MortalidadCreate,MortalidadUpdate
 
 logger = logging.getLogger(__name__)
 
-def create_lote(db: Session, lote: MortalidadCreate) -> Optional[bool]:
+def create_mortalidad(db: Session, mortalidad: MortalidadCreate, user_id: int) -> Optional[bool]:
     try:
         query = text("""
           INSERT INTO mortalidad_produccion (
@@ -17,12 +17,12 @@ def create_lote(db: Session, lote: MortalidadCreate) -> Optional[bool]:
               :lote_id, :cantidad, :fecha_reporte, :observacion, :user_id
           )
       """)
-        db.execute(query, lote.model_dump())
+        db.execute(query, {**mortalidad.model_dump(), "user_id": user_id})
         db.commit()
         return True
     except SQLAlchemyError as e:
       db.rollback()
-      logger.error(f"Error al crear lote: {e}")
+      logger.error(f"Error al registrar mortalidad: {e}")
       raise Exception("Error de base de datos al crear el registro de mortalidad")
 
 def get_all_mortalidad(db: Session):
@@ -32,7 +32,7 @@ def get_all_mortalidad(db: Session):
                      e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, 
                      u.nombre_user
                      FROM mortalidad_produccion AS m_p
-                     INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
+                     LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
@@ -42,7 +42,7 @@ def get_all_mortalidad(db: Session):
         result = db.execute(query).mappings().all()
         return result
     except SQLAlchemyError as e:
-        logger.error(f"Error al obtener lotes: {e}")
+        logger.error(f"Error al obtener mortalidad: {e}")
         raise Exception("Error de base de datos al obtener los registros de mortalidad")
 
 def get_mortalidad_by_id(db: Session, id: int):
@@ -52,7 +52,7 @@ def get_mortalidad_by_id(db: Session, id: int):
                      e.nombre_especie, c.nombre_categoria, m_p.user_id, 
                      l_g.nombre_lote, u.nombre_user
                      FROM mortalidad_produccion AS m_p
-                     INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
+                     LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
                      LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                      LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
@@ -63,8 +63,8 @@ def get_mortalidad_by_id(db: Session, id: int):
         result = db.execute(query, {"id": id}).mappings().first()
         return result
     except SQLAlchemyError as e:
-        logger.error(f"Error al obtener lote por id: {e}")
-        raise Exception("Error de base de datos al obtener el lote")
+        logger.error(f"Error al obtener mortalidad por id: {e}")
+        raise Exception("Error de base de datos al obtener la mortalidad")
 
 def update_mortalidad_by_id(db: Session, id_mortalidad: int, mortalidad: MortalidadUpdate) -> Optional[bool]:
     try:
@@ -86,7 +86,7 @@ def update_mortalidad_by_id(db: Session, id_mortalidad: int, mortalidad: Mortali
         return result.rowcount > 0
     except SQLAlchemyError as e:
             db.rollback()
-            logger.error(f"Error al actualizar lote {id_mortalidad}: {e}")
+            logger.error(f"Error al actualizar mortalidad {id_mortalidad}: {e}")
             raise Exception("Error de base de datos al actualizar el registro de mortalidad")
 
 def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10):

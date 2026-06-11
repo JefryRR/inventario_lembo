@@ -10,7 +10,6 @@ class TratamientoBase(BaseModel):
     cantidad: int = Field(gt=0)
     unid_medida_id: int
     observacion: str
-    user_id: int = Field(gt=0)
 
 class TratamientoCreate(TratamientoBase):
     pass
@@ -29,6 +28,7 @@ class TratamientoOut(TratamientoBase):
     nombre_lote: str
     cant_convertida: Optional[float] = None
     nombre_producto: str
+    user_id: Optional[int]
     nombre_user: str
     simbolo: str
 

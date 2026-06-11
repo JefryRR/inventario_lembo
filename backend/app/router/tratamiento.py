@@ -20,7 +20,7 @@ def create_tratamiento(tratamiento: TratamientoCreate, db: Session = Depends(get
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        crud_tratamiento.create_tratamiento(db, tratamiento)
+        crud_tratamiento.create_tratamiento(db, tratamiento, user_token.id_user)
         return {"message": "Registro de tratamiento creado correctamente"}
     
     except Exception as e:

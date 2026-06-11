@@ -65,6 +65,8 @@ import Alimentos from "./pages/alimentos";
 import AlimentosCreate from "./components/alimentos/alimentoCreate";
 import AlimentosEdit from "./components/alimentos/alimentosEdit";
 import Invinsumo from "./pages/inv_insumos";
+import InvinsumoCreate from "./components/inv_insumos/inv_insumoCreate" 
+import InvinsumoEdit from "./components/inv_insumos/inv_insumoEdit";
 import InformeInsumo from "./components/inv_insumos/informes_insumo";
 import ResetPassword from "./pages/resetPassword";
 import ForgotPassword from "./pages/forgotPassword";
@@ -142,7 +144,9 @@ export default function App() {
             <Route path="/alimentos" element={<Alimentos />} />
             <Route path="/alimentos/create" element={<AlimentosCreate />} />
             <Route path="/alimentos/edit/:id" element={<AlimentosEdit />} />
+            <Route path="/invInsumo/edit/:id" element={<InvinsumoEdit />} />
             <Route path="/invInsumo" element={<Invinsumo />} />
+            <Route path="/invInsumo/create" element={<InvinsumoCreate />} />
             <Route path="/invInsumo/report/:id_insumo" element={<InformeInsumo />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />

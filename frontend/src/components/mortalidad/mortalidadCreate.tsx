@@ -18,10 +18,6 @@ type LoteOption = {
 	nombre_categoria?: string;
 };
 
-type UserOption = {
-	id_user: number;
-	nombre_user: string;
-};
 
 const initialState: MortalidadFormState = {
 	lote_id: 0,
@@ -36,9 +32,7 @@ export default function MortalidadCreate() {
 	const [form, setForm] = useState<MortalidadFormState>(initialState);
 	const [loading, setLoading] = useState(false);
 	const [loadingLotes, setLoadingLotes] = useState(false);
-	const [loadingUsers, setLoadingUsers] = useState(false);
 	const [lotes, setLotes] = useState<LoteOption[]>([]);
-	const [users, setUsers] = useState<UserOption[]>([]);
 	const [success, setSuccess] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
@@ -47,12 +41,10 @@ export default function MortalidadCreate() {
 
 		const loadCatalogs = async () => {
 			setLoadingLotes(true);
-			setLoadingUsers(true);
 
 			try {
-				const [lotesData, usersData] = await Promise.all([
-					apiFetch("lotes/all-lotes_prod"),
-					apiFetch("users/all-users-except-admins"),
+				const [lotesData] = await Promise.all([
+					apiFetch("lotes_prod/all-lotes_prod"),
 				]);
 
 				if (!mounted) return;
@@ -63,21 +55,13 @@ export default function MortalidadCreate() {
 					? lotesData
 					: [];
 
-				const userList = Array.isArray(usersData?.users)
-					? usersData.users
-					: Array.isArray(usersData)
-					? usersData
-					: [];
-
 				setLotes(loteList);
-				setUsers(userList);
 			} catch (requestError: any) {
 				if (!mounted) return;
 				setError(requestError?.detail || requestError?.message || "No se pudieron cargar los catálogos");
 			} finally {
 				if (mounted) {
 					setLoadingLotes(false);
-					setLoadingUsers(false);
 				}
 			}
 		};
@@ -119,11 +103,6 @@ export default function MortalidadCreate() {
 			return;
 		}
 
-		if (!form.user_id || form.user_id === 0) {
-			setError("Selecciona un usuario responsable");
-			setLoading(false);
-			return;
-		}
 
 		if (form.cantidad <= 0) {
 			setError("La cantidad debe ser mayor a cero");
@@ -137,7 +116,6 @@ export default function MortalidadCreate() {
 				fecha_reporte: form.fecha_reporte,
 				cantidad: Number(form.cantidad),
 				observacion: form.observacion ? form.observacion.trim() : null,
-				user_id: Number(form.user_id),
 			};
 
 			const data = await apiFetch("mortalidad/create", {
@@ -231,28 +209,6 @@ export default function MortalidadCreate() {
 								className="h-28 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
 								maxLength={255}
 							/>
-						</div>
-
-						<div>
-							<label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-								Usuario responsable <span className="text-error-500">*</span>
-							</label>
-							<select
-								value={form.user_id}
-								onChange={handleChange("user_id")}
-								className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-								required
-								disabled={loadingUsers || users.length === 0}
-							>
-								<option value={0} disabled>
-									{loadingUsers ? "Cargando usuarios..." : "Selecciona un usuario"}
-								</option>
-								{users.map((user) => (
-									<option key={user.id_user} value={user.id_user}>
-										{user.nombre_user}
-									</option>
-								))}
-							</select>
 						</div>
 					</div>
 

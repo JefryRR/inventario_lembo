@@ -6,7 +6,7 @@ import { apiFetch } from "@/services/api";
 
 type TratamientoRow = {
 	id_tratamiento: number;
-    id_lote: number;
+    id_lote_g: number;
 	fecha_inicio: string;
 	fecha_fin: string;
 	cantidad: number;
