@@ -103,7 +103,7 @@ export default function ModuleEdit() {
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del módulo <span className="text-error-500">*</span></label>
-                                    <input value={form.nombre} onChange={handleChange("nombre")} placeholder="Nombre del módulo" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input value={form.nombre} onChange={handleChange("nombre")} placeholder="Nombre del módulo" className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" required />
                                 </div>
                             </div>
 

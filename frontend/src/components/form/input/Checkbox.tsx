@@ -28,8 +28,8 @@ const Checkbox: React.FC<CheckboxProps> = ({
         id={id}
         type="checkbox"
         className={clsx(
-          "w-4 h-4 border-gray-300 rounded focus:ring-2 focus:ring-brand-500",
-          "dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-brand-500 dark:checked:border-brand-500",
+          "w-4 h-4 border-gray-300 rounded focus:ring-2 focus:ring-gray-500",
+          "dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-gray-500 dark:checked:border-gray-500",
           "focus:ring-offset-0 focus:outline-none",
           className
         )}

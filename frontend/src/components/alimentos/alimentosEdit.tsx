@@ -265,7 +265,7 @@ export default function AlimentoEdit() {
                         value={form.cantidad}
                         onChange={handleChange("cantidad")}
                         min={1}
-                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
                         required
                     />
                     </div>
@@ -300,7 +300,7 @@ export default function AlimentoEdit() {
                         type="datetime-local"
                         value={form.fecha_alimento}
                         onChange={handleChange("fecha_alimento")}
-                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
                         required
                     />
                     </div>

@@ -149,12 +149,12 @@ export default function Inv_perdEdit() {
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Cantidad <span className="text-error-500">*</span></label>
-                                    <input type="number" value={form.cantidad} onChange={handleChange("cantidad")} placeholder="100" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input type="number" value={form.cantidad} onChange={handleChange("cantidad")} placeholder="100" className="h-11 w-full rounded-lg border focus:ring-gray-500 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" required />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Unidad de medida <span className="text-error-500">*</span></label>
-                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {form.unid_medida_id && !unidMedidas.some((unidMed) => String(unidMed.id_unidad) === form.unid_medida_id) && (
                                             <option value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
                                         )}
@@ -167,7 +167,7 @@ export default function Inv_perdEdit() {
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Motivo <span className="text-error-500">*</span></label>
-                                    <select value={form.motivo} onChange={handleChange("motivo")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.motivo} onChange={handleChange("motivo")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         <option value="">Seleccione un motivo</option>
                                         {motivoOptions.map((option) => (
                                             <option key={option.value} value={option.value}>
@@ -178,7 +178,7 @@ export default function Inv_perdEdit() {
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Observaciones</label>
-                                    <input type="text" value={form.observaciones} onChange={handleChange("observaciones")} placeholder="Ingrese observaciones" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" />
+                                    <input type="text" value={form.observaciones} onChange={handleChange("observaciones")} placeholder="Ingrese observaciones" className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" />
                                 </div>
 
                             </div>

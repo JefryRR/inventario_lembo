@@ -81,7 +81,7 @@ export default function EspeciesCreate() {
                                 id="nombre"
                                 value={form.nombre_especie}
                                 onChange={(e) => setForm({ ...form, nombre_especie: e.target.value })}
-                                className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                                className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 placeholder="Nombre de la especie"
                             />
                         </div>
@@ -95,7 +95,7 @@ export default function EspeciesCreate() {
                                 id="descripcion"
                                 value={form.descripcion}
                                 onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                                className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                                className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 placeholder="Descripción de la especie"
                             />
                         </div>

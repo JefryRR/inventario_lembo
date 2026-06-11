@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type VentasLocationState = {
     refresh?: boolean;
@@ -38,8 +35,6 @@ type DetalleRow = {
     simbolo?: string;
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 /** Devuelve la última venta del día de hoy; si no hay, devuelve la última de todas. */
 function resolveDefaultVenta(ventasList: VentaRow[]): number | null {
     if (!ventasList.length) return null;
@@ -59,7 +54,22 @@ function resolveDefaultVenta(ventasList: VentaRow[]): number | null {
         : ordenadas[ordenadas.length - 1].id_venta;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+function puedeEditarDetalle(det: DetalleRow, fechaVenta?: string): boolean {
+    if (det.estado_venta === "Anulado") return false;
+    if (!fechaVenta) return true;
+
+    const fecha = new Date(fechaVenta);
+    const hoy = new Date();
+
+    // Diferencia en días (ignorando la hora)
+    fecha.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
+
+    const diffMs = hoy.getTime() - fecha.getTime();
+    const diffDias = diffMs / (1000 * 60 * 60 * 24);
+
+    return diffDias <= 2;
+}
 
 export default function VentasPage() {
     const location = useLocation();
@@ -82,9 +92,6 @@ export default function VentasPage() {
         selectedVentaRef.current = selectedVenta;
     }, [selectedVenta]);
 
-    // ── Carga de datos ──────────────────────────────────────────────────────
-    // search NO es dependencia: la búsqueda es solo un filtro en memoria,
-    // no necesita re-fetch. Se volvía a cargar toda la data con cada tecla.
     useEffect(() => {
         let mounted = true;
 
@@ -119,7 +126,6 @@ export default function VentasPage() {
                     locationState?.newVentaId ?? locationState?.selectVentaId ?? null;
                 const detalleIdFromState = locationState?.newDetalleId ?? null;
 
-                // Prioridad: 1) id que viene del state de navegación, 2) última del día
                 setSelectedVenta(ventaIdFromState ?? resolveDefaultVenta(ventasList));
                 setSelectedDetalleId(detalleIdFromState);
             } catch (err: any) {
@@ -143,8 +149,6 @@ export default function VentasPage() {
         locationState?.selectVentaId,
         locationState?.newDetalleId,
     ]);
-
-    // ── Filtros en memoria ──────────────────────────────────────────────────
 
     const filteredVentas = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -179,9 +183,6 @@ export default function VentasPage() {
         [ventas, selectedVenta]
     );
 
-    // ── Sincroniza selección cuando cambia el término de búsqueda ───────────
-    // selectedVenta se lee por ref para no ser dependencia y no causar
-    // re-ejecuciones que pisaban el detalle de venta mostrado.
     useEffect(() => {
         const term = search.trim();
 
@@ -191,13 +192,11 @@ export default function VentasPage() {
             return;
         }
 
-        // Con búsqueda: solo cambiar si la venta actual ya no está en resultados
         if (filteredVentas.length === 0) {
             setSelectedVenta(null);
         } else if (!filteredVentas.find((v) => v.id_venta === selectedVentaRef.current)) {
             setSelectedVenta(filteredVentas[0].id_venta);
         }
-        // Si la venta actual sigue en los resultados → no tocar nada
     }, [search, filteredVentas, ventas]);
 
     // Limpia el highlight del detalle al cambiar de venta manualmente
@@ -213,10 +212,6 @@ export default function VentasPage() {
 
     return (
         <>
-            <PageMeta
-                title="Ventas | Inventario Lembo"
-                description="Listado de ventas y sus detalles"
-            />
             <PageBreadcrumb pageTitle="Ventas" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
@@ -247,13 +242,12 @@ export default function VentasPage() {
                             </>
                         )}
 
-                        {/* Select solo muestra ventas de hoy; la búsqueda cubre el resto */}
                         <select
                             value={selectedVenta ?? 0}
                             onChange={(e) =>
                                 handleSelectVenta(Number(e.target.value) || null)
                             }
-                            className="h-11 w-80 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                            className="h-11 w-80 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-700"
                         >
                             <option value={0} disabled>
                                 {loading ? "Cargando ventas..." : "Selecciona una venta"}
@@ -272,12 +266,11 @@ export default function VentasPage() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar ventas..."
-                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-40"
+                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-700 sm:w-40"
                         />
                     </div>
                 </div>
 
-                {/* ── Resumen de venta seleccionada ── */}
                 <div className="p-5 lg:p-6">
                     {loading ? (
                         <div className="p-6 text-center text-sm text-gray-500">
@@ -313,7 +306,6 @@ export default function VentasPage() {
                     )}
                 </div>
 
-                {/* ── Tabla de detalles ── */}
                 <div className="overflow-x-auto px-5 pb-3">
                     <table className="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-800">
                         <colgroup>
@@ -363,7 +355,7 @@ export default function VentasPage() {
                                         }
                                         className={`hover:bg-gray-50 dark:hover:bg-white/[0.02] ${
                                             det.id_detalle_venta === selectedDetalleId
-                                                ? "bg-brand-50/70 dark:bg-brand-500/10"
+                                                ? "bg-green-50/70 dark:bg-green-500/10"
                                                 : ""
                                         }`}
                                     >
@@ -386,12 +378,18 @@ export default function VentasPage() {
                                             {det.estado_venta}
                                         </td>
                                         <td className="px-3 py-4 text-center">
-                                            <Link
-                                                to={`/detalle-ventas/edit/${det.id_detalle_venta}`}
-                                                className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-                                            >
-                                                Editar
-                                            </Link>
+                                            {puedeEditarDetalle(det, selectedVentaData?.fecha_venta) ? (
+                                                <Link
+                                                    to={`/detalle-ventas/edit/${det.id_detalle_venta}`}
+                                                    className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+                                                >
+                                                    Editar
+                                                </Link>
+                                            ) : (
+                                                <span className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed">
+                                                    Editar
+                                                </span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -403,8 +401,6 @@ export default function VentasPage() {
         </>
     );
 }
-
-// ─── Sub-componente reutilizable ───────────────────────────────────────────────
 
 function Field({ label, value }: { label: string; value: string }) {
     return (

@@ -195,17 +195,17 @@ export default function Inv_prodEdit() {
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del producto <span className="text-error-500">*</span></label>
-                                    <input value={form.nombre_producto} onChange={handleChange("nombre_producto")} placeholder="Carne cerdo" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input value={form.nombre_producto} onChange={handleChange("nombre_producto")} placeholder="Carne cerdo" className="h-11 w-full rounded-lg border focus:ring-gray-500 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" required />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Cantidad <span className="text-error-500">*</span></label>
-                                    <input type="number" value={form.cantidad} onChange={handleChange("cantidad")} placeholder="100" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input type="number" value={form.cantidad} onChange={handleChange("cantidad")} placeholder="100" className="h-11 w-full rounded-lg border focus:ring-gray-500 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" required />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Unidad de medida <span className="text-error-500">*</span></label>
-                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {form.unid_medida_id && !unidMedidas.some((unidMed) => String(unidMed.id_unidad) === form.unid_medida_id) && (
                                             <option value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
                                         )}
@@ -218,11 +218,11 @@ export default function Inv_prodEdit() {
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha vencimiento <span className="text-error-500">*</span></label>
-                                    <input type="date" value={form.fecha_vencimiento} onChange={handleChange("fecha_vencimiento")} placeholder="usuario@correo.com" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input type="date" value={form.fecha_vencimiento} onChange={handleChange("fecha_vencimiento")} placeholder="usuario@correo.com" className="h-11 w-full rounded-lg border focus:ring-gray-500 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" required />
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre lote <span className="text-error-500">*</span></label>
-                                    <select value={form.lote_id} onChange={handleChange("lote_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.lote_id} onChange={handleChange("lote_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {form.lote_id && !lotes.some((lote) => String(lote.id_lote) === form.lote_id) && (
                                             <option value={form.lote_id}>{form.nombre_lote || "Lote asignado"}</option>
                                         )}
@@ -235,12 +235,12 @@ export default function Inv_prodEdit() {
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Valor unitario</label>
-                                    <input type="number" value={form.valor_unitario} onChange={handleChange("valor_unitario")} placeholder="12785.00" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" minLength={1} />
+                                    <input type="number" value={form.valor_unitario} onChange={handleChange("valor_unitario")} placeholder="12785.00" className="h-11 w-full rounded-lg border focus:ring-gray-500 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" minLength={1} />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Categoría producto <span className="text-error-500">*</span></label>
-                                    <select value={form.categoria_id} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.categoria_id} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {form.categoria_id && !categorias.some((categoria) => String(categoria.id_categoria) === form.categoria_id) && (
                                             <option value={form.categoria_id}>{form.nombre_categoria || "Categoría asignada"}</option>
                                         )}
@@ -253,9 +253,9 @@ export default function Inv_prodEdit() {
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Especie producto <span className="text-error-500">*</span></label>
-                                    <select value={form.especie_id} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.especie_id} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {form.especie_id && !especies.some((especie) => String(especie.id_especie) === form.especie_id) && (
-                                            <option value={form.especie_id}>{form.nombre_especie || "Especie asignada"}</option>
+                                            <option value={form.especie_id} style={{backgroundColor: "#1a1a2e"}}>{form.nombre_especie || "Especie asignada"}</option>
                                         )}
                                         {especies.map((especie) => (
                                             <option key={especie.id_especie} value={String(especie.id_especie)}>

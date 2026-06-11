@@ -237,7 +237,7 @@ export default function Inv_prodCreate() {
                         to="/invProd"
                         className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                     >
-                        Volver a inv. producción
+                        Volver al Inventario
                     </Link>
                 </div>
 
@@ -251,7 +251,7 @@ export default function Inv_prodCreate() {
                                 value={form.nombre_producto}
                                 onChange={handleChange("nombre_producto")}
                                 placeholder="Pernil de pollo"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
                         </div>
@@ -265,7 +265,7 @@ export default function Inv_prodCreate() {
                                 value={form.cantidad}
                                 onChange={handleChange("cantidad")}
                                 placeholder="10"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
                         </div>
@@ -275,7 +275,7 @@ export default function Inv_prodCreate() {
                                 Unidad <span className="text-error-500">*</span>
                             </label>
                             <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required disabled={loadingUnidMedidas || unidMedidas.length === 0}>
                                 <option value="" disabled>
                                     {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
@@ -296,7 +296,7 @@ export default function Inv_prodCreate() {
                                 type="date"
                                 value={form.fecha_vencimiento}
                                 onChange={handleChange("fecha_vencimiento")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
                         </div>
@@ -308,7 +308,7 @@ export default function Inv_prodCreate() {
                             <select
                                 value={form.lote_id || ""}
                                 onChange={handleChange("lote_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required
                                 disabled={loadingLotes}
                             >
@@ -331,7 +331,7 @@ export default function Inv_prodCreate() {
                                 value={form.valor_unitario}
                                 onChange={handleChange("valor_unitario")}
                                 placeholder="12250.42"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
                         </div>
@@ -340,7 +340,7 @@ export default function Inv_prodCreate() {
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Categoría producto <span className="text-error-500">*</span>
                             </label>
-                            <select value={form.categoria_id || ""} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingCategorias || categorias.length === 0}>
+                            <select value={form.categoria_id || ""} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingCategorias || categorias.length === 0}>
                                 <option value="" disabled>
                                     {loadingCategorias ? "Cargando categorías..." : "Selecciona una categoría"}
                                 </option>
@@ -356,7 +356,7 @@ export default function Inv_prodCreate() {
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Especie producto <span className="text-error-500">*</span>
                             </label>
-                            <select value={form.especie_id || ""} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingEspecies || especies.length === 0}>
+                            <select value={form.especie_id || ""} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingEspecies || especies.length === 0}>
                                 <option value="" disabled>
                                     {loadingEspecies ? "Cargando especies..." : "Selecciona una especie"}
                                 </option>
