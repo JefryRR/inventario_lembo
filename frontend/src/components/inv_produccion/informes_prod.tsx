@@ -218,7 +218,7 @@ export default function InformesProd() {
                                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Valor unitario
+                                Costo unitario
                             </div>
                             <p className="mt-2 text-2xl font-bold text-blue-700 dark:text-blue-400">
                                 {formatearMoneda(encabezado.valor_unitario)}
@@ -246,7 +246,7 @@ export default function InformesProd() {
                                     <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{formatearCantidad(encabezado.cantidad_inicial, encabezado.simbolo)}</dd>
                                 </div>
                                 <div>
-                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Vendidos</dt>
+                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Cant. vendidos</dt>
                                     <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{formatearCantidad(encabezado.total_vendido, encabezado.simbolo)}</dd>
                                 </div>
                                 <div>

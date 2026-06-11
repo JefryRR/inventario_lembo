@@ -196,7 +196,45 @@ def all_perdidas(db: Session) -> list[PerdidaOut]:
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las pérdidas: {e}")
         raise Exception("Error de base de datos al obtener las pérdidas")
-      
+
+def get_perdidas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
+    """
+    Obtiene las tareas cuya fecha de inicio o fin esté dentro de un rango de fechas.
+    Ignora las horas (usa DATE(fecha_init) y DATE(fecha_fin)).
+    """
+    try:
+        query = text("""
+            SELECT p.*,
+                CASE 
+                    WHEN p.origen = 'produccion' THEN ip.nombre_producto
+                    WHEN p.origen = 'insumo' THEN ii.nombre_producto
+                END AS nombre_producto,
+                CASE 
+                    WHEN p.origen = 'produccion' THEN ip.valor_unitario
+                    WHEN p.origen = 'insumo' THEN ii.precio_unitario
+                END AS valor_unitario,
+                lg.nombre_lote,
+                u.nombre_user, um.simbolo
+            FROM inv_perdidas p
+            LEFT JOIN inv_produccion ip ON p.origen = 'produccion' AND p.inv_prod_id = ip.id_inventario
+            LEFT JOIN lote_produccion lp ON ip.lote_id = lp.id_lote
+            LEFT JOIN lotes_granja lg ON lp.lote_granj_id = lg.id_lote_g
+            LEFT JOIN inv_insumos ii ON p.origen = 'insumo' AND p.inv_prod_id = ii.id_insumo
+            LEFT JOIN users u ON p.user_id = u.id_user
+            LEFT JOIN unidades_medida um ON p.unid_medida_id = um.id_unidad
+            WHERE DATE(p.fecha_reporte) BETWEEN :fecha_inicio AND :fecha_fin
+            ORDER BY p.fecha_reporte DESC
+        """)
+        result = db.execute(query, {
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin
+        }).mappings().all()
+        
+        return [dict(row) for row in result]
+
+    except SQLAlchemyError as e:
+        raise Exception(f"Error al consultar los perdidas por rango de fechas: {e}")
+
 def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
     try:
         count_query = text("""

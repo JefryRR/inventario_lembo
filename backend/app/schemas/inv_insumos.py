@@ -4,10 +4,10 @@ from datetime import datetime
 
 class InsumoBase(BaseModel):
     nombre_producto: str = Field(min_length=1, max_length=100)
-    cantidad: int = Field(gt=0)
-    min_stock: int = Field(ge=0)
+    cantidad: int
+    min_stock: int
     unid_medida_id: int
-    precio_unitario: float = Field(gt=0)
+    precio_unitario: float
     fecha_ingreso: datetime
     fecha_vencimiento: datetime
     tipo_id: int
