@@ -95,7 +95,7 @@ export default function UsersCreate() {
                                 value={form.nombre_rol}
                                 onChange={handleChange("nombre_rol")}
                                 placeholder="Administrador"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
                         </div>
@@ -109,7 +109,7 @@ export default function UsersCreate() {
                                 value={form.descripcion}
                                 onChange={handleChange("descripcion")}
                                 placeholder="Rol de administrador"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
                         </div>
@@ -120,7 +120,7 @@ export default function UsersCreate() {
                                 type="checkbox"
                                 checked={form.estado}
                                 onChange={handleChange("estado")}
-                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
                             />
                             <label htmlFor="estado" className="text-sm text-gray-700 dark:text-gray-300">
                                 Rol activo

@@ -146,7 +146,7 @@ export default function LotesEdit() {
                     value={form.nombre_lote}
                     onChange={handleChange("nombre_lote")}
                     placeholder="Lote A1"
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                     maxLength={25}
                   />
@@ -160,7 +160,7 @@ export default function LotesEdit() {
                     value={form.ubicacion}
                     onChange={handleChange("ubicacion")}
                     placeholder="Ubicación del lote"
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                     maxLength={100}
                   />
@@ -174,7 +174,7 @@ export default function LotesEdit() {
                     value={form.latitud}
                     onChange={handleChange("latitud")}
                     placeholder="Latitud"
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                     maxLength={25}
                   />
@@ -188,7 +188,7 @@ export default function LotesEdit() {
                     value={form.longitud}
                     onChange={handleChange("longitud")}
                     placeholder="Longitud"
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-4₀ focus:border-brand-3₀₀ dark:border-gray-7₀₀ dark:text-white/9₀ dark:focus:border-brand-8₀₀"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                     maxLength={25}
                   />

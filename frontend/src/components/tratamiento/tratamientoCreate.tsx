@@ -227,7 +227,7 @@ export default function TratamientoCreate() {
               <select
                 value={form.lote_id}
                 onChange={handleChange("lote_id")}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                 required
                 disabled={loadingLotes || lotes.length === 0}
               >

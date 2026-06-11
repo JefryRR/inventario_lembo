@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
@@ -50,12 +48,6 @@ export default function TypesCreate() {
 
     return (
         <>
-            <PageMeta
-                title="Crear tipo de insumo | Inventario Lembo"
-                description="Formulario para crear un nuevo tipo de insumo"
-            />
-            <PageBreadcrumb pageTitle="Crear tipo de insumo" />
-
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -86,7 +78,7 @@ export default function TypesCreate() {
                                 id="nombre_tipo"
                                 value={form.nombre_tipo}
                                 onChange={(e) => setForm({ ...form, nombre_tipo: e.target.value })}
-                                className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                                className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 placeholder="Nombre del tipo de insumo"
                             />
                         </div>

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
@@ -176,7 +175,6 @@ export default function VentasPage() {
 
     return (
         <>
-            <PageMeta title="Historial de Ventas | Inventario Lembo" description="Listado de ventas y sus detalles" />
             <PageBreadcrumb pageTitle="Historial de Ventas" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">

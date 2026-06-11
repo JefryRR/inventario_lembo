@@ -260,7 +260,7 @@ export default function LotesEdit() {
                     onChange={handleChange("nombre_lote")}
                     placeholder="Lote A1"
                     readOnly
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                     maxLength={25}
                   />
@@ -275,7 +275,7 @@ export default function LotesEdit() {
                     value={form.cantidad_inicial}
                     onChange={handleChange("cantidad_inicial")}
                     min={1}
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                   />
                 </div>
@@ -288,7 +288,7 @@ export default function LotesEdit() {
                     type="datetime-local"
                     value={form.fecha_siembra}
                     onChange={handleChange("fecha_siembra")}
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                   />
                 </div>
@@ -301,7 +301,7 @@ export default function LotesEdit() {
                     type="datetime-local"
                     value={form.fecha_cosecha}
                     onChange={handleChange("fecha_cosecha")}
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                   />
                 </div>
@@ -313,7 +313,7 @@ export default function LotesEdit() {
                   <select
                     value={form.especie_id}
                     onChange={handleChange("especie_id")}
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                     required
                     disabled={especies.length === 0}
                   >
@@ -335,7 +335,7 @@ export default function LotesEdit() {
                   <select
                     value={form.categoria_id}
                     onChange={handleChange("categoria_id")}
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                     required
                     disabled={categorias.length === 0}
                   >
@@ -357,7 +357,7 @@ export default function LotesEdit() {
                   <select
                     value={form.estado_lote}
                     onChange={handleChange("estado_lote")}
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                     required
                   >
                     {ESTADO_OPTIONS.map((estado) => (
@@ -375,7 +375,7 @@ export default function LotesEdit() {
                   <select
                     value={form.user_id}
                     onChange={handleChange("user_id")}
-                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                     required
                     disabled={users.length === 0}
                   >
