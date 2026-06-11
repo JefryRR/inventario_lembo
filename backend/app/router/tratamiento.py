@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
+from sqlalchemy.orm import Session  # type: ignore
 from app.core.database import get_db
 from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
@@ -20,7 +20,7 @@ def create_tratamiento(tratamiento: TratamientoCreate, db: Session = Depends(get
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        crud_tratamiento.create_tratamiento(db, tratamiento)
+        crud_tratamiento.create_tratamiento(db, tratamiento, user_token.id_user)
         return {"message": "Registro de tratamiento creado correctamente"}
     
     except Exception as e:

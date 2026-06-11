@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field  # type: ignore
 from typing import Optional
 from datetime import datetime
 
@@ -10,7 +10,6 @@ class TratamientoBase(BaseModel):
     cantidad: int = Field(gt=0)
     unid_medida_id: int
     observacion: str
-    user_id: int = Field(gt=0)
 
 class TratamientoCreate(TratamientoBase):
     pass
@@ -22,11 +21,11 @@ class TratamientoUpdate(BaseModel):
     fecha_fin: Optional[datetime] = None
     unid_medida_id: Optional[int] = None
     observacion: Optional[str] = None
-    user_id: Optional[int] = None
 
 class TratamientoOut(TratamientoBase):
     id_tratamiento: int
     nombre_lote: str
+    user_id: Optional[int]
     cant_convertida: Optional[float] = None
     nombre_producto: str
     nombre_user: str

@@ -6,7 +6,7 @@ import { apiFetch } from "@/services/api";
 
 type TratamientoRow = {
 	id_tratamiento: number;
-    id_lote: number;
+    id_lote_g: number;
 	fecha_inicio: string;
 	fecha_fin: string;
 	cantidad: number;
@@ -135,7 +135,7 @@ export default function Tratamientos() {
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							placeholder="Buscar tratamiento..."
-							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800 sm:w-72"
+							className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-72"
 						/>
 					</div>
 				</div>
@@ -157,7 +157,7 @@ export default function Tratamientos() {
 									Tratamiento
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Detalles
+									Observación
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Acciones
@@ -203,7 +203,7 @@ export default function Tratamientos() {
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											<div>Lote: {tratamiento.nombre_lote}</div>
 											<div>Producto: {tratamiento.nombre_producto}</div>
-											<div>Responsable: {tratamiento.nombre_user}</div>
+											<div>Registrado por: {tratamiento.nombre_user}</div>
 										</td>
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											<div> {tratamiento.observacion || "-"}</div>

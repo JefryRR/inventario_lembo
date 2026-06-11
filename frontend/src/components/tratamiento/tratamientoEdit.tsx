@@ -20,7 +20,7 @@ type TratamientoFormState = {
 };
 
 type LoteOption = {
-    id_lote: number;
+    id_lote_g: number;
     nombre_lote: string;
 };
 
@@ -32,11 +32,6 @@ type MedicinaOption = {
 type MedidaOption = {
     id_unidad: number;
     simbolo: string;
-};
-
-type UserOption = {
-    id_user: number;
-    nombre_user: string;
 };
 
 const emptyState: TratamientoFormState = {
@@ -79,7 +74,6 @@ export default function TratamientoEdit() {
     const [lotes, setLotes] = useState<LoteOption[]>([]);
     const [medicinas, setMedicinas] = useState<MedicinaOption[]>([]);
     const [medidas, setMedidas] = useState<MedidaOption[]>([]);
-    const [users, setUsers] = useState<UserOption[]>([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -94,12 +88,11 @@ export default function TratamientoEdit() {
         setError(null);
 
         try {
-            const [tratamientoData, lotesData, medicinasData, medidasData, usersData] = await Promise.all([
-            apiFetch(`tratamiento/by-id?id_tratamiento=${id}`),
-            apiFetch("lotes/all-lotes_prod"),
-            apiFetch("inv_insumos/all_insumos"),
-            apiFetch("unid-medida/all-unid_medidas"),
-            apiFetch("users/all-users-except-admins"),
+            const [tratamientoData, lotesData, medicinasData, medidasData] = await Promise.all([
+                apiFetch(`tratamiento/by-id?id_tratamiento=${id}`),
+                apiFetch("lotes/all-lotes_prod"),
+                apiFetch("inv_insumos/all_insumos"),
+                apiFetch("unid-medida/all-unid_medidas"),
             ]);
 
             if (!mounted) return;
@@ -122,16 +115,9 @@ export default function TratamientoEdit() {
                 ? medidasData
                 : [];
 
-            const userList = Array.isArray(usersData?.users)
-            ? usersData.users
-            : Array.isArray(usersData)
-                ? usersData
-                : [];
-
             setLotes(loteList);
             setMedicinas(medicinaList);
             setMedidas(medidaList);
-            setUsers(userList);
 
             setForm({
             nombre_lote: tratamientoData?.nombre_lote || "",
@@ -268,7 +254,7 @@ export default function TratamientoEdit() {
                         Selecciona un lote
                         </option>
                         {lotes.map((lote) => (
-                        <option key={lote.id_lote} value={lote.id_lote}>
+                        <option key={lote.id_lote_g} value={lote.id_lote_g}>
                             {lote.nombre_lote}
                         </option>
                         ))}
@@ -369,27 +355,6 @@ export default function TratamientoEdit() {
                     />
                     </div>
 
-                    <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Usuario responsable <span className="text-error-500">*</span>
-                    </label>
-                    <select
-                        value={form.user_id}
-                        onChange={handleChange("user_id")}
-                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                        required
-                        disabled={users.length === 0}
-                    >
-                        <option value={0} disabled>
-                        Selecciona un usuario
-                        </option>
-                        {users.map((user) => (
-                        <option key={user.id_user} value={user.id_user}>
-                            {user.nombre_user}
-                        </option>
-                        ))}
-                    </select>
-                    </div>
                 </div>
 
                 {error && (
