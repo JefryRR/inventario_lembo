@@ -182,7 +182,7 @@ export default function Inv_prod() {
             <PageBreadcrumb pageTitle="Inventario de Producción" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 lg:flex-row lg:items-center sm:justify-between">
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <Link
                             to="/invProd/create"
@@ -193,9 +193,10 @@ export default function Inv_prod() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar inventario..."
-                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800 sm:w-20"
+                            className="rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800 sm:w-100"
                         />
                     </div>
+
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha inicio:</label>
                         <input

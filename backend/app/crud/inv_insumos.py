@@ -29,12 +29,11 @@ def create_insumo(db: Session, insumo: InsumoCreate):
 
         query = text("""
                     INSERT INTO inv_insumos(
-                    nombre_producto, cantidad, cant_convertida, unid_medida_id, precio_unitario, min_stock, fecha_ingreso, fecha_vencimiento, tipo_id)
-                    VALUES (:nombre_producto, :cantidad, :cant_convertida, :unid_medida_id, :precio_unitario, :min_stock, :fecha_ingreso, 
+                    nombre_producto, cantidad, unid_medida_id, precio_unitario, min_stock, fecha_ingreso, fecha_vencimiento, tipo_id)
+                    VALUES (:nombre_producto, :cantidad, :unid_medida_id, :precio_unitario, :min_stock, :fecha_ingreso, 
                     :fecha_vencimiento, :tipo_id)
                     """)
-        params = insumo.model_dump()
-        params["cant_convertida"] = float(insumo.cantidad) * float(conv)                                                    
+        params = insumo.model_dump()                                                   
         db.execute(query, params)
         db.commit()
         return True
@@ -86,7 +85,7 @@ def get_all_insumos(db: Session):
 def registrar_vencidos_como_perdidas(db: Session):
     try:
         vencidos = db.execute(text("""
-            SELECT ii.id_insumo, ii.cantidad, ii.cant_convertida, 
+            SELECT ii.id_insumo, ii.cantidad, 
                    ii.fecha_vencimiento, ii.unid_medida_id
             FROM inv_insumos ii
             WHERE ii.fecha_vencimiento < CURDATE()
@@ -102,11 +101,11 @@ def registrar_vencidos_como_perdidas(db: Session):
             db.execute(text("""
                 INSERT INTO inv_perdidas (
                     inv_prod_id, cantidad, origen, motivo,
-                    fecha_reporte, user_id, cant_convertida, 
+                    fecha_reporte, user_id, , 
                     unid_medida_id, observaciones
                 ) VALUES (
                     :inv_prod_id, :cantidad, :origen, :motivo,
-                    :fecha_reporte, :user_id, :cant_convertida,
+                    :fecha_reporte, :user_id, :,
                     :unid_medida_id, :observaciones
                 )
             """), {
@@ -116,7 +115,7 @@ def registrar_vencidos_como_perdidas(db: Session):
                 "motivo": "vencimiento",
                 "fecha_reporte": date.today(),
                 "user_id": None,  # Aquí podrías asignar un ID de usuario si tienes esa información
-                "cant_convertida": row["cant_convertida"],
+                "": row[""],
                 "unid_medida_id": row["unid_medida_id"],
                 "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}"
             })
@@ -163,7 +162,7 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
 
     # Normalizar si viene con time (datetime)
     if hasattr(fecha_vencimiento, "date"):
-        fecha_vencimiento = fecha_vencimiento.date()
+        fecha_vencimiento = fecha_vencimiento.date() # type: ignore
 
     # Normalizar cantidad segura
     try:
@@ -231,7 +230,7 @@ def get_reporte_encabezado_insumo(db: Session, id_insumo: int):
             FROM inv_insumos ii
             LEFT JOIN unidades_medida um ON ii.unid_medida_id = um.id_unidad
             LEFT JOIN (
-                SELECT inv_prod_id, SUM(cant_convertida) AS total_perdido
+                SELECT inv_prod_id, SUM() AS total_perdido
                 FROM inv_perdidas
                 WHERE origen = 'insumo'
                 GROUP BY inv_prod_id
@@ -249,7 +248,7 @@ def get_reporte_movimientos_insumo(db: Session, id_insumo: int):
             SELECT 
                 'perdida'               AS tipo,
                 p.id_perdida            AS id_registro,
-                p.cant_convertida       AS cantidad,
+                p.       AS cantidad,
                 ii.precio_unitario       AS valor,
                 p.motivo                AS motivo,
                 p.observaciones         AS observaciones,
@@ -277,6 +276,31 @@ def get_reporte_insumo_detallado(db: Session, id_insumo: int):
         "encabezado": dict(encabezado),
         "movimientos": [dict(m) for m in movimientos]
     }
+
+def get_insumos_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
+    """
+    Obtiene las tareas cuya fecha de inicio o fin esté dentro de un rango de fechas.
+    Ignora las horas (usa DATE(fecha_init) y DATE(fecha_fin)).
+    """
+    try:
+        query = text("""
+            SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
+                        i_in.min_stock, i_in.fecha_ingreso, i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo, u_m.simbolo
+                        FROM inv_insumos AS i_in
+                        INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
+                        LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
+            WHERE DATE(i_in.fecha_ingreso) BETWEEN :fecha_inicio AND :fecha_fin
+            ORDER BY i_in.fecha_ingreso DESC
+        """)
+        result = db.execute(query, {
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin
+        }).mappings().all()
+        
+        return [dict(row) for row in result]
+
+    except SQLAlchemyError as e:
+        raise Exception(f"Error al consultar los insumos por rango de fechas: {e}")
 
 def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10):
     """

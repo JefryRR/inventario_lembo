@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
+import Badge from "@/components/ui/badge/Badge";
 
 type invInsumoRow = {
     id_insumo: number,
@@ -27,10 +28,10 @@ type invInsumoResponse = {
     insumos: invInsumoRow[];
 };
 
-// type DateRangeState = {
-//     fecha_inicio: string;
-//     fecha_fin: string;
-// };
+type DateRangeState = {
+    fecha_inicio: string;
+    fecha_fin: string;
+};
 
 
 export default function InvInsumo() {
@@ -41,11 +42,11 @@ export default function InvInsumo() {
     const [pageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
-    // const [dateRange, setDateRange] = useState<DateRangeState>({
-    //     fecha_inicio: "",
-    //     fecha_fin: "",
-    // });
-    //const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
+    const [dateRange, setDateRange] = useState<DateRangeState>({
+        fecha_inicio: "",
+        fecha_fin: "",
+    });
+    const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
 
 
     useEffect(() => {
@@ -56,20 +57,20 @@ export default function InvInsumo() {
             setError(null);
 
             try {
-                // const queryParams = new URLSearchParams({
-                //     page: String(page),
-                //     page_size: String(pageSize),
-                // });
+                const queryParams = new URLSearchParams({
+                    page: String(page),
+                    page_size: String(pageSize),
+                });
 
-                // const endpoint = activeDateRange
-                //     ? (() => {
-                //         queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
-                //         queryParams.set("fecha_fin", activeDateRange.fecha_fin);
-                //         return `inv_insumos/rango-fechas?${queryParams.toString()}`;
-                //     })()
-                //     : `insumos_paginated?page?${queryParams.toString()}`;
+                const endpoint = activeDateRange
+                    ? (() => {
+                        queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
+                        queryParams.set("fecha_fin", activeDateRange.fecha_fin);
+                        return `inv_insumos/rango-fechas?${queryParams.toString()}`;
+                    })()
+                    : `inv_insumos/insumos_paginated?${queryParams.toString()}`;
 
-                const data = await apiFetch(`inv_insumos/insumos_paginated?page=${page}&page_size=${pageSize}`) as invInsumoResponse;
+                const data = (await apiFetch(endpoint)) as invInsumoResponse;
 
                 if (!isMounted) {
                     return;
@@ -99,7 +100,17 @@ export default function InvInsumo() {
         return () => {
             isMounted = false;
         };
-    }, [page, pageSize]);
+    }, [page, pageSize, activeDateRange]);
+
+    const SoloFecha = (fechaString: string | number | Date) => {
+        if (!fechaString) return "-";
+        const fecha = new Date(fechaString);
+        return fecha.toLocaleDateString("es-CO", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+    };
 
     const filteredInvInsumos = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -125,40 +136,57 @@ export default function InvInsumo() {
         });
     }, [search, invInsumo]);
 
-    const SoloFecha = (fechaString: string | number | Date) => {
-        if (!fechaString) return "-";
-        const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString("es-CO", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
+
+    const applyDateFilter = () => {
+        if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
+            setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
+            return;
+        }
+
+        if (dateRange.fecha_inicio > dateRange.fecha_fin) {
+            setError("La fecha inicial no puede ser mayor que la fecha final.");
+            return;
+        }
+
+        setError(null);
+        setPage(1);
+        setActiveDateRange({ ...dateRange });
     };
 
-    // const applyDateFilter = () => {
-    //     if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
-    //         setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
-    //         return;
-    //     }
-
-    //     if (dateRange.fecha_inicio > dateRange.fecha_fin) {
-    //         setError("La fecha inicial no puede ser mayor que la fecha final.");
-    //         return;
-    //     }
-
-    //     setError(null);
-    //     setPage(1);
-    //     setActiveDateRange({ ...dateRange });
-    // };
-
-    // const clearDateFilter = () => {
-    //     setDateRange({ fecha_inicio: "", fecha_fin: "" });
-    //     setActiveDateRange(null);
-    //     setPage(1);
-    //     setError(null);
-    // };
+    const clearDateFilter = () => {
+        setDateRange({ fecha_inicio: "", fecha_fin: "" });
+        setActiveDateRange(null);
+        setPage(1);
+        setError(null);
+    };
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    type EstadoInsumo = {
+        label: string;
+        color: string;
+    };
+
+    const Estadoinsumo = (cantidad: number, minima: number): EstadoInsumo => {
+        if (cantidad === 0) {
+            return {
+                label: "Agotado",
+                color: "text-red-600",
+            };
+        }
+
+        if (cantidad <= minima) {
+            return {
+                label: "Provisionar",
+                color: "text-yellow-500",
+            };
+        }
+
+        return {
+            label: "Disponible",
+            color: "text-green-600",
+        };
+    };
 
     return (
         <>
@@ -176,8 +204,41 @@ export default function InvInsumo() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar inventario..."
-                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-20"
+                            className="h-10 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-50"
                         />
+                    </div>
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha inicio:</label>
+                        <input
+                            type="date"
+                            value={dateRange.fecha_inicio}
+                            onChange={(e) => setDateRange((current) => ({ ...current, fecha_inicio: e.target.value }))}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
+                            aria-label="Fecha inicial"
+                        />
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha fin:</label>
+                        <input
+                            type="date"
+                            value={dateRange.fecha_fin}
+                            onChange={(e) => setDateRange((current) => ({ ...current, fecha_fin: e.target.value }))}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
+                            aria-label="Fecha final"
+                        />
+                        <button
+                            type="button"
+                            onClick={applyDateFilter}
+                            className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-800 px-4 text-sm font-medium text-white transition hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
+                        >
+                            Filtrar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={clearDateFilter}
+                            disabled={!activeDateRange}
+                            className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                        >
+                            Limpiar
+                        </button>
                     </div>
                 </div>
 
@@ -201,8 +262,8 @@ export default function InvInsumo() {
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     fecha vencimiento
                                 </th>
-                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad min.
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    estado stock
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     precio unitario
@@ -237,50 +298,75 @@ export default function InvInsumo() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredInvInsumos.map((inv_insumo) => (
-                                    <tr key={inv_insumo.id_insumo} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
-                                        <td className="px-4 py-4">
-                                            <div className="text-sm font-medium text-gray-800 dark:text-white/90">
-                                                {inv_insumo.nombre_producto}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 text-center">
-                                            <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.cantidad} {inv_insumo.simbolo}</div>
-                                        </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            <div className="truncate">{inv_insumo.nombre_tipo}</div>
-                                        </td>
-                                        <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                                            <div>{SoloFecha(inv_insumo.fecha_ingreso)}</div>
-                                        </td>
-                                        <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                                            <div>{SoloFecha(inv_insumo.fecha_vencimiento)}</div>
-                                        </td>
-                                        <td className="px-4 py-4 text-center">
-                                            <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.min_stock} {inv_insumo.simbolo}</div>
-                                        </td>
-                                        <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
-                                            <div>$ {inv_insumo.precio_unitario}</div>
-                                        </td>
-                                        <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                                            <div >{inv_insumo.nivel_alerta}</div>
-                                        </td>
-                                        <td className="px-3 py-4 text-center">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <Link
-                                                    to={`/invInsumo/edit/${inv_insumo.id_insumo}`}
-                                                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                                                    Editar
-                                                </Link>
-                                                <Link
-                                                    to={`/invInsumo/report/${inv_insumo.id_insumo}`}
-                                                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
-                                                    Informe
-                                                </Link>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                filteredInvInsumos.map((inv_insumo) => {
+
+                                    const estado = Estadoinsumo(
+                                        inv_insumo.cantidad,
+                                        inv_insumo.min_stock
+                                    );
+
+                                    return (
+                                        <tr key={inv_insumo.id_insumo} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+
+                                            <td className="px-4 py-4">
+                                                <div className="text-sm font-medium text-gray-800 dark:text-white/90">
+                                                    {inv_insumo.nombre_producto}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-4 py-4 text-center">
+                                                <div className="text-sm text-gray-800 dark:text-gray-400">
+                                                    {inv_insumo.cantidad} {inv_insumo.simbolo}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                                <div className="truncate">
+                                                    {inv_insumo.nombre_tipo}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                                                <div>{SoloFecha(inv_insumo.fecha_ingreso)}</div>
+                                            </td>
+
+                                            <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                                                <div>{SoloFecha(inv_insumo.fecha_vencimiento)}</div>
+                                            </td>
+
+                                            <td className="px-4 py-4 text-center">
+                                                <span className={estado.color}>
+                                                    {estado.label}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
+                                                <div>$ {inv_insumo.precio_unitario}</div>
+                                            </td>
+
+                                            <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                                                <div>{inv_insumo.nivel_alerta}</div>
+                                            </td>
+
+                                            <td className="px-3 py-4 text-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Link
+                                                        to={`/invInsumo/edit/${inv_insumo.id_insumo}`}
+                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                                        Editar
+                                                    </Link>
+
+                                                    <Link
+                                                        to={`/invInsumo/report/${inv_insumo.id_insumo}`}
+                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
+                                                        Informe
+                                                    </Link>
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

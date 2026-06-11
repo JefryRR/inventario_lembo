@@ -273,17 +273,18 @@ def get_produccion_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
     """
     try:
         query = text("""
-            SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
-                     pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
-                     l.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
-                     FROM inv_produccion pr
-                     LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
-                     LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
-                     LEFT JOIN especies AS e ON l.especie_id = e.id_especie
-                     LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
-            WHERE DATE(pr.fecha_vencimiento) BETWEEN :fecha_inicio AND :fecha_fin
-            ORDER BY pr.fecha_vencimiento DESC
-        """)
+                    SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
+                        pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
+                        l_g.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
+                        FROM inv_produccion pr
+                        LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
+                        LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
+                        LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
+                        LEFT JOIN especies AS e ON l.especie_id = e.id_especie
+                        LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
+                    WHERE DATE(pr.fecha_ingreso) BETWEEN :fecha_inicio AND :fecha_fin
+                    ORDER BY pr.fecha_ingreso DESC
+                """)
         result = db.execute(query, {
             "fecha_inicio": fecha_inicio,
             "fecha_fin": fecha_fin

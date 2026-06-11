@@ -123,7 +123,7 @@ export default function NotificationDropdown() {
       title: item.nombre_producto,
       subtitle: item.origen === "produccion"
         ? (item as ProduccionAlert).nombre_lote || "Inventario de producción"
-        : "Inventario de insumos",         // 👈 etiqueta para insumos
+        : "Inventario de insumos",
       daysLeft,
       dateLabel: expiryDate.toLocaleDateString("es-CO", {
         day: "2-digit",
