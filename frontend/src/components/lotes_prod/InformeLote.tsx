@@ -127,7 +127,8 @@ export default function InformeLote() {
 	}, [id]);
 
 	const totalMuertes = mortalidad.reduce((sum, r) => sum + r.cantidad, 0);
-	const cantidadInicial = lote?.cantidad_inicial ?? 0;
+	const cantidad = lote?.cantidad_inicial ?? 0;
+	const cantidadInicial = cantidad + totalMuertes; // Asumimos que la cantidad inicial es la suma de vivos actuales + muertes registradas
 	const vivos = Math.max(0, cantidadInicial - totalMuertes);
 	const porcentajeMortalidad =
 		cantidadInicial > 0
