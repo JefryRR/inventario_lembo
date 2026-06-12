@@ -38,6 +38,7 @@ import EspeciesEdit from "./components/especies/especiesEdit";
 import Lotes from "./pages/lotes_prod";
 import LotesCreate from "./components/lotes_prod/lotesCreate";
 import LotesEdit from "./components/lotes_prod/lotesEdit";
+import LoteProdReport from "./components/lotes_prod/InformeLote";
 import LotesGranja from "./pages/lotes_g";
 import LotesGranjaCreate from "./components/lotes_granja/lotesGranjaCreate";
 import LotesGranjaEdit from "./components/lotes_granja/lotesGranjaEdit";
@@ -109,6 +110,7 @@ export default function App() {
             <Route path="/lotesProd" element={<Lotes />} />
             <Route path="/lotesProd/create" element={<LotesCreate />} />
             <Route path="/lotesProd/edit/:id" element={<LotesEdit />} />
+            <Route path="/lotesProd/report/:id" element={<LoteProdReport />} />
             <Route path="/mortalidad" element={<Mortalidad />} />
             <Route path="/mortalidad/create" element={<MortalidadCreate />} />
             <Route path="/mortalidad/edit/:id" element={<MortalidadEdit />} />

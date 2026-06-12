@@ -259,13 +259,13 @@ export default function Inv_prod() {
                                     Nombre producto
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad
+                                    Cantidad
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    fecha registro
+                                    Fecha registro
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    fecha vencimiento
+                                    Fecha vencimiento
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Categoría / Especie
@@ -274,10 +274,10 @@ export default function Inv_prod() {
                                     Lote
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    costo unitario
+                                    Costo unitario
                                 </th>
                                 <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    costo total
+                                    Costo total
                                 </th>
                                 <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Estado
