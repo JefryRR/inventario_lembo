@@ -166,7 +166,7 @@ export default function InformeLote() {
 			<PageBreadcrumb pageTitle={`Informe — ${lote?.nombre_lote ?? ""}`} />
 
 			{/* Botón volver */}
-			<div className="mb-5">
+			<div className="mb-5 align-right flex justify-end">
 				<Link
                     to="/lotesProd"
                     className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
