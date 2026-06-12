@@ -10,7 +10,7 @@ type LoteRow = {
 	nombre_lote: string;
 	fecha_siembra: string;
 	fecha_cosecha: string;
-	cantidad_inicial: number;
+	cantidad: number;
 	especie_id: number;
 	categoria_id: number;
 	estado_lote: string;
@@ -214,7 +214,7 @@ export default function Lotes() {
 											<div>Cosecha: {formatDate(lote.fecha_cosecha)}</div>
 										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{lote.cantidad_inicial}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{lote.cantidad}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											<div>Especie: {lote.nombre_especie}</div>

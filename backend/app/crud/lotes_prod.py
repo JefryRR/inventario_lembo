@@ -12,10 +12,10 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
     try:
         query = text("""
           INSERT INTO lote_produccion (
-                fecha_siembra, fecha_cosecha, cantidad_inicial,
+                fecha_siembra, fecha_cosecha, cantidad,
                 especie_id, categoria_id, estado_lote, user_id, lote_granj_id
           ) VALUES (
-              :fecha_siembra, :fecha_cosecha, :cantidad_inicial,
+              :fecha_siembra, :fecha_cosecha, :cantidad,
               :especie_id, :categoria_id, :estado_lote, :user_id, :lote_granj_id
           )
       """)
@@ -33,7 +33,7 @@ def get_all_lotes(db: Session, estado: Optional[str] = None):
         where_clause = "WHERE l_p.estado_lote = :estado" if estado else ""
 
         query = text(f"""
-            SELECT l_p.id_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
+            SELECT l_p.id_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad,
                    l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id,
                    e.nombre_especie, c.nombre_categoria, u.nombre_user, l_g.nombre_lote
             FROM lote_produccion AS l_p
@@ -52,10 +52,11 @@ def get_all_lotes(db: Session, estado: Optional[str] = None):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener lotes: {e}")
         raise Exception("Error de base de datos al obtener los lotes")
+
 def get_lote_by_id(db: Session, id: int):
     try:
         query = text("""
-                     SELECT  l_p.id_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
+                     SELECT  l_p.id_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad,
                      l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id, l_p.lote_granj_id,
                      e.nombre_especie, c.nombre_categoria, u.nombre_user, l_g.nombre_lote
                      FROM lote_produccion AS l_p
@@ -130,7 +131,7 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
 
         # Lotes paginados
         data_query = text(""" 
-                        SELECT  l_p.id_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad_inicial,
+                        SELECT  l_p.id_lote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad,
                         l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id, l_p.lote_granj_id,
                         e.nombre_especie, c.nombre_categoria, u.nombre_user, l_g.nombre_lote
                         FROM lote_produccion AS l_p

@@ -14,7 +14,7 @@ class LoteBase(BaseModel):
     lote_granj_id: int
     fecha_siembra: datetime
     fecha_cosecha: datetime
-    cantidad_inicial: int
+    cantidad: int
     especie_id: int
     categoria_id: int
     estado_lote: LoteEstado
@@ -26,7 +26,7 @@ class LoteCreate(LoteBase):
 class LoteUpdate(BaseModel):
    fecha_siembra: Optional[datetime] = None
    fecha_cosecha: Optional[datetime] = None
-   cantidad_inicial: Optional[int] = None
+   cantidad: Optional[int] = None
    especie_id: Optional[int] = None
    categoria_id: Optional[int] = None
    user_id: Optional[int] = None

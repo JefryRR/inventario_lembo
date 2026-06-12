@@ -14,7 +14,7 @@ type LoteFormState = {
   nombre_lote: string;
   fecha_siembra: string;
   fecha_cosecha: string;
-  cantidad_inicial: number;
+  cantidad: number;
   especie_id: number;
   categoria_id: number;
   estado_lote: LoteEstado;
@@ -40,7 +40,7 @@ const emptyState: LoteFormState = {
   nombre_lote: "",
   fecha_siembra: "",
   fecha_cosecha: "",
-  cantidad_inicial: 0,
+  cantidad: 0,
   especie_id: 0,
   categoria_id: 0,
   estado_lote: "activo",
@@ -129,7 +129,7 @@ export default function LotesEdit() {
           nombre_lote: loteData?.nombre_lote || "",
           fecha_siembra: toDatetimeLocal(loteData?.fecha_siembra),
           fecha_cosecha: toDatetimeLocal(loteData?.fecha_cosecha),
-          cantidad_inicial: Number(loteData?.cantidad_inicial ?? 0),
+          cantidad: Number(loteData?.cantidad ?? 0),
           especie_id: Number(loteData?.especie_id ?? 0),
           categoria_id: Number(loteData?.categoria_id ?? 0),
           estado_lote: (loteData?.estado_lote as LoteEstado) || "activo",
@@ -156,7 +156,7 @@ export default function LotesEdit() {
     (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const value = event.target.value;
 
-      if (field === "cantidad_inicial" || field === "especie_id" || field === "categoria_id" || field === "user_id") {
+      if (field === "cantidad" || field === "especie_id" || field === "categoria_id" || field === "user_id") {
         setForm((current) => ({
           ...current,
           [field]: Number(value),
@@ -197,7 +197,7 @@ export default function LotesEdit() {
           nombre_lote: form.nombre_lote.trim(),
           fecha_siembra: form.fecha_siembra,
           fecha_cosecha: form.fecha_cosecha,
-          cantidad_inicial: Number(form.cantidad_inicial),
+          cantidad: Number(form.cantidad),
           especie_id: Number(form.especie_id),
           categoria_id: Number(form.categoria_id),
           user_id: Number(form.user_id),
@@ -272,8 +272,8 @@ export default function LotesEdit() {
                   </label>
                   <input
                     type="number"
-                    value={form.cantidad_inicial}
-                    onChange={handleChange("cantidad_inicial")}
+                    value={form.cantidad}
+                    onChange={handleChange("cantidad")}
                     min={1}
                     className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required

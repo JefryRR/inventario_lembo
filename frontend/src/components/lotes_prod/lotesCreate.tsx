@@ -15,7 +15,7 @@ type LoteFormState = {
   nombre_lote: string;
   fecha_siembra: string;
   fecha_cosecha: string;
-  cantidad_inicial: string | number;
+  cantidad: string | number;
   especie_id: number;
   categoria_id: number;
   estado_lote: LoteEstado;
@@ -47,7 +47,7 @@ const initialState: LoteFormState = {
   nombre_lote: "",
   fecha_siembra: "",
   fecha_cosecha: "",
-  cantidad_inicial: "" as string | number,
+  cantidad: "" as string | number,
   especie_id: 0,
   categoria_id: 0,
   estado_lote: "activo",
@@ -161,7 +161,7 @@ export default function LotesCreate() {
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const value = event.target.value;
 
-        if (field === "cantidad_inicial" || field === "especie_id" || field === "categoria_id" || field === "user_id") {
+        if (field === "cantidad" || field === "especie_id" || field === "categoria_id" || field === "user_id") {
           setForm((current) => ({
             ...current,
             [field]: Number(value),
@@ -195,7 +195,7 @@ export default function LotesCreate() {
       return;
     }
 
-    const cantidadValue = parseFloat(String(form.cantidad_inicial));
+    const cantidadValue = parseFloat(String(form.cantidad));
 
     if (isNaN(cantidadValue) || cantidadValue <= 0) {
         setError("La cantidad inicial debe ser un número mayor a 0");
@@ -208,7 +208,7 @@ export default function LotesCreate() {
         nombre_lote: form.nombre_lote.trim(),
         fecha_siembra: form.fecha_siembra,
         fecha_cosecha: form.fecha_cosecha,
-        cantidad_inicial: cantidadValue,
+        cantidad: cantidadValue,
         especie_id: Number(form.especie_id),
         categoria_id: Number(form.categoria_id),
         estado_lote: form.estado_lote,
@@ -278,8 +278,8 @@ export default function LotesCreate() {
               </label>
               <input
                 type="number"
-                value={form.cantidad_inicial}
-                onChange={(e) => setForm({ ...form, cantidad_inicial: e.target.value })}
+                value={form.cantidad}
+                onChange={(e) => setForm({ ...form, cantidad: e.target.value })}
                 className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                 placeholder="0"
                 required
