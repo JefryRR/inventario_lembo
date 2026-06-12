@@ -138,6 +138,7 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                         LEFT JOIN users AS u ON l_p.user_id = u.id_user
                         LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
+                        ORDER BY l_p.fecha_cosecha DESC
                         LIMIT :limit OFFSET :skip
                     """)
 

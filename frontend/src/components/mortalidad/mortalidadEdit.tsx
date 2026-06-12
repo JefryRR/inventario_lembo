@@ -53,6 +53,7 @@ export default function MortalidadEdit() {
   const [lotes, setLotes] = useState<LoteOption[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -102,7 +103,7 @@ export default function MortalidadEdit() {
         });
       } catch (requestError: any) {
         if (!mounted) return;
-        setError(requestError?.detail || requestError?.message || "No se pudo cargar el registro de mortalidad");
+        setLoadError(requestError?.detail || requestError?.message || "No se pudo cargar el registro de mortalidad");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -188,8 +189,8 @@ export default function MortalidadEdit() {
         <form onSubmit={handleSubmit} className="p-5 lg:p-6">
           {loading ? (
             <div className="p-6 text-center text-sm text-gray-500">Cargando registro...</div>
-          ) : error ? (
-            <div className="p-6 text-center text-sm text-error-500">{error}</div>
+          ) : error && !form.lote_id ? (
+              <div className="p-6 text-center text-sm text-error-500">{error}</div>
           ) : (
             <>
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">

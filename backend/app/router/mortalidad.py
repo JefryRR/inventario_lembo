@@ -90,9 +90,12 @@ def update_mortalidad_by_id( id_mortalidad: int, mortalidad: MortalidadUpdate, d
         if not success:
             raise HTTPException(status_code=400, detail="No se pudo actualizar el registro de mortalidad")
         return {"message": "Registro de mortalidad actualizado correctamente"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/paginated", response_model=PaginatedMortalidad)
 def get_all_mortalidad_pag(

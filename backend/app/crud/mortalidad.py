@@ -24,7 +24,8 @@ def create_mortalidad(db: Session, mortalidad: MortalidadCreate, user_id: int) -
         raise
     except SQLAlchemyError as e:
         db.rollback()
-        error_msg = str(e.orig) if hasattr(e, "orig") and e.orig else str(e)
+        orig = getattr(e, "orig", None)
+        error_msg = orig.args[1] if orig and len(orig.args) > 1 else str(e)
         raise Exception(error_msg)
 
 def get_all_mortalidad(db: Session):
@@ -86,10 +87,13 @@ def update_mortalidad_by_id(db: Session, id_mortalidad: int, mortalidad: Mortali
         result = db.execute(sentencia, mortalidad_data)
         db.commit()
         return result.rowcount > 0
+    except ValueError:
+        raise
     except SQLAlchemyError as e:
-            db.rollback()
-            logger.error(f"Error al actualizar mortalidad {id_mortalidad}: {e}")
-            raise Exception("Error de base de datos al actualizar el registro de mortalidad")
+        db.rollback()
+        orig = getattr(e, "orig", None)
+        error_msg = orig.args[1] if orig and len(orig.args) > 1 else str(e)
+        raise Exception(error_msg)
 
 def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10):
     """
