@@ -4,8 +4,6 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-// ── Tipos ────────────────────────────────────────────────────────────────────
-
 type LoteRow = {
 	id_lote: number;
 	nombre_lote: string;
@@ -106,7 +104,7 @@ export default function InformeLote() {
 				// Ambas peticiones en paralelo
 				const [loteData, mortalidadData] = await Promise.all([
 					apiFetch(`lotes_prod/by-id?lote_id=${id}`) as Promise<LoteRow>,
-					apiFetch(`mortalidad/by-id?id_mortalidad=${id}`) as Promise<MortalidadRow[]>,
+                    apiFetch(`mortalidad/by-lote?lote_id=${id}`) as Promise<MortalidadRow[]>,
 				]);
 
 				if (!mounted) return;

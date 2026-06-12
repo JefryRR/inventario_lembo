@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Query #type: ignore
+from sqlalchemy.orm import Session #type: ignore
+from typing import List
 from app.core.database import get_db
 from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
@@ -67,6 +68,21 @@ def get_mortalidad_by_id(id_mortalidad: int, db: Session = Depends(get_db),
         return mortalidad
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/by-lote", response_model=List[MortalidadOut])
+def get_mortalidad_by_lote(
+    lote_id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        return crud_mortalidad.get_mortalidad_by_lote(db, lote_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/by-id/{mortalidad_id}")
 def update_mortalidad_by_id( id_mortalidad: int, mortalidad: MortalidadUpdate, db: Session = Depends(get_db),

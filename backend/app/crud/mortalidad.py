@@ -67,6 +67,27 @@ def get_mortalidad_by_id(db: Session, id: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener mortalidad por id: {e}")
         raise Exception("Error de base de datos al obtener la mortalidad")
+    
+def get_mortalidad_by_lote(db: Session, lote_id: int):
+    try:
+        query = text("""
+            SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion,
+                   e.nombre_especie, c.nombre_categoria, m_p.user_id,
+                   l_g.nombre_lote, u.nombre_user
+            FROM mortalidad_produccion AS m_p
+            LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
+            LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
+            LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+            LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
+            LEFT JOIN users AS u ON m_p.user_id = u.id_user
+            WHERE m_p.lote_id = :lote_id
+            ORDER BY m_p.fecha_reporte ASC
+        """)
+        result = db.execute(query, {"lote_id": lote_id}).mappings().all()
+        return list(result)  # lista vacía [] si no hay registros, nunca 404
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener mortalidad por lote: {e}")
+        raise Exception("Error de base de datos al obtener la mortalidad del lote")
 
 def update_mortalidad_by_id(db: Session, id_mortalidad: int, mortalidad: MortalidadUpdate) -> Optional[bool]:
     try:
