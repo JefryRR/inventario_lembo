@@ -35,6 +35,12 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
+function isEditDisabled(cantidad: number, alerta: string): boolean {
+    if (alerta.toLowerCase() === "este inventario está vencido") return true;
+    if (cantidad <= 0) return true;
+    return false;
+}
+
 const TABLE_COLUMNS = 10;
 
 export default function Inv_prod() {
@@ -328,7 +334,7 @@ export default function Inv_prod() {
                                         <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_prod.valor_unitario}</div>
                                         </td>
-                                         <td className="px-5 py-4 text-left text-xs text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-left text-xs text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_prod.valor_unitario * inv_prod.cantidad}</div>
                                         </td>
                                         <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
@@ -336,16 +342,23 @@ export default function Inv_prod() {
                                         </td>
                                         <td className="px-3 py-4 text-center">
                                             <div className="flex flex-col items-center gap-2">
-                                            <Link
-                                                to={`/invProd/edit/${inv_prod.id_inventario}`}
-                                                className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                                                Editar
-                                            </Link>
-                                            <Link
-                                                to={`/invProd/report/${inv_prod.id_inventario}`}
-                                                className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
-                                                Informe
-                                            </Link>
+
+                                                {isEditDisabled(inv_prod.cantidad, inv_prod.nivel_alerta) ? (
+                                                    <span className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+                                                        Editar
+                                                    </span>
+                                                ) : (
+                                                    <Link
+                                                        to={`/invProd/edit/${inv_prod.id_inventario}`}
+                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                                        Editar
+                                                    </Link>
+                                                )}
+                                                <Link
+                                                    to={`/invProd/report/${inv_prod.id_inventario}`}
+                                                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
+                                                    Informe
+                                                </Link>
                                             </div>
                                         </td>
                                     </tr>

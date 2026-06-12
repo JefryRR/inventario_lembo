@@ -12,12 +12,13 @@ router = APIRouter()
 modulo = 11 # ID del módulo de lotes para verificar permisos
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
-def create_mortalidad(mortalidad: MortalidadCreate, db: Session = Depends(get_db),
-                      user_token: UserOut = Depends(get_current_user)
-                      ):
+def create_mortalidad(
+    mortalidad: MortalidadCreate, 
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+    ):
     try:
         id_rol = user_token.rol_id
-        
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
@@ -30,7 +31,8 @@ def create_mortalidad(mortalidad: MortalidadCreate, db: Session = Depends(get_db
         
         crud_mortalidad.create_mortalidad(db, mortalidad, user_token.id_user)
         return {"message": "Registro de mortalidad creado correctamente"}
-    
+    except ValueError as e:
+      raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
 

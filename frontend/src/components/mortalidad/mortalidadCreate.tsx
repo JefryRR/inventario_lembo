@@ -39,34 +39,26 @@ export default function MortalidadCreate() {
 	useEffect(() => {
 		let mounted = true;
 
-		const loadCatalogs = async () => {
+		const loadLotes = async () => {
 			setLoadingLotes(true);
 
-			try {
-				const [lotesData] = await Promise.all([
-					apiFetch("lotes_prod/all-lotes_prod"),
-				]);
+			const extractLotes = (data: any): LoteOption[] =>
+				Array.isArray(data?.lotes) ? data.lotes :
+					Array.isArray(data) ? data : [];
 
-				if (!mounted) return;
+			const resultados: LoteOption[] = [];
 
-				const loteList = Array.isArray(lotesData?.lotes)
-					? lotesData.lotes
-					: Array.isArray(lotesData)
-					? lotesData
-					: [];
+			try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=activo"))); } catch { }
+			try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=cuarentena"))); } catch { }
+			try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=listo_cosecha"))); } catch { }
 
-				setLotes(loteList);
-			} catch (requestError: any) {
-				if (!mounted) return;
-				setError(requestError?.detail || requestError?.message || "No se pudieron cargar los catálogos");
-			} finally {
-				if (mounted) {
-					setLoadingLotes(false);
-				}
-			}
+			if (!mounted) return;
+
+			setLotes(resultados);
+			setLoadingLotes(false);
 		};
 
-		loadCatalogs();
+		loadLotes();
 
 		return () => {
 			mounted = false;
@@ -75,21 +67,21 @@ export default function MortalidadCreate() {
 
 	const handleChange =
 		(field: keyof MortalidadFormState) =>
-		(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-			const value = event.target.value;
+			(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+				const value = event.target.value;
 
-			if (field === "cantidad" || field === "lote_id" || field === "user_id") {
-				setForm((current) => ({ ...current, [field]: Number(value) }));
-				return;
-			}
+				if (field === "cantidad" || field === "lote_id" || field === "user_id") {
+					setForm((current) => ({ ...current, [field]: Number(value) }));
+					return;
+				}
 
-			if (field === "observacion") {
-				setForm((current) => ({ ...current, observacion: value || null }));
-				return;
-			}
+				if (field === "observacion") {
+					setForm((current) => ({ ...current, observacion: value || null }));
+					return;
+				}
 
-			setForm((current) => ({ ...current, [field]: value }));
-		};
+				setForm((current) => ({ ...current, [field]: value }));
+			};
 
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();

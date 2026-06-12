@@ -16,6 +16,7 @@ class InsumoCreate(InsumoBase):
     pass
 
 class InsumoUpdate(BaseModel):
+    nombre_producto: Optional[str] = Field(None, min_length=1, max_length=100)
     cantidad: Optional[int] = None
     unid_medida_id: Optional[int] = None
     precio_unitario: Optional[float] = None
