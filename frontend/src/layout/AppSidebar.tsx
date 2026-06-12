@@ -40,21 +40,21 @@ const modulosItems: NavItem[] = [
     icon: <UserCircleIcon />,
     name: "Módulo usuarios",
     subItems: [
-      {
-        name: "Usuarios",
-        path: "/users",
-      },
       { 
-        name: "Roles",
-        path: "/roles",
+        name: "Módulos",
+        path: "/modulos",
       },
       { 
         name: "Permisos",
         path: "/permisos",
       },
       { 
-        name: "Módulos",
-        path: "/modulos",
+        name: "Roles",
+        path: "/roles",
+      },
+      {
+        name: "Usuarios",
+        path: "/users",
       },
     ],
   },
@@ -62,6 +62,14 @@ const modulosItems: NavItem[] = [
     icon: <FolderIcon />,
     name: "Módulo operativo",
     subItems: [
+      {
+        name: "Alimentos de producción",
+        path: "/alimentos",
+      },
+        {
+        name: "Lotes de granja",
+        path: "/lotesGranja",
+      },
       {
         name: "Lotes de producción",
         path: "/lotesProd",
@@ -71,17 +79,8 @@ const modulosItems: NavItem[] = [
         path: "/mortalidad",
       },
       {
-        name: "Lotes de granja",
-        path: "/lotesGranja",
-      },
-
-      {
         name: "Tratamiento",
         path: "/tratamientos",
-      },
-      {
-        name: "Alimentos de producción",
-        path: "/alimentos",
       },
     ],
   },
@@ -89,18 +88,19 @@ const modulosItems: NavItem[] = [
     icon: <TableIcon />,
     name: "Módulo de inventarios",
     subItems: [
-      {
-        name: "Inventario de producción",
-        path: "/invProd",
+       {
+        name: "Inventario de insumos",
+        path: "/invInsumo",
       },
       {
         name: "Inventario de perdidas",
         path: "/invPerd",
       },
       {
-        name: "Inventario de insumos",
-        path: "/invInsumo",
+        name: "Inventario de producción",
+        path: "/invProd",
       },
+     
     ],
   },
   {
@@ -108,12 +108,12 @@ const modulosItems: NavItem[] = [
     name: "Módulo de ventas",
     subItems: [
       {
-        name: "Ventas",
-        path: "/ventas",
-      },
-      {
         name: "Historial de ventas",
         path: "/ventas/historial",
+      },
+      {
+        name: "Ventas",
+        path: "/ventas",
       },
     ],
   },

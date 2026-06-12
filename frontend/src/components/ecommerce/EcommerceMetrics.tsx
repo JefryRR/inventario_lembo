@@ -96,17 +96,10 @@ export default function EcommerceMetrics() {
 
         if (mounted) {
           setTotalMensual(total);
-          console.log("perdidas raw:", perdidas);
-          console.log("mesAnioActual:", mesAnioActual);
-          console.log("perdidas filtradas:", perdidas.filter(
-            (p) => p.fecha_reporte?.slice(0, 7) === mesAnioActual && p.origen === "produccion"
-          ));
           setTotalPerdidas(totalPerdidasMes);
         }
-
-
       } catch (err) {
-        console.error("Error al cargar métricas:", err);
+        console.error("Error al cargar métricas de ecommerce:", err);
       } finally {
         if (mounted) setLoading(false);
       }

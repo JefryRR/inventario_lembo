@@ -21,17 +21,17 @@ def create_perdida(
     try:
         id_rol = user_token.rol_id       
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
-            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
         
         inv_perdida_crud.create_perdida(db, perdida, user_token.id_user)
         return {"message": "Pérdida registrada correctamente"}
-    except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-    except Exception as e:                                        # ← agrega este
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+      
 @router.get("/by-id",  response_model=PerdidaOut)
 def get_perdida_by_id(id: int, 
               db: Session = Depends(get_db),

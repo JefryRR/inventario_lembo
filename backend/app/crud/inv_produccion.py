@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 def create_produccion(db: Session, produccion: ProduccionCreate):
     try:
-
         query = text("""INSERT INTO inv_produccion 
                         (nombre_producto, cantidad, unid_medida_id, fecha_ingreso, fecha_vencimiento, lote_id, valor_unitario 
                         ) VALUES (

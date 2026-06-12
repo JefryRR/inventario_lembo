@@ -146,7 +146,7 @@ export default function App() {
             <Route path="/alimentos" element={<Alimentos />} />
             <Route path="/alimentos/create" element={<AlimentosCreate />} />
             <Route path="/alimentos/edit/:id" element={<AlimentosEdit />} />
-            <Route path="/invInsumo/edit/:id" element={<InvinsumoEdit />} />
+            <Route path="/invInsumo/edit/:id_insumo" element={<InvinsumoEdit />} />
             <Route path="/invInsumo" element={<Invinsumo />} />
             <Route path="/invInsumo/create" element={<InvinsumoCreate />} />
             <Route path="/invInsumo/report/:id_insumo" element={<InformeInsumo />} />

@@ -24,7 +24,7 @@ def create_detalle_venta(
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
         detalle_id = crud_detalles.create_detalle_venta(db, detalle)
-        return {"message": "Detalle de venta registrado correctamente", "id_detalle_venta": detalle_id}
+        return {"message": "Detalle de venta registrado correctamente"}
     except HTTPException:
         raise
     except Exception as e:

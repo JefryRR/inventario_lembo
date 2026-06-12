@@ -325,6 +325,7 @@ def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10):
                         FROM inv_insumos AS i_in
                         INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
                         LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
+                        ORDER BY i_in.fecha_vencimiento ASC
                         LIMIT :limit OFFSET :skip
                     """)
 

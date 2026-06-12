@@ -3,34 +3,22 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-type Inv_prodFormState = {
-    nombre_producto: string,
-    cantidad: string,
-    unid_medida_id: string,
-    fecha_vencimiento: string,
-    lote_id: string,
-    valor_unitario: string,
-    nombre_lote: string,
-    categoria_id: string,
-    especie_id: string,
-    nombre_categoria: string,
-    nombre_especie: string,
-    simbolo: string,
+type Inv_insumoFormState = {
+    id_insumo: string;
+    nombre_producto: string;
+    cantidad: string;
+    unid_medida_id: string;
+    precio_unitario: string;
+    fecha_vencimiento: string;
+    tipo_id: string;
+    min_stock: string;
+    nombre_tipo: string;
+    simbolo: string;
 };
 
-type LoteOption = {
-    id_lote: number;
-    nombre_lote: string;
-};
-
-type CategoriaOption = {
-    id_categoria: number;
-    nombre_categoria: string;
-};
-
-type EspecieOption = {
-    id_especie: number;
-    nombre_especie: string;
+type tipo_insumoOption = {
+    id_tipo_insumo: number;
+    nombre_tipo: string;
 };
 
 type Unid_medOption = {
@@ -38,32 +26,28 @@ type Unid_medOption = {
     simbolo: string;
 };
 
-const emptyState: Inv_prodFormState = {
+const emptyState: Inv_insumoFormState = {
+    id_insumo: "",
     nombre_producto: "",
     cantidad: "",
     unid_medida_id: "",
+    precio_unitario: "",
     fecha_vencimiento: "",
-    lote_id: "",
-    valor_unitario: "",
-    nombre_lote: "",
-    categoria_id: "",
-    especie_id: "",
-    nombre_categoria: "",
-    nombre_especie: "",
-    simbolo: ""
+    tipo_id: "",
+    min_stock: "",
+    nombre_tipo: "",
+    simbolo: "",
 };
 
-export default function Inv_prodEdit() {
+export default function Inv_insumoEdit() {
     const navigate = useNavigate();
     const params = useParams();
-    const id = params.id_inventario;
+    const id = params.id_insumo;
 
-    const [form, setForm] = useState<Inv_prodFormState>(emptyState);
+    const [form, setForm] = useState<Inv_insumoFormState>(emptyState);
     const [loading, setLoading] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
-    const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
-    const [especies, setEspecies] = useState<EspecieOption[]>([]);
-    const [lotes, setLotes] = useState<LoteOption[]>([]);
+    const [tipoIns, setTipoins] = useState<tipo_insumoOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
@@ -76,6 +60,7 @@ export default function Inv_prodEdit() {
     };
 
     useEffect(() => {
+        console.log("ID INSUMO:", id);
         if (!id) return;
 
         let mounted = true;
@@ -83,49 +68,40 @@ export default function Inv_prodEdit() {
             setLoading(true);
             setError(null);
             try {
-                const [invProdData, lotesData, UnidMedidasData, CategoriasData, EspeciesData] = await Promise.all([
-                    apiFetch(`inv_produccion/by-id?id=${id}`),
-                    apiFetch(`lotes/all-lotes_prod`),
+                const [invInsumoData, tipoInsData, UnidMedidasData] = await Promise.all([
+                    apiFetch(`inv_insumos/by-id/?id_insumo=${id}`),
                     apiFetch(`unid-medida/all-unid_medidas`),
-                    apiFetch(`categorias/all-categorias`),
-                    apiFetch(`especies/all-especies`),
+                    apiFetch(`tipo_insumos/all-tipo_insumo`),
                 ]);
                 if (!mounted) return;
-
-                const lotesList = Array.isArray(lotesData?.lotes) ? lotesData.Lotes :
-                    Array.isArray(lotesData) ? lotesData : [];
 
                 const unidMedList = Array.isArray(UnidMedidasData?.unid_medidas) ? UnidMedidasData.unid_medidas :
                     Array.isArray(UnidMedidasData) ? UnidMedidasData : [];
 
-                const categoriasList = Array.isArray(CategoriasData?.categorias) ? CategoriasData.categorias :
-                    Array.isArray(CategoriasData) ? CategoriasData : [];
+                const tipoInsList = Array.isArray(tipoInsData?._id_tipo_insumo) ? tipoInsData._id_tipo_insumo :
+                    Array.isArray(tipoInsData) ? tipoInsData : [];
 
-                const especiesList = Array.isArray(EspeciesData?.especies) ? EspeciesData.especies :
-                    Array.isArray(EspeciesData) ? EspeciesData : [];
+                console.log("INSUMO:", invInsumoData);
+                console.log("UNIDADES:", UnidMedidasData);
+                console.log("TIPOS:", tipoInsData);
 
                 setForm({
-                    nombre_producto: invProdData?.nombre_producto || "",
-                    cantidad: String(invProdData?.cantidad ?? ""),
-                    unid_medida_id: invProdData?.unid_medida_id ? String(invProdData.unid_medida_id) : "",
-                    fecha_vencimiento: toDateInputValue(invProdData?.fecha_vencimiento),
-                    lote_id: invProdData?.lote_id ? String(invProdData.lote_id) : "",
-                    valor_unitario: invProdData?.valor_unitario ? String(invProdData.valor_unitario) : "",
-                    nombre_lote: invProdData?.nombre_lote || "",
-                    categoria_id: invProdData?.categoria_id ? String(invProdData.categoria_id) : "",
-                    especie_id: invProdData?.especie_id ? String(invProdData.especie_id) : "",
-                    nombre_categoria: invProdData?.nombre_categoria || "",
-                    nombre_especie: invProdData?.nombre_especie || "",
-                    simbolo: invProdData?.simbolo || ""
+                    id_insumo: invInsumoData?.id_insumo || "",
+                    nombre_producto: invInsumoData?.nombre_producto || "",
+                    cantidad: invInsumoData?.cantidad || "",
+                    unid_medida_id: invInsumoData?.unid_medida_id || "",
+                    precio_unitario: invInsumoData?.precio_unitario || "",
+                    fecha_vencimiento: toDateInputValue(invInsumoData?.fecha_vencimiento || ""),
+                    tipo_id: invInsumoData?.tipo_id || "",
+                    min_stock: invInsumoData?.min_stock || "",
+                    nombre_tipo: invInsumoData?.nombre_tipo || "",
+                    simbolo: invInsumoData?.simbolo || "",
                 });
 
-                setLotes(lotesList);
+                setTipoins(tipoInsList);
                 setUnidMedidas(unidMedList);
-                setCategorias(categoriasList);
-                setEspecies(especiesList);
-
             } catch (err: any) {
-                setError(err?.detail || err?.message || "No se pudo cargar el registro del producto");
+                setError(err?.detail || err?.message || "No se pudo cargar el registro del insumo");
             } finally {
                 if (mounted) setLoading(false);
             }
@@ -138,7 +114,7 @@ export default function Inv_prodEdit() {
     }, [id]);
 
     const handleChange =
-        (field: keyof Inv_prodFormState) =>
+        (field: keyof Inv_insumoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
                 const value = event.target.value;
                 setForm((current) => ({ ...current, [field]: value }));
@@ -157,17 +133,16 @@ export default function Inv_prodEdit() {
                 cantidad: Number(form.cantidad),
                 unid_medida_id: Number(form.unid_medida_id),
                 fecha_vencimiento: form.fecha_vencimiento,
-                lote_id: Number(form.lote_id),
-                valor_unitario: Number(form.valor_unitario),
-                categoria_id: Number(form.categoria_id),
-                especie_id: Number(form.especie_id),
+                min_stock: Number(form.min_stock),
+                tipo_id: Number(form.tipo_id),
+                precio_unitario: Number(form.precio_unitario),
             };
 
-            await apiFetch(`inv_produccion/update/${id}`, { method: "PUT", body: payload });
-            setSuccess("Producto actualizado correctamente");
-            setTimeout(() => navigate("/invProd"), 800);
+            await apiFetch(`inv_insumos/update_by_id/${id}`, { method: "PUT", body: payload });
+            setSuccess("Insumo actualizado correctamente");
+            setTimeout(() => navigate("/invInsumo"), 800);
         } catch (err: any) {
-            setError(err?.detail || err?.message || "No se pudo actualizar el producto");
+            setError(err?.detail || err?.message || "No se pudo actualizar el insumo");
         } finally {
             setSaving(false);
         }
@@ -178,16 +153,16 @@ export default function Inv_prodEdit() {
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Editar producto</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Actualiza los datos del producto.</p>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Editar insumo</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Actualiza los datos del insumo.</p>
                     </div>
 
-                    <Link to="/invProd" className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Volver a productos</Link>
+                    <Link to="/invInsumo" className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Volver a insumos</Link>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-5 lg:p-6">
                     {loading ? (
-                        <div className="p-6 text-center text-sm text-gray-500">Cargando producto...</div>
+                        <div className="p-6 text-center text-sm text-gray-500">Cargando insumo...</div>
                     ) : error ? (
                         <div className="p-6 text-center text-sm text-error-500">{error}</div>
                     ) : (
@@ -199,7 +174,7 @@ export default function Inv_prodEdit() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Cantidad <span className="text-error-500">*</span></label>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Cantidad<span className="text-error-500">*</span></label>
                                     <input type="number" value={form.cantidad} onChange={handleChange("cantidad")} placeholder="100" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" required />
                                 </div>
 
@@ -222,47 +197,20 @@ export default function Inv_prodEdit() {
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre lote <span className="text-error-500">*</span></label>
-                                    <select value={form.lote_id} onChange={handleChange("lote_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.lote_id && !lotes.some((lote) => String(lote.id_lote) === form.lote_id) && (
-                                            <option value={form.lote_id}>{form.nombre_lote || "Lote asignado"}</option>
+                                    <select value={form.tipo_id} onChange={handleChange("tipo_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                        {form.tipo_id && !tipoIns.some((tipo_insumo) => String(tipo_insumo.id_tipo_insumo) === form.tipo_id) && (
+                                            <option value={form.tipo_id}>{form.nombre_tipo || "Tipo insumo asignado"}</option>
                                         )}
-                                        {lotes.map((lote) => (
-                                            <option key={lote.id_lote} value={String(lote.id_lote)}>
-                                                {lote.nombre_lote}
+                                        {tipoIns.map((tipo_insumo) => (
+                                            <option key={tipo_insumo.id_tipo_insumo} value={String(tipo_insumo.id_tipo_insumo)}>
+                                                {tipo_insumo.nombre_tipo}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Valor unitario</label>
-                                    <input type="number" value={form.valor_unitario} onChange={handleChange("valor_unitario")} placeholder="12785.00" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" minLength={1} />
-                                </div>
-
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Categoría producto <span className="text-error-500">*</span></label>
-                                    <select value={form.categoria_id} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.categoria_id && !categorias.some((categoria) => String(categoria.id_categoria) === form.categoria_id) && (
-                                            <option value={form.categoria_id}>{form.nombre_categoria || "Categoría asignada"}</option>
-                                        )}
-                                        {categorias.map((categoria) => (
-                                            <option key={categoria.id_categoria} value={String(categoria.id_categoria)}>
-                                                {categoria.nombre_categoria}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Especie producto <span className="text-error-500">*</span></label>
-                                    <select value={form.especie_id} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.especie_id && !especies.some((especie) => String(especie.id_especie) === form.especie_id) && (
-                                            <option value={form.especie_id}>{form.nombre_especie || "Especie asignada"}</option>
-                                        )}
-                                        {especies.map((especie) => (
-                                            <option key={especie.id_especie} value={String(especie.id_especie)}>
-                                                {especie.nombre_especie}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <input type="number" value={form.precio_unitario} onChange={handleChange("precio_unitario")} placeholder="12785.00" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" minLength={1} />
                                 </div>
                             </div>
 
@@ -277,12 +225,12 @@ export default function Inv_prodEdit() {
                             <div className="mt-6 flex flex-wrap gap-3">
                                 <button type="submit"
                                     disabled={saving}
-                                    className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "Guardando..." : "Actualizar producto"}
+                                    className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "Guardando..." : "Actualizar insumo"}
                                 </button>
-                                <Link to="/invProd"
-                                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                                <Link to="/invInsumo"
+                                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
                                     Cancelar
-                                    </Link>
+                                </Link>
                             </div>
                         </>
                     )}

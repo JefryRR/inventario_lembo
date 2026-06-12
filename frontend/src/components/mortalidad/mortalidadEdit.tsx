@@ -61,32 +61,36 @@ export default function MortalidadEdit() {
     if (!id) return;
     let mounted = true;
 
+    const extractLotes = (data: any): LoteOption[] =>
+      Array.isArray(data?.lotes) ? data.lotes :
+        Array.isArray(data) ? data : [];
+
     const load = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const [mData, lotesData, usersData] = await Promise.all([
+        // Lotes por separado para manejar estados vacíos
+        const resultados: LoteOption[] = [];
+        try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=activo"))); } catch { }
+        try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=cuarentena"))); } catch { }
+        try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=listo_cosecha"))); } catch { }
+
+        // El resto en paralelo
+        const [mData, usersData] = await Promise.all([
           apiFetch(`mortalidad/by-id?id_mortalidad=${id}`),
-          apiFetch("lotes/all-lotes_prod"),
           apiFetch("users/all-users-except-admins"),
         ]);
 
         if (!mounted) return;
 
-        const loteList = Array.isArray(lotesData?.lotes)
-          ? lotesData.lotes
-          : Array.isArray(lotesData)
-          ? lotesData
-          : [];
-
         const userList = Array.isArray(usersData?.users)
           ? usersData.users
           : Array.isArray(usersData)
-          ? usersData
-          : [];
+            ? usersData
+            : [];
 
-        setLotes(loteList);
+        setLotes(resultados);
         setUsers(userList);
 
         setForm({
@@ -113,20 +117,20 @@ export default function MortalidadEdit() {
 
   const handleChange =
     (field: keyof MortalidadFormState) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      const value = event.target.value;
-      if (field === "cantidad" || field === "lote_id" || field === "user_id") {
-        setForm((current) => ({ ...current, [field]: Number(value) }));
-        return;
-      }
+      (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const value = event.target.value;
+        if (field === "cantidad" || field === "lote_id" || field === "user_id") {
+          setForm((current) => ({ ...current, [field]: Number(value) }));
+          return;
+        }
 
-      if (field === "observacion") {
-        setForm((current) => ({ ...current, observacion: value || null }));
-        return;
-      }
+        if (field === "observacion") {
+          setForm((current) => ({ ...current, observacion: value || null }));
+          return;
+        }
 
-      setForm((current) => ({ ...current, [field]: value }));
-    };
+        setForm((current) => ({ ...current, [field]: value }));
+      };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -259,12 +263,12 @@ export default function MortalidadEdit() {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Observación</label>
-                    <textarea
-                      value={form.observacion || ""}
-                      onChange={handleChange("observacion")}
-                      className="h-28 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                      maxLength={255}
-                    />
+                  <textarea
+                    value={form.observacion || ""}
+                    onChange={handleChange("observacion")}
+                    className="h-28 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                    maxLength={255}
+                  />
                 </div>
               </div>
 

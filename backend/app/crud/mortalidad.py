@@ -20,10 +20,12 @@ def create_mortalidad(db: Session, mortalidad: MortalidadCreate, user_id: int) -
         db.execute(query, {**mortalidad.model_dump(), "user_id": user_id})
         db.commit()
         return True
+    except ValueError:
+        raise
     except SQLAlchemyError as e:
-      db.rollback()
-      logger.error(f"Error al registrar mortalidad: {e}")
-      raise Exception("Error de base de datos al crear el registro de mortalidad")
+        db.rollback()
+        error_msg = str(e.orig) if hasattr(e, "orig") and e.orig else str(e)
+        raise Exception(error_msg)
 
 def get_all_mortalidad(db: Session):
     try:

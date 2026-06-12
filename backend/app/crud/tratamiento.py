@@ -180,7 +180,6 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
                         ORDER BY t_p.id_tratamiento DESC
                         LIMIT :limit OFFSET :skip
                     """)
-
         tratamiento_list = db.execute(
             data_query,
             {
