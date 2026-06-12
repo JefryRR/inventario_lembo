@@ -229,12 +229,18 @@ export default function Lotes() {
 										</td>
 
 										<td className="px-5 py-4">
-											<Link
-												to={`/lotesProd/edit/${lote.id_lote}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-											>
-												Editar
-											</Link>
+											<div className="flex flex-col items-center gap-2">
+												<Link
+													to={`/lotesProd/edit/${lote.id_lote}`}
+													className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+													Editar
+												</Link>
+												<Link
+													to={`/lotesProd/report/${lote.id_lote}`}
+													className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
+													Informe
+												</Link>
+											</div>
 										</td>
 									</tr>
 								))

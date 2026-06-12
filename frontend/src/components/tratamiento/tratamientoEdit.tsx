@@ -292,7 +292,7 @@ export default function TratamientoEdit() {
                         value={form.cantidad}
                         onChange={handleChange("cantidad")}
                         min={1}
-                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                        className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                         required
                     />
                     </div>
@@ -304,7 +304,7 @@ export default function TratamientoEdit() {
                     <select
                         value={form.unid_medida_id}
                         onChange={handleChange("unid_medida_id")}
-                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                        className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                         required
                         disabled={medidas.length === 0}
                     >
@@ -327,7 +327,7 @@ export default function TratamientoEdit() {
                         type="datetime-local"
                         value={form.fecha_inicio}
                         onChange={handleChange("fecha_inicio")}
-                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                        className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                         required
                     />
                     </div>
@@ -340,18 +340,19 @@ export default function TratamientoEdit() {
                         type="datetime-local"
                         value={form.fecha_fin}
                         onChange={handleChange("fecha_fin")}
-                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                        className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                         required
                     />
                     </div>
 
                     <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Observación</label>
-                    <textarea
+                    <input
+                        type="text"
                         value={form.observacion || ""}
                         onChange={handleChange("observacion")}
-                        className="h-28 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-                        maxLength={255}
+                        className="h-28 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                        placeholder="Observación"
                     />
                     </div>
 

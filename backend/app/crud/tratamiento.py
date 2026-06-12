@@ -176,7 +176,6 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
                         LEFT JOIN lotes_granja AS l_g ON t_p.lote_id = l_g.id_lote_g
                         LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
-                        LEFT JOIN lotes_granja AS l_g ON t_p.lote_id = l_g.id_lote_g
                         LEFT JOIN users AS u ON t_p.user_id = u.id_user
                         ORDER BY t_p.id_tratamiento DESC
                         LIMIT :limit OFFSET :skip
