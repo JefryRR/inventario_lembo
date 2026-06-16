@@ -72,6 +72,9 @@ import InformeInsumo from "./components/inv_insumos/informes_insumo";
 import ResetPassword from "./pages/resetPassword";
 import ForgotPassword from "./pages/forgotPassword";
 import HistorialVentas from "./pages/historial_ventas";
+import Solicitud from "./pages/solicitudes";
+import SolicitudCreate from "./components/solicitud/solicitudCreate";
+import SolicitudEdit from "./components/solicitud/solicitudEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -150,6 +153,9 @@ export default function App() {
             <Route path="/invInsumo" element={<Invinsumo />} />
             <Route path="/invInsumo/create" element={<InvinsumoCreate />} />
             <Route path="/invInsumo/report/:id_insumo" element={<InformeInsumo />} />
+            <Route path="/solicitud" element={<Solicitud />} />
+            <Route path="/solicitud/crear" element={<SolicitudCreate />} />
+            <Route path="/solicitud/edit/:id" element={<SolicitudEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

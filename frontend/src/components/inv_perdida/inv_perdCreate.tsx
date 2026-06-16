@@ -41,8 +41,6 @@ type InvInsumoOption = {
     nombre_producto: string;
 };
 
-
-
 const motivoOptions: MotivoOption[] = [
     { value: "contaminacion", label: "Contaminación" },
     { value: "extravio", label: "Extravio" },

@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text        # type: ignore
 from sqlalchemy.exc import SQLAlchemyError   # type: ignore
-from app.core.security import get_hashed_password
 from typing import Optional
 import logging
 from app.schemas.lotes_prod import LoteCreate, LoteUpdate, LoteEstado
