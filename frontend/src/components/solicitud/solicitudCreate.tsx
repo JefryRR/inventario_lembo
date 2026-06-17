@@ -10,48 +10,49 @@ type SolicitudEstado =
   | "devuelto";
 
 type SolicitudFormState = {
-    solicitante: string
-    insumo_id: number
-    cantidad_in: number
-    unid_med_id: number
-    fecha_solicitud: string
-    tipo_insumo_id: number
-    estado_solicitud: SolicitudEstado
-    nombre_tipo: string
-    simbolo: string
-    nombre_producto: string
-    user_id: number;
-    nombre_user: string
+  solicitante: string
+  insumo_id: number
+  cantidad_in: number
+  unid_med_id: number
+  fecha_solicitud: string
+  tipo_insumo_id: number
+  estado_solicitud: SolicitudEstado
+  nombre_tipo: string
+  simbolo: string
+  nombre_producto: string
+  user_id: number;
+  nombre_user: string
 };
 
 type TipoOption = {
-    id_tipo_insumo: number;
-    nombre_tipo: string;
+  id_tipo_insumo: number;
+  nombre_tipo: string;
 };
 
 type InventarioOption = {
-    id_insumo: number;
-    nombre_producto: string;
+  id_insumo: number;
+  nombre_producto: string;
+  dias_restantes: number;
 };
 
 type MedidaOption = {
-    id_unidad: number;
-    simbolo: string;
+  id_unidad: number;
+  simbolo: string;
 };
 
 const initialState: SolicitudFormState = {
-    solicitante: "",
-    insumo_id: 0,
-    cantidad_in: 0,
-    unid_med_id: 0,
-    fecha_solicitud: new Date().toISOString(),
-    tipo_insumo_id: 0,
-    estado_solicitud: "pendiente",
-    nombre_tipo: "",
-    simbolo: "",
-    nombre_producto: "",
-    user_id: 0,
-    nombre_user: "",
+  solicitante: "",
+  insumo_id: 0,
+  cantidad_in: 0,
+  unid_med_id: 0,
+  fecha_solicitud: new Date().toISOString(),
+  tipo_insumo_id: 0,
+  estado_solicitud: "pendiente",
+  nombre_tipo: "",
+  simbolo: "",
+  nombre_producto: "",
+  user_id: 0,
+  nombre_user: "",
 };
 
 const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
@@ -96,11 +97,13 @@ export default function SolicitudCreate() {
           : Array.isArray(tiposData)
             ? tiposData
             : [];
+        console.log("inventariosData completo:", inventariosData);
+        console.log("primer insumo:", inventariosData?.inventarios?.[0]);
 
-        const InventarioList = Array.isArray(inventariosData?.inventarios)
-          ? inventariosData.inventarios
-          : Array.isArray(inventariosData)
-            ? inventariosData
+        const InventarioList = Array.isArray(inventariosData)
+          ? inventariosData.filter((insumo: InventarioOption) => insumo.dias_restantes > 0)
+          : Array.isArray(inventariosData?.inventarios)
+            ? inventariosData.inventarios.filter((insumo: InventarioOption) => insumo.dias_restantes > 0)
             : [];
 
         const medidaList = Array.isArray(medidasData?.medidas)
@@ -116,7 +119,7 @@ export default function SolicitudCreate() {
       } catch (requestError: any) {
         if (!mounted) return;
         setError(requestError?.detail || requestError?.message || "No se pudieron cargar los datos necesarios para el formulario");
-        
+
       } finally {
         if (mounted) {
           setLoadingTipos(false);
@@ -133,32 +136,32 @@ export default function SolicitudCreate() {
     };
   }, []);
 
-    const handleChange =
-      (field: keyof SolicitudFormState) =>
-        (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-          const value = event.target.value;
+  const handleChange =
+    (field: keyof SolicitudFormState) =>
+      (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const value = event.target.value;
 
-          if (field === "cantidad_in" || field === "insumo_id" || field === "unid_med_id" || field === "tipo_insumo_id") {
-            setForm((current) => ({
-              ...current,
-              [field]: Number(value),
-            }));
-            return;
-          }
-
-          if (field === "estado_solicitud") {
-            setForm((current) => ({
-              ...current,
-              estado_solicitud: value as SolicitudEstado,
-            }));
-            return;
-          }
-
+        if (field === "cantidad_in" || field === "insumo_id" || field === "unid_med_id" || field === "tipo_insumo_id") {
           setForm((current) => ({
             ...current,
-            [field]: value,
+            [field]: Number(value),
           }));
-        };
+          return;
+        }
+
+        if (field === "estado_solicitud") {
+          setForm((current) => ({
+            ...current,
+            estado_solicitud: value as SolicitudEstado,
+          }));
+          return;
+        }
+
+        setForm((current) => ({
+          ...current,
+          [field]: value,
+        }));
+      };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -182,6 +185,7 @@ export default function SolicitudCreate() {
         method: "POST",
         body: payload,
       });
+
 
       setSuccess(data?.message || "Solicitud creada correctamente");
       setForm(initialState);
@@ -219,12 +223,12 @@ export default function SolicitudCreate() {
                 Nombre del solicitante
               </label>
               <input
-                  type="text"
-                  id="solicitante"
-                  value={form.solicitante || ""}
-                  onChange={(e) => setForm({ ...form, solicitante: e.target.value })}
-                  className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
-                  placeholder="Pepe Pérez"
+                type="text"
+                id="solicitante"
+                value={form.solicitante || ""}
+                onChange={(e) => setForm({ ...form, solicitante: e.target.value })}
+                className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                placeholder="Pepe Pérez"
               />
             </div>
 
