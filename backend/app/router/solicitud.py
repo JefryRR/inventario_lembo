@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.solicitud import SolicitudCreate, SolicitudUpdate, SolicitudOut, PaginatedSolicitudes
+from app.schemas.solicitud import SolicitudCreate, SolicitudUpdate, SolicitudOut, PaginatedSolicitudes, SolicitudStatus
 from app.crud import solicitud as crud_solicitud
 from app.crud import inv_insumos as crud_insumos
 from app.schemas.users import UserOut
@@ -24,18 +24,11 @@ def create_solicitud(
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
 
-        lote = crud_insumos.get_insumo_by_id(db, solicitud.insumo_id)
-        if not lote:
+        insumo = crud_insumos.get_insumo_by_id(db, solicitud.insumo_id)
+        if not insumo:
             raise HTTPException(status_code=404, detail="Insumo no encontrado")
-
-        # estados_bloqueados = {"activo", "cuarentena", "finalizado"}
-        # if lote["estado_lote"] in estados_bloqueados:
-        #     raise HTTPException(
-        #         status_code=400,
-        #         detail="No se puede registrar la producción porque el lote está activo, en cuarentena o finalizado"
-        #     )
         
-        crud_solicitud.create_solicitud(db, solicitud)
+        crud_solicitud.create_solicitud(db, solicitud, user_token.id_user)
         return {"message": "Solicitud registrada correctamente"}
     except HTTPException:
         raise
@@ -99,6 +92,22 @@ def update_solicitud(
         raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.put("/estado/{solicitud_id}", status_code=status.HTTP_200_OK)
+def change_status_solicitud(solicitud_id: int, estado: SolicitudStatus, db: Session = Depends(get_db),
+                           user_token: UserOut = Depends(get_current_user)
+                           ):
+  try:
+      id_rol = user_token.rol_id
+      if not verify_permissions(db, id_rol, modulo, 'actualizar'):
+             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+
+      success = crud_solicitud.change_status_solicitud(db, solicitud_id, estado=estado)
+      if not success:
+          raise HTTPException(status_code=400, detail="No se pudo cambiar el estado de la solicitud")
+      return {"message": "Estado de la solicitud actualizado correctamente"}
+  except Exception as e:
+      raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/rango_fechas", response_model=PaginatedSolicitudes)
 def obtener_solicitud_por_rango_fechas(
