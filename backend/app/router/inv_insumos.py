@@ -1,15 +1,17 @@
 import os, uuid
 from datetime import date
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form   #type: ignore
+from sqlalchemy.orm import Session   #type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.inv_insumos import InsumoCreate, InsumoUpdate, InsumoOut, Paginatedinsumos 
 from app.crud import inv_insumos as crud_insumos
 from app.schemas.users import UserOut
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError #type: ignore
+from fastapi.responses import StreamingResponse
+from app.utils.exportar_reportes import generar_excel_reporte_insumo, generar_pdf_reporte_insumo
 
 router = APIRouter()
 modulo = 10
@@ -147,6 +149,59 @@ def get_reporte_insumo(
         if not reporte:
             raise HTTPException(status_code=404, detail="Insumo no encontrado")
         return reporte
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/reporte/{inv_insumo_id}/excel")
+def exportar_reporte_insumo_excel(
+    inv_insumo_id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        reporte = crud_insumos.get_reporte_insumo_detallado(db, inv_insumo_id)
+        if not reporte:
+            raise HTTPException(status_code=404, detail="Insumo no encontrado")
+
+        buffer = generar_excel_reporte_insumo(reporte)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="reporte_insumo_{inv_insumo_id}.xlsx"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/reporte/{inv_insumo_id}/pdf")
+def exportar_reporte_insumo_pdf(
+    inv_insumo_id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        reporte = crud_insumos.get_reporte_insumo_detallado(db, inv_insumo_id)
+        if not reporte:
+            raise HTTPException(status_code=404, detail="Insumo no encontrado")
+
+        buffer = generar_pdf_reporte_insumo(reporte)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="reporte_insumo_{inv_insumo_id}.pdf"'}
+        )
     except HTTPException:
         raise
     except SQLAlchemyError as e:

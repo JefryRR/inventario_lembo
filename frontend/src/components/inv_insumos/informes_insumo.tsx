@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 
 type MovimientoReporte = {
     tipo: string;
@@ -122,6 +122,25 @@ export default function InformesInsumo() {
 
     const encabezado = reporte?.encabezado;
 
+    const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
+
+    const handleExportar = async (formato: "pdf" | "excel") => {
+        if (!id_insumo) return;
+
+        setDescargando(formato);
+        try {
+            const extension = formato === "pdf" ? "pdf" : "xlsx";
+            await apiDownload(
+                `inv_insumos/reporte/${id_insumo}/${formato}`,
+                `reporte_insumo_${id_insumo}.${extension}`
+            );
+        } catch (err: any) {
+            alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+        } finally {
+            setDescargando(null);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -133,12 +152,30 @@ export default function InformesInsumo() {
                         Resumen detallado del inventario y sus movimientos.
                     </p>
                 </div>
-                <Link
-                    to="/invInsumo"
-                    className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                >
-                    Volver
-                </Link>
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => handleExportar("pdf")}
+                        disabled={descargando !== null}
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    >
+                        {descargando === "pdf" ? "Generando..." : "Exportar PDF"}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleExportar("excel")}
+                        disabled={descargando !== null}
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    >
+                        {descargando === "excel" ? "Generando..." : "Exportar Excel"}
+                    </button>
+                    <Link
+                        to="/invInsumo"
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    >
+                        Volver
+                    </Link>
+                </div>
             </div>
 
             {loading ? (

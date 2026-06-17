@@ -8,6 +8,9 @@ from app.schemas.inv_perdida import PerdidaCreate, PerdidaUpdate, PerdidaOut, Pa
 from app.schemas.users import UserOut
 from app.crud import inv_perdida as inv_perdida_crud
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from fastapi.responses import StreamingResponse   # type: ignore
+from app.utils.exportar_reportes import generar_excel_reporte_perdidas, generar_pdf_reporte_perdidas
+
 
 router = APIRouter()
 modulo = 11
@@ -63,8 +66,57 @@ def all_perdidas(
         return perdida
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-
     
+@router.get("/exportar/excel")
+def exportar_perdidas_excel(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        perdidas = inv_perdida_crud.all_perdidas(db)
+        if not perdidas:
+            raise HTTPException(status_code=404, detail="No hay pérdidas registradas")
+
+        buffer = generar_excel_reporte_perdidas(perdidas)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="reporte_perdidas.xlsx"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar/pdf")
+def exportar_perdidas_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        perdidas = inv_perdida_crud.all_perdidas(db)
+        if not perdidas:
+            raise HTTPException(status_code=404, detail="No hay pérdidas registradas")
+
+        buffer = generar_pdf_reporte_perdidas(perdidas)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_perdidas.pdf"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.put("/update-perdida-by-id/{id}")
 def update_perdida_by_id(
     id: int,
