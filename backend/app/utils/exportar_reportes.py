@@ -8,6 +8,7 @@ from reportlab.lib.styles import getSampleStyleSheet  # type: ignore
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer # type: ignore
 from reportlab.platypus import Paragraph  # type: ignore
 from reportlab.lib.styles import getSampleStyleSheet # type: ignore
+from collections import defaultdict
 
 styles = getSampleStyleSheet()
 
@@ -38,7 +39,7 @@ def generar_excel_reporte_insumo(reporte: dict) -> io.BytesIO:
     ws_mov.append(["Tipo", "Observaciones", "Cantidad", "Unidad", "Valor", "Motivo", "Fecha"])
     for celda in ws_mov[1]:
         celda.font = Font(bold=True, color="FFFFFF")
-        celda.fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
 
     for m in movimientos:
         ws_mov.append([
@@ -145,7 +146,7 @@ def generar_excel_reporte_perdidas(perdidas: list) -> io.BytesIO:
     fila_encabezado = ws.max_row
     for celda in ws[fila_encabezado]:
         celda.font = Font(bold=True, color="FFFFFF")
-        celda.fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
 
     total_perdido = 0.0
     for p in perdidas:
@@ -294,7 +295,7 @@ def generar_excel_reporte_produccion(reporte: dict) -> io.BytesIO:
     ws_mov.append(["Tipo", "Observaciones", "Cantidad", "Unidad", "Valor", "Motivo", "Fecha"])
     for celda in ws_mov[1]:
         celda.font = Font(bold=True, color="FFFFFF")
-        celda.fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
 
     for m in movimientos:
         ws_mov.append([
@@ -370,6 +371,167 @@ def generar_pdf_reporte_produccion(reporte: dict) -> io.BytesIO:
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
     elementos.append(tabla_movs)
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+from collections import defaultdict
+
+
+def _agrupar_detalles_por_venta(detalles: list) -> dict:
+    agrupado = defaultdict(list)
+    for d in detalles:
+        agrupado[d["venta_id"]].append(d)
+    return agrupado
+
+
+def generar_excel_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
+    detalles_por_venta = _agrupar_detalles_por_venta(detalles)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Historial de Ventas"
+
+    ws.append(["Informe de Ventas"])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([f"Total de ventas: {len(ventas)}"])
+    ws.append([])
+
+    total_general = 0.0
+
+    for venta in ventas:
+        total_venta = float(venta.get("total_venta") or 0)
+        total_general += total_venta
+
+        ws.append([
+            f"Venta #{venta['id_venta']}",
+            venta.get("nombre_comprador") or "-",
+            str(venta.get("fecha_venta")),
+            venta.get("nombre_user") or "-",
+            f"Total: ${total_venta:,.0f}",
+        ])
+        fila_resumen = ws.max_row
+        for celda in ws[fila_resumen]:
+            celda.font = Font(bold=True, color="FFFFFF")
+            celda.fill = PatternFill(start_color="00304D", end_color="00304D", fill_type="solid")
+
+        ws.append(["Producto", "Cantidad", "Unidad", "Precio unitario", "Total línea", "Estado"])
+        fila_encabezado = ws.max_row
+        for celda in ws[fila_encabezado]:
+            celda.font = Font(bold=True, color="FFFFFF")
+            celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+        detalles_venta = detalles_por_venta.get(venta["id_venta"], [])
+        if not detalles_venta:
+            ws.append(["Sin productos registrados", "", "", "", "", ""])
+        else:
+            for d in detalles_venta:
+                precio = d.get("precio_venta")
+                cantidad = d.get("cantidad")
+                total_linea = float(precio) * float(cantidad) if precio is not None and cantidad is not None else 0
+                ws.append([
+                    d.get("nombre_producto") or "-",
+                    cantidad,
+                    d.get("simbolo") or "-",
+                    float(precio) if precio is not None else "-",
+                    total_linea,
+                    d.get("estado_venta") or "-",
+                ])
+
+        ws.append([])
+
+    fila_total = ws.max_row + 1
+    ws.cell(row=fila_total, column=4, value="Total general:").font = Font(bold=True)
+    ws.cell(row=fila_total, column=5, value=total_general).font = Font(bold=True)
+
+    for columna in ws.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+
+def generar_pdf_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
+    detalles_por_venta = _agrupar_detalles_por_venta(detalles)
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+    elementos = [Paragraph("Informe de Ventas", styles["Title"]), Spacer(1, 12)]
+
+    total_general = 0.0
+
+    for venta in ventas:
+        total_venta = float(venta.get("total_venta") or 0)
+        total_general += total_venta
+
+        resumen = [[
+            f"Venta #{venta['id_venta']}",
+            venta.get("nombre_comprador") or "-",
+            str(venta.get("fecha_venta")) if venta.get("fecha_venta") else "-",
+            venta.get("nombre_user") or "-",
+            f"Total: ${total_venta:,.0f}",
+        ]]
+        tabla_resumen = Table(resumen, colWidths=[3 * cm, 5 * cm, 3 * cm, 3 * cm, 4 * cm])
+        tabla_resumen.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#007832")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ]))
+        elementos.append(tabla_resumen)
+
+        detalles_venta = detalles_por_venta.get(venta["id_venta"], [])
+        filas_detalle = [["Producto", "Cantidad", "Unidad", "Precio unitario", "Total línea", "Estado"]]
+        if not detalles_venta:
+            filas_detalle.append(["Sin productos registrados", "", "", "", "", ""])
+        else:
+            for d in detalles_venta:
+                precio = d.get("precio_venta")
+                cantidad = d.get("cantidad")
+                total_linea = float(precio) * float(cantidad) if precio is not None and cantidad is not None else 0
+                filas_detalle.append([
+                    d.get("nombre_producto") or "-",
+                    str(cantidad) if cantidad is not None else "-",
+                    d.get("simbolo") or "-",
+                    f"${float(precio):,.0f}" if precio is not None else "-",
+                    f"${total_linea:,.0f}",
+                    d.get("estado_venta") or "-",
+                ])
+
+        tabla_detalle = Table(filas_detalle, repeatRows=1, colWidths=[5 * cm, 2.5 * cm, 2 * cm, 3 * cm, 3 * cm, 3 * cm])
+        tabla_detalle.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        elementos.append(tabla_detalle)
+        elementos.append(Spacer(1, 14))
+
+    resumen_general = [
+        ["Total de ventas", str(len(ventas))],
+        ["Total general vendido", f"${total_general:,.0f}"],
+    ]
+    tabla_resumen_general = Table(resumen_general, colWidths=[6 * cm, 6 * cm])
+    tabla_resumen_general.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+    ]))
+    elementos.append(tabla_resumen_general)
 
     doc.build(elementos)
     buffer.seek(0)

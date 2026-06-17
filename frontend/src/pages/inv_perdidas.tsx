@@ -40,7 +40,7 @@ export default function InvPerd() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
   const [dateRange, setDateRange] = useState<DateRangeState>({
     fecha_inicio: "",
     fecha_fin: "",
