@@ -10,7 +10,7 @@ from app.schemas.inv_insumos import InsumoCreate, InsumoUpdate, InsumoOut, Pagin
 from app.crud import inv_insumos as crud_insumos
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError #type: ignore
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse  #type: ignore
 from app.utils.exportar_reportes import generar_excel_reporte_insumo, generar_pdf_reporte_insumo
 
 router = APIRouter()

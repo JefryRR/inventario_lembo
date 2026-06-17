@@ -11,7 +11,6 @@ from reportlab.lib.styles import getSampleStyleSheet # type: ignore
 
 styles = getSampleStyleSheet()
 
-
 def generar_excel_reporte_insumo(reporte: dict) -> io.BytesIO:
     encabezado = reporte["encabezado"]
     movimientos = reporte["movimientos"]
@@ -261,6 +260,116 @@ def generar_pdf_reporte_perdidas(perdidas: list) -> io.BytesIO:
         ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
     ]))
     elementos.append(tabla_resumen)
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+
+def generar_excel_reporte_produccion(reporte: dict) -> io.BytesIO:
+    encabezado = reporte["encabezado"]
+    movimientos = reporte["movimientos"]
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Encabezado"
+
+    ws.append(["Informe de Producción", encabezado["nombre_producto"]])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([])
+    ws.append(["Fecha de ingreso", str(encabezado["fecha_ingreso"])])
+    ws.append(["Fecha de vencimiento", str(encabezado["fecha_vencimiento"])])
+    ws.append(["Costo unitario", float(encabezado["valor_unitario"])])
+    ws.append(["Nombre lote", str(encabezado["nombre_lote"])])
+    ws.append(["Cantidad inicial", encabezado["cantidad_inicial"]])
+    ws.append(["Stock actual", encabezado["stock_actual"]])
+    ws.append(["Total Vendido", encabezado["total_vendido"]])
+    ws.append(["Total perdido", encabezado["total_perdido"]])
+
+    for fila in ws.iter_rows(min_row=3, max_row=9, min_col=1, max_col=1):
+        for celda in fila:
+            celda.font = Font(bold=True)
+
+    ws_mov = wb.create_sheet("Movimientos")
+    ws_mov.append(["Tipo", "Observaciones", "Cantidad", "Unidad", "Valor", "Motivo", "Fecha"])
+    for celda in ws_mov[1]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+
+    for m in movimientos:
+        ws_mov.append([
+            m.get("tipo"),
+            m.get("referencia"),
+            m.get("cantidad"),
+            encabezado.get("simbolo"),
+            float(m["valor"]) if m.get("valor") not in (None, "-") else "-",
+            m.get("motivo"),
+            str(m.get("fecha")),
+        ])
+
+    for columna in ws_mov.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws_mov.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+
+def generar_pdf_reporte_produccion(reporte: dict) -> io.BytesIO:
+    encabezado = reporte["encabezado"]
+    movimientos = reporte["movimientos"]
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elementos = []
+
+    elementos.append(Paragraph(f"Informe de Producción: {encabezado['nombre_producto']}", styles["Title"]))
+    elementos.append(Spacer(1, 12))
+
+    datos_encabezado = [
+        ["Nombre del producto", str(encabezado["nombre_producto"])],
+        ["Fecha de ingreso", str(encabezado["fecha_ingreso"])],
+        ["Fecha de vencimiento", str(encabezado["fecha_vencimiento"])],
+        ["Costo unitario", f"${float(encabezado['valor_unitario']):,.0f}"],
+        ["Nombre lote", str(encabezado["nombre_lote"])],
+        ["Cantidad inicial", f"{encabezado['cantidad_inicial']} {encabezado['simbolo']}"],
+        ["Stock actual", f"{encabezado['stock_actual']} {encabezado['simbolo']}"],
+        ["Total Vendido", f"{encabezado['total_vendido']} {encabezado['simbolo']}"],
+        ["Total perdido", f"{encabezado['total_perdido']} {encabezado['simbolo']}"],
+    ]
+    tabla_encabezado = Table(datos_encabezado, colWidths=[6 * cm, 6 * cm])
+    tabla_encabezado.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+    ]))
+    elementos.append(tabla_encabezado)
+    elementos.append(Spacer(1, 20))
+
+    elementos.append(Paragraph("Movimientos", styles["Heading2"]))
+    filas = [["Tipo", "Observaciones", "Cantidad", "Valor", "Motivo", "Fecha"]]
+    for m in movimientos:
+        valor = m.get("valor")
+        filas.append([
+            m.get("tipo", ""),
+            m.get("referencia") or "",
+            str(m.get("cantidad", "")),
+            f"${float(valor):,.0f}" if valor not in (None, "-") else "-",
+            m.get("motivo") or "",
+            str(m.get("fecha", "")),
+        ])
+
+    tabla_movs = Table(filas, repeatRows=1)
+    tabla_movs.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    elementos.append(tabla_movs)
 
     doc.build(elementos)
     buffer.seek(0)

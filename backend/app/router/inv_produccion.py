@@ -9,6 +9,8 @@ from app.crud import inv_produccion as crud_produccion
 from app.crud import lotes_prod as crud_lotes_prod
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from fastapi.responses import StreamingResponse  #type: ignore
+from app.utils.exportar_reportes import generar_excel_reporte_produccion, generar_pdf_reporte_produccion
 
 router = APIRouter()
 modulo = 17
@@ -148,6 +150,59 @@ def get_reporte_produccion(
         if not reporte:
             raise HTTPException(status_code=404, detail="Producción no encontrada")
         return reporte
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/reporte/{inv_prod_id}/excel")
+def exportar_reporte_produccion_excel(
+    inv_prod_id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        reporte = crud_produccion.get_reporte_produccion_detallado(db, inv_prod_id)
+        if not reporte:
+            raise HTTPException(status_code=404, detail="Producción no encontrada")
+
+        buffer = generar_excel_reporte_produccion(reporte)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="reporte_produccion_{inv_prod_id}.xlsx"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/reporte/{inv_prod_id}/pdf")
+def exportar_reporte_produccion_pdf(
+    inv_prod_id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        reporte = crud_produccion.get_reporte_produccion_detallado(db, inv_prod_id)
+        if not reporte:
+            raise HTTPException(status_code=404, detail="Producción no encontrada")
+
+        buffer = generar_pdf_reporte_produccion(reporte)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="reporte_produccion_{inv_prod_id}.pdf"'}
+        )
     except HTTPException:
         raise
     except SQLAlchemyError as e:
