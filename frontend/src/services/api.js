@@ -64,3 +64,34 @@ export async function apiFetch(endpoint, options = {}) {
   }
   return response.json();
 }
+
+export async function apiDownload(endpoint, nombreArchivo) {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${api_backend}/${endpoint}`, {
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+
+  if (!response.ok) {
+    let errorData = {};
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { detail: "Error al descargar el archivo" };
+    }
+    throw { status: response.status, ...errorData };
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nombreArchivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
