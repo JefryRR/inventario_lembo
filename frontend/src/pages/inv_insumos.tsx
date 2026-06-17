@@ -1,23 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-// @ts-ignore: api helper is a JS module without generated declarations
+// @ts-ignore
 import { apiFetch } from "@/services/api";
-import Badge from "@/components/ui/badge/Badge";
+import FacturaModal from "@/components/inv_insumos/factura_insumo";
 
 type invInsumoRow = {
-    id_insumo: number,
-    nombre_producto: string,
-    cantidad: number,
-    unid_medida_id: number,
-    min_stock: number,
-    fecha_ingreso: string,
-    fecha_vencimiento: string,
-    tipo_id: number,
-    nombre_tipo: string,
-    precio_unitario: number,
-    nivel_alerta: string,
-    simbolo: string
+    id_insumo: number;
+    nombre_producto: string;
+    cantidad: number;
+    unid_medida_id: number;
+    min_stock: number;
+    fecha_ingreso: string;
+    fecha_vencimiento: string;
+    tipo_id: number;
+    nombre_tipo: string;
+    precio_unitario: number;
+    nivel_alerta: string;
+    simbolo: string;
 };
 
 type invInsumoResponse = {
@@ -33,7 +33,6 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
-
 export default function InvInsumo() {
     const [invInsumo, setInvInsumo] = useState<invInsumoRow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -42,12 +41,11 @@ export default function InvInsumo() {
     const [pageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
-    const [dateRange, setDateRange] = useState<DateRangeState>({
-        fecha_inicio: "",
-        fecha_fin: "",
-    });
+    const [dateRange, setDateRange] = useState<DateRangeState>({ fecha_inicio: "", fecha_fin: "" });
     const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
 
+    // 👇 Solo necesitas el id para abrir el modal
+    const [facturaInsumoId, setFacturaInsumoId] = useState<number | null>(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -55,7 +53,6 @@ export default function InvInsumo() {
         const loadInvInsumo = async () => {
             setLoading(true);
             setError(null);
-
             try {
                 const queryParams = new URLSearchParams({
                     page: String(page),
@@ -71,35 +68,24 @@ export default function InvInsumo() {
                     : `inv_insumos/insumos_paginated?${queryParams.toString()}`;
 
                 const data = (await apiFetch(endpoint)) as invInsumoResponse;
-
-                if (!isMounted) {
-                    return;
-                }
+                if (!isMounted) return;
 
                 setInvInsumo(Array.isArray(data?.insumos) ? data.insumos : []);
                 setTotal(Number(data?.total ?? data?.total_insumos ?? 0));
             } catch (requestError: any) {
-                if (!isMounted) {
-                    return;
-                }
-
+                if (!isMounted) return;
                 setError(
                     requestError?.detail ||
                     requestError?.message ||
                     "No se pudieron cargar los datos de los insumos."
                 );
             } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
+                if (isMounted) setLoading(false);
             }
         };
 
         loadInvInsumo();
-
-        return () => {
-            isMounted = false;
-        };
+        return () => { isMounted = false; };
     }, [page, pageSize, activeDateRange]);
 
     const SoloFecha = (fechaString: string | number | Date) => {
@@ -114,12 +100,9 @@ export default function InvInsumo() {
 
     const filteredInvInsumos = useMemo(() => {
         const term = search.trim().toLowerCase();
-        if (!term) {
-            return invInsumo;
-        }
-
-        return invInsumo.filter((inv_insumo) => {
-            return [
+        if (!term) return invInsumo;
+        return invInsumo.filter((inv_insumo) =>
+            [
                 inv_insumo.nombre_producto,
                 String(inv_insumo.cantidad),
                 inv_insumo.simbolo,
@@ -128,26 +111,23 @@ export default function InvInsumo() {
                 SoloFecha(inv_insumo.fecha_ingreso),
                 SoloFecha(inv_insumo.fecha_vencimiento),
                 String(inv_insumo.precio_unitario),
-                inv_insumo.nivel_alerta
+                inv_insumo.nivel_alerta,
             ]
                 .join(" ")
                 .toLowerCase()
-                .includes(term);
-        });
+                .includes(term)
+        );
     }, [search, invInsumo]);
-
 
     const applyDateFilter = () => {
         if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
             setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
             return;
         }
-
         if (dateRange.fecha_inicio > dateRange.fecha_fin) {
             setError("La fecha inicial no puede ser mayor que la fecha final.");
             return;
         }
-
         setError(null);
         setPage(1);
         setActiveDateRange({ ...dateRange });
@@ -162,30 +142,12 @@ export default function InvInsumo() {
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-    type EstadoInsumo = {
-        label: string;
-        color: string;
-    };
+    type EstadoInsumo = { label: string; color: string };
 
     const Estadoinsumo = (cantidad: number, minima: number): EstadoInsumo => {
-        if (cantidad === 0) {
-            return {
-                label: "Agotado",
-                color: "text-red-600",
-            };
-        }
-
-        if (cantidad <= minima) {
-            return {
-                label: "Provisionar",
-                color: "text-yellow-500",
-            };
-        }
-
-        return {
-            label: "Disponible",
-            color: "text-green-600",
-        };
+        if (cantidad === 0) return { label: "Agotado", color: "text-red-600" };
+        if (cantidad <= minima) return { label: "Provisionar", color: "text-yellow-500" };
+        return { label: "Disponible", color: "text-green-600" };
     };
 
     return (
@@ -197,7 +159,8 @@ export default function InvInsumo() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <Link
                             to="/invInsumo/create"
-                            className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                            className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+                        >
                             Nuevo insumo
                         </Link>
                         <input
@@ -212,17 +175,15 @@ export default function InvInsumo() {
                         <input
                             type="date"
                             value={dateRange.fecha_inicio}
-                            onChange={(e) => setDateRange((current) => ({ ...current, fecha_inicio: e.target.value }))}
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
-                            aria-label="Fecha inicial"
+                            onChange={(e) => setDateRange((c) => ({ ...c, fecha_inicio: e.target.value }))}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 lg:w-44"
                         />
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha fin:</label>
                         <input
                             type="date"
                             value={dateRange.fecha_fin}
-                            onChange={(e) => setDateRange((current) => ({ ...current, fecha_fin: e.target.value }))}
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
-                            aria-label="Fecha final"
+                            onChange={(e) => setDateRange((c) => ({ ...c, fecha_fin: e.target.value }))}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 lg:w-44"
                         />
                         <button
                             type="button"
@@ -246,124 +207,92 @@ export default function InvInsumo() {
                     <table className="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-800">
                         <thead className="bg-gray-50 dark:bg-gray-900/40">
                             <tr>
-
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Nombre producto
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    cantidad
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Tipo insumo
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    fecha registro
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    fecha vencimiento
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    estado stock
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    precio unitario
-                                </th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Estado
-                                </th>
-                                <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Accciones
-                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Producto</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cantidad</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Tipo insumo</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha registro</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha vencimiento</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado stock</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Precio unitario</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Detalles</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Factura</th>
+                                <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
                                 Array.from({ length: 10 }).map((_, index) => (
                                     <tr key={index}>
-                                        <td colSpan={10} className="px-5 py-4">
+                                        <td colSpan={9} className="px-5 py-4">
                                             <div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
                                         </td>
                                     </tr>
                                 ))
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={10} className="px-5 py-10 text-center text-sm text-error-500">
-                                        {error}
-                                    </td>
+                                    <td colSpan={9} className="px-5 py-10 text-center text-sm text-error-500">{error}</td>
                                 </tr>
                             ) : filteredInvInsumos.length === 0 ? (
                                 <tr>
-                                    <td colSpan={10} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    <td colSpan={9} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay registros de insumos para mostrar.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredInvInsumos.map((inv_insumo) => {
-
-                                    const estado = Estadoinsumo(
-                                        inv_insumo.cantidad,
-                                        inv_insumo.min_stock
-                                    );
-
+                                    const estado = Estadoinsumo(inv_insumo.cantidad, inv_insumo.min_stock);
                                     return (
                                         <tr key={inv_insumo.id_insumo} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
-
-                                            <td className="px-4 py-4">
-                                                <div className="text-sm font-medium text-gray-800 dark:text-white/90">
-                                                    {inv_insumo.nombre_producto}
-                                                </div>
-                                            </td>
-
                                             <td className="px-4 py-4 text-center">
-                                                <div className="text-sm text-gray-800 dark:text-gray-400">
-                                                    {inv_insumo.cantidad} {inv_insumo.simbolo}
-                                                </div>
+                                                <div className="text-sm font-medium text-gray-800 dark:text-white/90">{inv_insumo.nombre_producto}</div>
                                             </td>
-
-                                            <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                                <div className="truncate">
-                                                    {inv_insumo.nombre_tipo}
-                                                </div>
+                                            <td className="px-4 py-4 text-center">
+                                                <div className="text-sm text-gray-800 dark:text-gray-400">{inv_insumo.cantidad} {inv_insumo.simbolo}</div>
                                             </td>
-
+                                            <td className="px-4 py-4 text-sm text-left text-gray-600 dark:text-gray-300">
+                                                <div className="truncate">{inv_insumo.nombre_tipo}</div>
+                                            </td>
                                             <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                                 <div>{SoloFecha(inv_insumo.fecha_ingreso)}</div>
                                             </td>
-
                                             <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                                 <div>{SoloFecha(inv_insumo.fecha_vencimiento)}</div>
                                             </td>
-
                                             <td className="px-4 py-4 text-center">
-                                                <span className={estado.color}>
-                                                    {estado.label}
-                                                </span>
+                                                <span className={estado.color}>{estado.label}</span>
                                             </td>
-
                                             <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
                                                 <div>$ {inv_insumo.precio_unitario}</div>
                                             </td>
-
                                             <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                                 <div>{inv_insumo.nivel_alerta}</div>
                                             </td>
-
+                                            <td className="px-5 py-4 text-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <button
+                                                        onClick={() => setFacturaInsumoId(inv_insumo.id_insumo)}
+                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-700"
+                                                    >
+                                                        Factura
+                                                    </button>
+                                                </div>
+                                            </td>
                                             <td className="px-3 py-4 text-center">
                                                 <div className="flex flex-col items-center gap-2">
                                                     <Link
                                                         to={`/invInsumo/edit/${inv_insumo.id_insumo}`}
-                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+                                                    >
                                                         Editar
                                                     </Link>
-
                                                     <Link
                                                         to={`/invInsumo/report/${inv_insumo.id_insumo}`}
-                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">
+                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700"
+                                                    >
                                                         Informe
                                                     </Link>
                                                 </div>
                                             </td>
-
                                         </tr>
                                     );
                                 })
@@ -376,7 +305,7 @@ export default function InvInsumo() {
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
                             disabled={page <= 1 || loading}
                             className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                         >
@@ -387,7 +316,7 @@ export default function InvInsumo() {
                         </span>
                         <button
                             type="button"
-                            onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                             disabled={page >= totalPages || loading}
                             className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                         >
@@ -396,6 +325,13 @@ export default function InvInsumo() {
                     </div>
                 </div>
             </div>
+
+            {facturaInsumoId && (
+                <FacturaModal
+                    insumo_id={facturaInsumoId}
+                    onClose={() => setFacturaInsumoId(null)}
+                />
+            )}
         </>
     );
 }

@@ -1,36 +1,102 @@
+import os, uuid
+from datetime import date
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.inv_insumos import InsumoCreate, InsumoUpdate, InsumoOut, Paginatedinsumos
+from app.schemas.inv_insumos import InsumoCreate, InsumoUpdate, InsumoOut, Paginatedinsumos 
 from app.crud import inv_insumos as crud_insumos
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
 modulo = 10
+UPLOAD_DIR = "static/facturas"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-@router.post("/crear", status_code=status.HTTP_201_CREATED)
-def create_insumo(
-    insumo: InsumoCreate, 
-    db: Session = Depends(get_db),
-    user_token: UserOut = Depends(get_current_user)
+@router.post("/crear", status_code=201)
+async def crear_insumo(
+    # Campos del insumo
+    nombre_producto: str   = Form(...),
+    cantidad: float        = Form(...),
+    unid_medida_id: int    = Form(...),
+    precio_unitario: float = Form(...),
+    min_stock: float       = Form(...),
+    fecha_ingreso: str     = Form(...),
+    fecha_vencimiento: str = Form(...),
+    tipo_id: int           = Form(...),
+    # Campos de factura (opcionales)
+    fecha_compra: date     = Form(None),
+    archivo: UploadFile    = File(None),
+    db: Session            = Depends(get_db),
+    current_user           = Depends(get_current_user),
 ):
+    print("archivo recibido:", archivo)
+    print("filename:", archivo.filename if archivo else "None")
+    print("content_type:", archivo.content_type if archivo else "None")
+    try:
+        factura_url = None
+
+        # Guardar archivo si viene
+        if archivo and archivo.filename:
+            ALLOWED = {"image/jpeg", "image/png", "application/pdf"}
+            if archivo.content_type not in ALLOWED:
+                raise HTTPException(status_code=400, detail="Tipo de archivo no permitido")
+
+            extension = archivo.filename.rsplit(".", 1)[-1]
+            nombre_unico = f"{uuid.uuid4()}.{extension}"
+            ruta = os.path.join("static/facturas", nombre_unico)
+            os.makedirs("static/facturas", exist_ok=True)
+
+            with open(ruta, "wb") as f:
+                f.write(await archivo.read())
+
+            factura_url = f"/static/facturas/{nombre_unico}"
+
+        insumo_data = InsumoCreate(
+            nombre_producto=nombre_producto,
+            cantidad=cantidad,
+            unid_medida_id=unid_medida_id,
+            precio_unitario=precio_unitario,
+            min_stock=min_stock,
+            fecha_ingreso=fecha_ingreso,
+            fecha_vencimiento=fecha_vencimiento,
+            tipo_id=tipo_id,
+        )
+
+        id_insumo = crud_insumos.create_insumo(
+            db=db,
+            insumo=insumo_data,
+            factura_url=factura_url,
+            fecha_compra=fecha_compra,
+            usuario_id=current_user.id_user,
+        )
+
+        return {"message": "Insumo registrado correctamente", "id_insumo": id_insumo}
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/factura_by_id/{id_insumo}")
+def get_factura_by_id(
+    id_insumo: int, 
+    db: Session = Depends(get_db), 
+    user_token: UserOut = Depends(get_current_user)):
     try:
         id_rol = user_token.rol_id
-        if not verify_permissions(db, id_rol, modulo, 'insertar'):
-            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
-        
-        if insumo.fecha_vencimiento <= insumo.fecha_ingreso:
-            raise HTTPException(status_code=400, detail="La fecha de vencimiento debe ser posterior a la fecha de ingreso")
-        
-        if insumo.cantidad <= 0:
-            raise HTTPException(status_code=400, detail="La cantidad debe ser un número positivo")
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
 
-        crud_insumos.create_insumo(db, insumo)
-        return {"message": "Insumo registrado correctamente"}
+        factura = crud_insumos.get_factura_by_id(db, id_insumo)
+        if not factura:
+            raise HTTPException(status_code=404, detail="Factura no encontrada")
+        return factura
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 

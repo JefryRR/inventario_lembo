@@ -24,12 +24,19 @@ type MortalidadRow = {
 	nombre_user?: string;
 };
 
+type HistorialEstadoRow = {
+	id_historial: number;
+	fecha_cambio: string;
+	estado: string;
+	usuario_id: number;
+	nombre_user?: string;
+};
+
 const ESTADO_LABELS: Record<string, string> = {
 	activo: "Activo",
 	finalizado: "Finalizado",
 	cuarentena: "Cuarentena",
-	cosechar: "Cosechar",
-	listo_para_carne: "Listo para carne",
+	listo_cosecha: "Listo para cosecha",
 };
 
 function formatEstado(value: string): string {
@@ -38,16 +45,20 @@ function formatEstado(value: string): string {
 
 function formatDate(value: string): string {
 	if (!value) return "-";
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
-	return date.toLocaleString("es-CO", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
+	const normalized = value.endsWith("Z") || value.includes("+") ? value : value + "Z";
+    
+    const date = new Date(normalized);
+    if (Number.isNaN(date.getTime())) return value;
+    
+    return date.toLocaleString("es-CO", {
+        timeZone: "America/Bogota",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
 
 type MetricCardProps = {
 	label: string;
@@ -83,6 +94,7 @@ export default function InformeLote() {
 
 	const [lote, setLote] = useState<LoteRow | null>(null);
 	const [mortalidad, setMortalidad] = useState<MortalidadRow[]>([]);
+	const [history, setHistory] = useState<HistorialEstadoRow[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -102,15 +114,17 @@ export default function InformeLote() {
 
 			try {
 				// Ambas peticiones en paralelo
-				const [loteData, mortalidadData] = await Promise.all([
+				const [loteData, mortalidadData, historyData] = await Promise.all([
 					apiFetch(`lotes_prod/by-id?lote_id=${id}`) as Promise<LoteRow>,
-                    apiFetch(`mortalidad/by-lote?lote_id=${id}`) as Promise<MortalidadRow[]>,
+					apiFetch(`mortalidad/by-lote?lote_id=${id}`) as Promise<MortalidadRow[]>,
+					apiFetch(`lotes_prod/history_by-id?id_lote_p=${id}`) as Promise<HistorialEstadoRow[]>,
 				]);
 
 				if (!mounted) return;
 
 				setLote(loteData);
 				setMortalidad(Array.isArray(mortalidadData) ? mortalidadData : []);
+				setHistory(Array.isArray(historyData) ? historyData : []);
 			} catch (err: any) {
 				if (!mounted) return;
 				setError(err?.detail || err?.message || "No se pudo cargar el informe");
@@ -169,11 +183,11 @@ export default function InformeLote() {
 			{/* Botón volver */}
 			<div className="mb-5 align-right flex justify-end">
 				<Link
-                    to="/lotesProd"
-                    className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                >
-                    Volver a lotes
-                </Link>
+					to="/lotesProd"
+					className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+				>
+					Volver a lotes
+				</Link>
 			</div>
 
 			{/* Info general del lote */}
@@ -239,16 +253,72 @@ export default function InformeLote() {
 				/>
 			</div>
 
-			{/* Tabla de detalle de mortalidad */}
-			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+			<div className="rounded-2xl border border-gray-200 mb-8 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
 					<h2 className="text-base font-semibold text-gray-800 dark:text-white/90">
-						Detalle de mortalidad
+						Detalle del lote
 					</h2>
 				</div>
 
 				<div className="overflow-x-auto">
 					<table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+						<thead className="bg-gray-50 dark:bg-gray-900/40">
+							<tr>
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Fecha de reporte
+								</th>
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									estado
+								</th>
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Registrado por
+								</th>
+							</tr>
+						</thead>
+
+						<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+							{history.length === 0 ? (
+								<tr>
+									<td
+										colSpan={4}
+										className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400"
+									>
+										No hay eventos del lote registrados.
+									</td>
+								</tr>
+							) : (
+								history.map((row) => (
+									<tr
+										key={row.id_historial}
+										className="hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+									>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{formatDate(row.fecha_cambio)}
+										</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{row.estado ? formatEstado(row.estado) : "-"}
+										</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{row.nombre_user || "-"}
+										</td>
+									</tr>
+								))
+							)}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			
+			{/* Tabla de detalle de mortalidad */}
+			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+				<div className="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+					<h2 className="text-base font-semibold text-gray-800 dark:text-white/90">
+						Detalle del mortalidad
+					</h2>
+				</div>
+
+				<div className="overflow-x-auto">
+					<table className="min-w-full divide-y mt-50 divide-gray-200 dark:divide-gray-800">
 						<thead className="bg-gray-50 dark:bg-gray-900/40">
 							<tr>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">

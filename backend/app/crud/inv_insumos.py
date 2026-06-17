@@ -8,40 +8,62 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def create_insumo(db: Session, insumo: InsumoCreate):
+def create_insumo(db: Session, insumo: InsumoCreate, factura_url: str | None = None, fecha_compra: date | None = None, usuario_id: int | None = None):
     try:
-
+        # Validar duplicado
         insumo_exitente = db.execute(
             text("SELECT id_insumo FROM inv_insumos WHERE nombre_producto = :nombre_producto"),
             {"nombre_producto": insumo.nombre_producto}
         ).fetchone()
 
         if insumo_exitente:
-            raise Exception("Ya existe un insumo con ese nombre")
+            raise ValueError("Ya existe un insumo con ese nombre")
         
+        # Obtener conversión
         conv = db.execute(text("""
             SELECT conversion FROM unidades_medida
             WHERE id_unidad = :unid_medida_id
         """), {"unid_medida_id": insumo.unid_medida_id}).scalar()
 
         if not conv:
-            raise Exception("Unidad de medida no encontrada")
+            raise ValueError("Unidad de medida no encontrada")
 
+        # Insertar insumo con cant_convertida
         query = text("""
-                    INSERT INTO inv_insumos(
-                    nombre_producto, cantidad, unid_medida_id, precio_unitario, min_stock, fecha_ingreso, fecha_vencimiento, tipo_id)
-                    VALUES (:nombre_producto, :cantidad, :unid_medida_id, :precio_unitario, :min_stock, :fecha_ingreso, 
-                    :fecha_vencimiento, :tipo_id)
-                    """)
-        params = insumo.model_dump()                                                   
+            INSERT INTO inv_insumos(
+                nombre_producto, cantidad, unid_medida_id, 
+                precio_unitario, min_stock, fecha_ingreso, fecha_vencimiento, tipo_id)
+            VALUES (
+                :nombre_producto, :cantidad, :unid_medida_id, 
+                :precio_unitario, :min_stock, :fecha_ingreso, :fecha_vencimiento, :tipo_id)
+        """)
+        params = insumo.model_dump()
+
         db.execute(query, params)
-        db.commit()
-        return True
+        id_insumo = db.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+
+        # Insertar factura en la misma transacción si viene
+        if factura_url and fecha_compra and usuario_id:
+            db.execute(text("""
+                INSERT INTO facturas_compra (insumo_id, factura_url, fecha_compra, usuario_id)
+                VALUES (:insumo_id, :factura_url, :fecha_compra, :usuario_id)
+            """), {
+                "insumo_id": id_insumo,
+                "factura_url": factura_url,
+                "fecha_compra": fecha_compra,
+                "usuario_id": usuario_id
+            })
+
+        db.commit()  # 👈 un solo commit para ambas tablas
+        return id_insumo
+
+    except ValueError:
+        raise
     except SQLAlchemyError as e:
         logger.error(f"Error al registrar el insumo: {e}")
         db.rollback()
-        raise
-
+        raise Exception("Error de base de datos al registrar el insumo")
+    
 def get_insumo_by_id(db: Session, insumo_id: int):
     try:
         query = text("""SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
@@ -80,6 +102,20 @@ def get_all_insumos(db: Session):
         return resultado
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las insumoses: {e}")
+        raise
+
+def get_factura_by_id(db: Session, insumo_id: int):
+    try:
+        query = text("""
+            SELECT f_c.factura_url, f_c.fecha_compra, f_c.usuario_id, f_c.insumo_id, u.nombre_user
+            FROM facturas_compra AS f_c
+            LEFT JOIN users u on f_c.usuario_id = u.id_user
+            WHERE f_c.insumo_id = :insumo_id
+        """)
+        result = db.execute(query, {"insumo_id": insumo_id}).fetchone()
+        return dict(result._mapping)
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener la factura por id: {e}")
         raise
 
 def registrar_vencidos_como_perdidas(db: Session):
@@ -230,7 +266,7 @@ def get_reporte_encabezado_insumo(db: Session, id_insumo: int):
             FROM inv_insumos ii
             LEFT JOIN unidades_medida um ON ii.unid_medida_id = um.id_unidad
             LEFT JOIN (
-                SELECT inv_prod_id, SUM() AS total_perdido
+                SELECT inv_prod_id, SUM(cantidad) AS total_perdido
                 FROM inv_perdidas
                 WHERE origen = 'insumo'
                 GROUP BY inv_prod_id
@@ -248,7 +284,7 @@ def get_reporte_movimientos_insumo(db: Session, id_insumo: int):
             SELECT 
                 'perdida'               AS tipo,
                 p.id_perdida            AS id_registro,
-                p.       AS cantidad,
+                p.cantidad              AS cantidad,
                 ii.precio_unitario       AS valor,
                 p.motivo                AS motivo,
                 p.observaciones         AS observaciones,

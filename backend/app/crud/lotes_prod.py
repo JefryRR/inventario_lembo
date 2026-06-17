@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text        # type: ignore
 from sqlalchemy.exc import SQLAlchemyError   # type: ignore
-from app.core.security import get_hashed_password
+from app.core.security import datetime, get_hashed_password, timezone
 from typing import Optional
 import logging
 from app.schemas.lotes_prod import LoteCreate, LoteUpdate, LoteEstado
@@ -19,6 +19,7 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
               :especie_id, :categoria_id, :estado_lote, :user_id, :lote_granj_id
           )
       """)
+        
         db.execute(query, lote.model_dump())
         db.commit()
         return True
@@ -96,14 +97,28 @@ def update_lote_by_id(db: Session, lote_id: int, lote: LoteUpdate) -> Optional[b
             logger.error(f"Error al actualizar lote {lote_id}: {e}")
             raise Exception("Error de base de datos al actualizar el lote")
 
-def change_status_lote(db: Session, lote_id: int, estado: LoteEstado) -> Optional[bool]:
+def change_status_lote(db: Session, lote_id: int, estado: LoteEstado, usuario_id: int) -> Optional[bool]:
     try:
-        sentencia = text("""
+        # 1. Actualizar el estado
+        update = text("""
             UPDATE lote_produccion
             SET estado_lote = :estado
             WHERE id_lote = :id_lote
         """)
-        result = db.execute(sentencia, {"estado": estado.value, "id_lote": lote_id})
+        result = db.execute(update, {"estado": estado.value, "id_lote": lote_id})
+
+        # 2. Registrar en historial
+        historial = text("""
+            INSERT INTO historial_estado_lote (lote_id, estado, fecha_cambio, usuario_id)
+            VALUES (:lote_id, :estado, :fecha_cambio, :usuario_id)
+        """)
+        db.execute(historial, {
+            "lote_id":    lote_id,
+            "estado":     estado.value,
+            "fecha_cambio": datetime.now(timezone.utc),
+            "usuario_id": usuario_id
+        })
+
         db.commit()
         return result.rowcount > 0
     except SQLAlchemyError as e:
@@ -111,6 +126,23 @@ def change_status_lote(db: Session, lote_id: int, estado: LoteEstado) -> Optiona
         logger.error(f"Error al cambiar estado del lote {lote_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del lote")
 
+def get_historial_by_id(db: Session, id_lote_p: int):
+    try:
+        query = text("""
+                     SELECT  h.id_historial, h.lote_id, h.estado, h.fecha_cambio, h.usuario_id,
+                     u.nombre_user
+                     FROM historial_estado_lote AS h
+                     LEFT JOIN users AS u ON h.usuario_id = u.id_user
+                    WHERE h.lote_id = :id_lote_p
+                    ORDER BY h.fecha_cambio DESC
+                    """)
+        
+        result = db.execute(query, {"id_lote_p": id_lote_p}).mappings().all()
+        return result
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener historial por id: {e}")
+        raise Exception("Error de base de datos al obtener el historial del lote")
+ 
 def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
     """
     Obtiene lotes con paginación.

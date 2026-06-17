@@ -60,6 +60,22 @@ def get_lote_by_id(lote_id: int, db: Session = Depends(get_db),
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/history_by-id")
+def get_historial_by_id(id_lote_p: int, db: Session = Depends(get_db),
+            user_token: UserOut = Depends(get_current_user)
+            ):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+         
+        history_status = crud_lotes_prod.get_historial_by_id(db, id_lote_p)
+        if not history_status:
+          raise HTTPException(status_code=404, detail="Lote no encontrado")
+        return history_status
+    except Exception as e:
+      raise HTTPException(status_code=500, detail=str(e))
+
 @router.put("/by-id/{lote_id}")
 def update_lote_by_id( id_lote: int, lote: LoteUpdate, db: Session = Depends(get_db),
                       user_token: UserOut = Depends(get_current_user)
@@ -85,7 +101,7 @@ def change_status_lote(id_lote: int, estado: LoteEstado, db: Session = Depends(g
       if not verify_permissions(db, id_rol, modulo, 'actualizar'):
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
 
-      success = crud_lotes_prod.change_status_lote(db, id_lote, estado=estado)
+      success = crud_lotes_prod.change_status_lote(db, id_lote, estado=estado, usuario_id=user_token.id_user)
       if not success:
           raise HTTPException(status_code=400, detail="No se pudo cambiar el estado del lote")
       return {"message": "Estado del lote actualizado correctamente"}

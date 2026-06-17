@@ -7,8 +7,7 @@ type LoteEstado =
   | "activo"
   | "finalizado"
   | "cuarentena"
-  | "cosechar"
-  | "listo_para_carne";
+  | "listo_cosecha";
 
 type LoteFormState = {
   nombre_lote: string;
@@ -51,8 +50,7 @@ const ESTADO_OPTIONS: Array<{ value: LoteEstado; label: string }> = [
   { value: "activo", label: "Activo" },
   { value: "finalizado", label: "Finalizado" },
   { value: "cuarentena", label: "Cuarentena" },
-  { value: "cosechar", label: "Cosechar" },
-  { value: "listo_para_carne", label: "Listo para carne" },
+  { value: "listo_cosecha", label: "Listo para cosechar" },
 ];
 
 function toDatetimeLocal(value?: string | null): string {

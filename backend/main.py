@@ -1,7 +1,8 @@
 
 from fastapi import FastAPI # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
-from app.crud import mortalidad
+from fastapi.staticfiles import StaticFiles
+# from app.crud import mortalidad
 from app.router import users, rols, modulos, permisos, auth, inv_perdida, inv_produccion, categorias, especies, lotes_prod, lotes, mortalidad, inv_insumos, tipo_insumos, alimento_prod, tratamiento, ventas, detalles_venta, unid_medida, solicitud
 
 
@@ -15,6 +16,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Incluir en el objeto app los routers
 app.include_router(auth.router, prefix="/access", tags=["login"])

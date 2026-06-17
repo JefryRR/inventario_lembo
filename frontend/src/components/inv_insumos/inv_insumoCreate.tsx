@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-// @ts-ignore: api helper is a JS module without generated declarations
+// @ts-ignore
 import { apiFetch } from "@/services/api";
 
 type Inv_insumoFormState = {
@@ -17,6 +17,10 @@ type Inv_insumoFormState = {
     simbolo: string;
 };
 
+type FacturaFormState = {
+    fecha_compra: string;
+    archivo: File | null;  // 👈 File, no string
+};
 
 type tipo_insumoOption = {
     id_tipo_insumo: number;
@@ -27,7 +31,6 @@ type Unid_medOption = {
     id_unidad: number;
     simbolo: string;
 };
-
 
 const initialState: Inv_insumoFormState = {
     id_insumo: "",
@@ -43,9 +46,15 @@ const initialState: Inv_insumoFormState = {
     simbolo: "",
 };
 
+const initialFacturaState: FacturaFormState = {
+    fecha_compra: "",
+    archivo: null,
+};
+
 export default function UsersCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<Inv_insumoFormState>(initialState);
+    const [facturaState, setFacturaState] = useState<FacturaFormState>(initialFacturaState);
     const [loading, setLoading] = useState(false);
     const [loadingTipoIns, setLoadingTipoIns] = useState(false);
     const [loadingUnidMedidas, setLoadingUnidMedidas] = useState(false);
@@ -62,13 +71,9 @@ export default function UsersCreate() {
             try {
                 const tipoInsData = await apiFetch(`tipo_insumos/all-tipo_insumo`);
                 if (!mounted) return;
-
                 const tipoInsList = Array.isArray(tipoInsData?.tipo_insumos)
                     ? tipoInsData.tipo_insumos
-                    : Array.isArray(tipoInsData)
-                        ? tipoInsData
-                        : [];
-
+                    : Array.isArray(tipoInsData) ? tipoInsData : [];
                 setTipoins(tipoInsList);
             } catch (requestError: any) {
                 if (!mounted) return;
@@ -78,20 +83,14 @@ export default function UsersCreate() {
             }
         };
 
-        loadTipo_ins();
-
         const loadUnidMedidas = async () => {
             setLoadingUnidMedidas(true);
             try {
                 const unid_medData = await apiFetch(`unid-medida/all-unid_medidas`);
                 if (!mounted) return;
-
                 const medidasList = Array.isArray(unid_medData?.unid_medidas)
                     ? unid_medData.unid_medidas
-                    : Array.isArray(unid_medData)
-                        ? unid_medData
-                        : [];
-
+                    : Array.isArray(unid_medData) ? unid_medData : [];
                 setUnidMedidas(medidasList);
             } catch (requestError: any) {
                 if (!mounted) return;
@@ -101,22 +100,26 @@ export default function UsersCreate() {
             }
         };
 
+        loadTipo_ins();
         loadUnidMedidas();
-
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, []);
 
     const handleChange =
         (field: keyof Inv_insumoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-                const value = event.target.value;
-                setForm((current) => ({
-                    ...current,
-                    [field]: value,
-                }));
+                setForm((current) => ({ ...current, [field]: event.target.value }));
             };
+
+    // 👇 Handlers de factura separados y correctos
+    const handleFacturaDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFacturaState((prev) => ({ ...prev, fecha_compra: e.target.value }));
+    };
+
+    const handleArchivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setFacturaState((prev) => ({ ...prev, archivo: file }));
+    };
 
     const getLocalISODateTime = () => {
         const now = new Date();
@@ -127,191 +130,239 @@ export default function UsersCreate() {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
-        setError(null);
-        setSuccess(null);
 
         try {
-            const payload = {
-                nombre_producto: form.nombre_producto,
-                cantidad: form.cantidad,
-                unid_medida_id: form.unid_medida_id,
-                precio_unitario: form.precio_unitario,
-                fecha_ingreso: getLocalISODateTime(),
-                fecha_vencimiento: form.fecha_vencimiento,
-                tipo_id: form.tipo_id,
-                min_stock: form.min_stock,
+            const formData = new FormData();
 
-            };
+            // Datos del insumo
+            formData.append("nombre_producto", form.nombre_producto);
+            formData.append("cantidad", form.cantidad);
+            formData.append("unid_medida_id", form.unid_medida_id);
+            formData.append("precio_unitario", form.precio_unitario);
+            formData.append("min_stock", form.min_stock);
+            formData.append("fecha_ingreso", getLocalISODateTime());
+            formData.append("fecha_vencimiento", form.fecha_vencimiento);
+            formData.append("tipo_id", form.tipo_id);
+
+            // Factura (solo si existe)
+            if (facturaState.archivo) {
+                formData.append("archivo", facturaState.archivo);
+                formData.append("fecha_compra", facturaState.fecha_compra);
+            }
 
             const data = await apiFetch("inv_insumos/crear", {
                 method: "POST",
-                body: payload,
+                body: formData,
+                isFormData: true,
             });
 
             setSuccess(data?.message || "Insumo registrado correctamente");
             setForm(initialState);
+            setFacturaState(initialFacturaState);
             navigate("/Invinsumo");
+
         } catch (requestError: any) {
-            setError(
-                requestError?.detail || requestError?.message || "Ocurrió un error al registrar el insumo"
-            );
+            setError(requestError?.detail || requestError?.message || "Error al registrar");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <>
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+            <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                        Registrar insumo
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Completa los datos obligatorios para registrar el insumo.
+                    </p>
+                </div>
+                <Link
+                    to="/Invinsumo"
+                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                >
+                    Volver a inv. insumos
+                </Link>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-5 lg:p-6">
+                {/* ── Campos del insumo ── */}
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            Registrar insumo
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Completa los datos obligatorios para registrar el insumo.
-                        </p>
+                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Nombre producto <span className="text-error-500">*</span>
+                        </label>
+                        <input
+                            value={form.nombre_producto}
+                            onChange={handleChange("nombre_producto")}
+                            placeholder="Harina de trigo"
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90"
+                            required
+                        />
                     </div>
 
-                    <Link
-                        to="/Invinsumo"
-                        className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                    >
-                        Volver a inv. insumos
-                    </Link>
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Cantidad <span className="text-error-500">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            value={form.cantidad}
+                            onChange={handleChange("cantidad")}
+                            placeholder="10"
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 dark:border-gray-700 dark:text-white/90"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Unidad <span className="text-error-500">*</span>
+                        </label>
+                        <select
+                            value={form.unid_medida_id || ""}
+                            onChange={handleChange("unid_medida_id")}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                            required
+                            disabled={loadingUnidMedidas || unidMedidas.length === 0}
+                        >
+                            <option value="" disabled>
+                                {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
+                            </option>
+                            {unidMedidas.map((unidMed) => (
+                                <option key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
+                                    {unidMed.simbolo}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Precio compra <span className="text-error-500">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            value={form.precio_unitario}
+                            onChange={handleChange("precio_unitario")}
+                            placeholder="12250.42"
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 dark:border-gray-700 dark:text-white/90"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Fecha vencimiento <span className="text-error-500">*</span>
+                        </label>
+                        <input
+                            type="date"
+                            value={form.fecha_vencimiento}
+                            onChange={handleChange("fecha_vencimiento")}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Tipo insumo <span className="text-error-500">*</span>
+                        </label>
+                        <select
+                            value={form.tipo_id || ""}
+                            onChange={handleChange("tipo_id")}
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                            required
+                            disabled={loadingTipoIns || tipoIns.length === 0}
+                        >
+                            <option value="" disabled>
+                                {loadingTipoIns ? "Cargando tipos..." : "Selecciona un tipo de insumo"}
+                            </option>
+                            {tipoIns.map((tipo) => (
+                                <option key={tipo.id_tipo_insumo} value={String(tipo.id_tipo_insumo)}>
+                                    {tipo.nombre_tipo}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Mínimo stock <span className="text-error-500">*</span>
+                        </label>
+                        <input
+                            value={form.min_stock}
+                            onChange={handleChange("min_stock")}
+                            placeholder="18.24"
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 dark:border-gray-700 dark:text-white/90"
+                            required
+                        />
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-5 lg:p-6">
+                <div className="mt-6 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                    <h4 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Factura de compra <span className="font-normal text-gray-400">(opcional)</span>
+                    </h4>
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Nombre producto <span className="text-error-500">*</span>
-                            </label>
-                            <input
-                                value={form.nombre_producto}
-                                onChange={handleChange("nombre_producto")}
-                                placeholder="Harina de trigo"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Cantidad <span className="text-error-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={form.cantidad}
-                                onChange={handleChange("cantidad")}
-                                placeholder="10"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Unidad <span className="text-error-500">*</span>
-                            </label>
-                            <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                                required disabled={loadingUnidMedidas || unidMedidas.length === 0}>
-                                <option value="" disabled>
-                                    {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
-                                </option>
-                                {unidMedidas.map((unidMed) => (
-                                    <option key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
-                                        {unidMed.simbolo}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Precio compra <span className="text-error-500">*</span>
-                            </label>
-                            <input
-                                type="money"
-                                value={form.precio_unitario}
-                                onChange={handleChange("precio_unitario")}
-                                placeholder="$ 12250.42"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Fecha vencimiento <span className="text-error-500">*</span>
+                                Fecha de compra
                             </label>
                             <input
                                 type="date"
-                                value={form.fecha_vencimiento}
-                                onChange={handleChange("fecha_vencimiento")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                                required
+                                value={facturaState.fecha_compra}
+                                onChange={handleFacturaDateChange}
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                             />
                         </div>
-
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                tipo insumo <span className="text-error-500">*</span>
-                            </label>
-                            <select value={form.tipo_id || ""} onChange={handleChange("tipo_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingTipoIns || tipoIns.length === 0}>
-                                <option value="" disabled>
-                                    {loadingTipoIns ? "Cargando tipos de insumos..." : "Selecciona un tipo de insumo"}
-                                </option>
-                                {tipoIns.map((tipo) => (
-                                    <option key={tipo.id_tipo_insumo} value={String(tipo.id_tipo_insumo)}>
-                                        {tipo.nombre_tipo}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                mínimo stock <span className="text-error-500">*</span>
+                                Archivo (jpg, png, pdf)
                             </label>
                             <input
-                                value={form.min_stock}
-                                onChange={handleChange("min_stock")}
-                                placeholder="18.24"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-                                required
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.pdf"
+                                onChange={handleArchivoChange}
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                             />
+                            {facturaState.archivo && (
+                                <p className="mt-1 text-xs text-gray-500">
+                                    {facturaState.archivo.name}
+                                </p>
+                            )}
                         </div>
                     </div>
+                </div>
 
-                    {error && (
-                        <div className="mt-5 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">
-                            {error}
-                        </div>
-                    )}
-
-                    {success && (
-                        <div className="mt-5 rounded-lg border border-success-200 bg-success-50 px-4 py-3 text-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400">
-                            {success}
-                        </div>
-                    )}
-
-                    <div className="mt-6 flex flex-wrap gap-3">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {loading ? "Guardando..." : "Registrar insumo"}
-                        </button>
-                        <Link
-                            to="/Invinsumo"
-                            className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                        >
-                            Cancelar
-                        </Link>
+                {error && (
+                    <div className="mt-5 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">
+                        {error}
                     </div>
-                </form>
-            </div>
-        </>
+                )}
+                {success && (
+                    <div className="mt-5 rounded-lg border border-success-200 bg-success-50 px-4 py-3 text-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400">
+                        {success}
+                    </div>
+                )}
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        {loading ? "Guardando..." : "Registrar insumo"}
+                    </button>
+                    <Link
+                        to="/Invinsumo"
+                        className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    >
+                        Cancelar
+                    </Link>
+                </div>
+            </form>
+        </div>
     );
 }
