@@ -20,6 +20,15 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
         if solicitud_exitente:
             raise Exception("Ya existe un solicitud a nombre de ese solicitante")
         
+
+        # estado_insumo = db.execute(text("""
+        #     SELECT fecha_vencimiento FROM inv_insumos
+        #     WHERE id_insumo = :insumo_id
+        # """), {"insumo_id": solicitud.insumo_id}).scalar()
+
+        # if estado_insumo <= date.today():
+        #     raise Exception("No se puede crear la solicitud porque el insumo está vencido")
+
         conv = db.execute(text("""
             SELECT conversion FROM unidades_medida
             WHERE id_unidad = :unid_med_id

@@ -137,11 +137,11 @@ def registrar_vencidos_como_perdidas(db: Session):
             db.execute(text("""
                 INSERT INTO inv_perdidas (
                     inv_prod_id, cantidad, origen, motivo,
-                    fecha_reporte, user_id, , 
+                    fecha_reporte, user_id,
                     unid_medida_id, observaciones
                 ) VALUES (
                     :inv_prod_id, :cantidad, :origen, :motivo,
-                    :fecha_reporte, :user_id, :,
+                    :fecha_reporte, :user_id,
                     :unid_medida_id, :observaciones
                 )
             """), {
@@ -150,8 +150,7 @@ def registrar_vencidos_como_perdidas(db: Session):
                 "origen": "insumo",
                 "motivo": "vencimiento",
                 "fecha_reporte": date.today(),
-                "user_id": None,  # Aquí podrías asignar un ID de usuario si tienes esa información
-                "": row[""],
+                "user_id": None,
                 "unid_medida_id": row["unid_medida_id"],
                 "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}"
             })

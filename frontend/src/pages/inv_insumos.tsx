@@ -33,6 +33,12 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
+function isEditDisabled(cantidad: number, alerta: string): boolean {
+    if (alerta.toLowerCase().includes("vencido")) return true;
+    if (cantidad <= 0) return true;
+    return false;
+};
+
 export default function InvInsumo() {
     const [invInsumo, setInvInsumo] = useState<invInsumoRow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -44,7 +50,6 @@ export default function InvInsumo() {
     const [dateRange, setDateRange] = useState<DateRangeState>({ fecha_inicio: "", fecha_fin: "" });
     const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
 
-    // 👇 Solo necesitas el id para abrir el modal
     const [facturaInsumoId, setFacturaInsumoId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -271,7 +276,7 @@ export default function InvInsumo() {
                                                 <div className="flex flex-col items-center gap-2">
                                                     <button
                                                         onClick={() => setFacturaInsumoId(inv_insumo.id_insumo)}
-                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-700"
+                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-[#71277A] px-4 text-sm font-medium text-white transition hover:bg-[#71277A]/90"
                                                     >
                                                         Factura
                                                     </button>
@@ -279,12 +284,17 @@ export default function InvInsumo() {
                                             </td>
                                             <td className="px-3 py-4 text-center">
                                                 <div className="flex flex-col items-center gap-2">
-                                                    <Link
-                                                        to={`/invInsumo/edit/${inv_insumo.id_insumo}`}
-                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-                                                    >
-                                                        Editar
-                                                    </Link>
+                                                    {isEditDisabled(inv_insumo.cantidad, inv_insumo.nivel_alerta) ? (
+                                                        <span className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+                                                            Editar
+                                                        </span>
+                                                    ) : (
+                                                        <Link
+                                                            to={`/invInsumo/edit/${inv_insumo.id_insumo}`}
+                                                            className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                                            Editar
+                                                        </Link>
+                                                    )}
                                                     <Link
                                                         to={`/invInsumo/report/${inv_insumo.id_insumo}`}
                                                         className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700"
