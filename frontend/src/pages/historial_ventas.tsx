@@ -91,15 +91,23 @@ export default function VentasPage() {
                 
                 const data = (await apiFetch(endpoint)) as VentasResponse;
                 
-                const [ventasData, detallesData] = await Promise.all([
-                    apiFetch("ventas/all/ventas"),
-                    apiFetch("detalles-venta/all/detalles"),
-                ]);
+                const detallesData = await apiFetch("detalles-venta/all/detalles");
 
                 if (!mounted) return;
 
-                const ventasList = Array.isArray(ventasData?.ventas) ? ventasData.ventas : Array.isArray(ventasData) ? ventasData : [];
-                const detallesList = Array.isArray(detallesData?.detalles) ? detallesData.detalles : Array.isArray(detallesData) ? detallesData : [];
+                // Si hay filtro activo, `data` ya trae las ventas filtradas
+                // Si no, `data` es el resultado paginado que también incluye `ventas`
+                const ventasList = Array.isArray(data?.ventas)
+                    ? data.ventas
+                    : Array.isArray(data)
+                    ? data
+                    : [];
+
+                const detallesList = Array.isArray(detallesData?.detalles)
+                    ? detallesData.detalles
+                    : Array.isArray(detallesData)
+                    ? detallesData
+                    : [];
 
                 setVentas(ventasList);
                 setDetalles(detallesList);
