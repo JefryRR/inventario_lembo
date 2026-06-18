@@ -536,3 +536,99 @@ def generar_pdf_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
     doc.build(elementos)
     buffer.seek(0)
     return buffer
+
+def generar_excel_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Tratamientos"
+
+    ws.append(["Informe de Tratamientos"])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([f"Total de registros: {len(tratamientos)}"])
+    ws.append([])
+
+    headers = [
+        "Nombre lote", "Fecha inicio", "Fecha fin", "Cantidad",
+        "Nombre producto", "Unidad", "Usuario", "Cantidad convertida",
+        "Observación",
+    ]
+    ws.append(headers)
+    fila_encabezado = ws.max_row
+    for celda in ws[fila_encabezado]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+    for t in tratamientos:
+        ws.append([
+            t.get("nombre_lote") or "-",
+            str(t.get("fecha_inicio") or "-"),
+            str(t.get("fecha_fin") or "-"),
+            t.get("cantidad"),
+            t.get("nombre_producto") or "-",
+            t.get("simbolo") or "-",
+            t.get("nombre_user") or "Sistema",
+            t.get("cant_convertida"),
+            t.get("observacion") or "",
+        ])
+
+    for columna in ws.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+def generar_pdf_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+    estilo_observaciones = styles["BodyText"].clone("ObservacionesTratamiento")
+    estilo_observaciones.fontSize = 6
+    estilo_observaciones.leading = 7
+
+    elementos = [Paragraph("Informe de Tratamientos", styles["Title"]), Spacer(1, 12)]
+
+    filas = [["Lote", "Producto", "Fecha inicio", "Fecha fin", "Cantidad", "Cant. convertida", "Usuario", "Observación"]]
+    for t in tratamientos:
+        cantidad = t.get("cantidad")
+        simbolo = t.get("simbolo") or ""
+        cant_convertida = t.get("cant_convertida")
+
+        filas.append([
+            t.get("nombre_lote") or "-",
+            t.get("nombre_producto") or "-",
+            str(t.get("fecha_inicio") or "-"),
+            str(t.get("fecha_fin") or "-"),
+            f"{cantidad} {simbolo}".strip(),
+            str(cant_convertida) if cant_convertida is not None else "-",
+            t.get("nombre_user") or "Sistema",
+            Paragraph(t.get("observacion") or "-", estilo_observaciones),
+        ])
+
+    tabla = Table(
+        filas,
+        repeatRows=1,
+        colWidths=[2.5 * cm, 4 * cm, 3 * cm, 3 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm, 5 * cm],
+    )
+    tabla.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 18))
+    elementos.append(Paragraph(f"Total de registros: {len(tratamientos)}", styles["Normal"]))
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer

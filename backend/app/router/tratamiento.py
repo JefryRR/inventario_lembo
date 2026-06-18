@@ -6,6 +6,9 @@ from app.crud.permisos import verify_permissions
 from app.schemas.tratamiento import TratamientoCreate, TratamientoUpdate, TratamientoOut, PaginatedTratamientos
 from app.schemas.users import UserOut
 from app.crud import tratamiento as crud_tratamiento
+from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from fastapi.responses import StreamingResponse   # type: ignore
+from app.utils.exportar_reportes import generar_excel_reporte_tratamientos, generar_pdf_reporte_tratamientos
 
 router = APIRouter()
 modulo = 16 # ID del módulo de lotes para verificar permisos
@@ -57,6 +60,56 @@ def get_tratamiento_by_id(id_tratamiento: int, db: Session = Depends(get_db),
         return tratamiento
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/exportar/excel")
+def exportar_tratamientos_excel(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        tratamientos = crud_tratamiento.get_all_tratamientos(db)
+        if not tratamientos:
+            raise HTTPException(status_code=404, detail="No hay tratamientos registrados")
+
+        buffer = generar_excel_reporte_tratamientos(tratamientos)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="reporte_tratamientos.xlsx"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar/pdf")
+def exportar_tratamientos_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        tratamientos = crud_tratamiento.get_all_tratamientos(db)
+        if not tratamientos:
+            raise HTTPException(status_code=404, detail="No hay tratamientos registrados")
+
+        buffer = generar_pdf_reporte_tratamientos(tratamientos)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_tratamientos.pdf"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/by-id/{tratamiento_id}")
 def update_tratamiento_by_id( id_tratamiento: int, tratamiento: TratamientoUpdate, db: Session = Depends(get_db),
