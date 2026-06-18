@@ -202,7 +202,7 @@ export default function VentasPage() {
     // Limpia el highlight del detalle al cambiar de venta manualmente
     const handleSelectVenta = (id: number | null) => {
         setSelectedVenta(id);
-        setSelectedDetalleId(null); // el detalle destacado pertenecía a la venta anterior
+        setSelectedDetalleId(null);
     };
 
     useEffect(() => {

@@ -102,7 +102,7 @@ export default function InvPerd() {
   }, [page, pageSize, activeDateRange]);
 
   const filteredInvperd = useMemo(() => {
- 
+    
     return invPerd.filter((inv_perd) => {
       return [
         inv_perd.nombre_producto,

@@ -25,7 +25,6 @@ export default function MonthlySalesChart() {
     const loadVentas = async () => {
       setLoading(true);
       try {
-        // Trae ambos endpoints en paralelo
         const [ventasData, detallesData] = await Promise.all([
           apiFetch("ventas/all/ventas"),
           apiFetch("detalles-venta/all/detalles"),
@@ -82,7 +81,7 @@ export default function MonthlySalesChart() {
   }, []);
 
   const options: ApexOptions = {
-    colors: ["#38d66a"],
+    colors: ["#007832"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",

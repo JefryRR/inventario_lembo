@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
 from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
@@ -8,6 +8,9 @@ from app.schemas.ventas import VentasCreate, VentasUpdate, VentasOut, PaginatedV
 from app.crud import ventas as crud_ventas
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from fastapi.responses import StreamingResponse   # type: ignore
+from app.crud import detalle_venta as crud_detalle_ventas
+from app.utils.exportar_reportes import generar_excel_reporte_ventas, generar_pdf_reporte_ventas, _agrupar_detalles_por_venta
 
 router = APIRouter()
 modulo = 13
@@ -57,6 +60,77 @@ def get_all_ventas(
         
         ventas = crud_ventas.all_ventas(db)
         return ventas
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/exportar/excel")
+def exportar_ventas_excel(
+    fecha_inicio: Optional[str] = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),
+    fecha_fin: Optional[str] = Query(None, description="Fecha final en formato YYYY-MM-DD"),
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        if fecha_inicio and fecha_fin:
+            ventas = crud_ventas.get_ventas_by_date_range(db, fecha_inicio, fecha_fin)
+            nombre_archivo = f"reporte_ventas_{fecha_inicio}_a_{fecha_fin}.xlsx"
+        else:
+            ventas = crud_ventas.all_ventas(db)
+            nombre_archivo = "reporte_ventas.xlsx"
+
+        if not ventas:
+            raise HTTPException(status_code=404, detail="No hay ventas registradas")
+
+        detalles = crud_detalle_ventas.get_all_detalles_venta(db)
+
+        buffer = generar_excel_reporte_ventas(ventas, detalles)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{nombre_archivo}"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/exportar/pdf")
+def exportar_ventas_pdf(
+    fecha_inicio: Optional[str] = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),
+    fecha_fin: Optional[str] = Query(None, description="Fecha final en formato YYYY-MM-DD"),
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        if fecha_inicio and fecha_fin:
+            ventas = crud_ventas.get_ventas_by_date_range(db, fecha_inicio, fecha_fin)
+            nombre_archivo = f"reporte_ventas_{fecha_inicio}_a_{fecha_fin}.pdf"
+        else:
+            ventas = crud_ventas.all_ventas(db)
+            nombre_archivo = "reporte_ventas.pdf"
+
+        if not ventas:
+            raise HTTPException(status_code=404, detail="No hay ventas registradas")
+
+        detalles = crud_detalle_ventas.get_all_detalles_venta(db)
+
+        buffer = generar_pdf_reporte_ventas(ventas, detalles)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{nombre_archivo}"'}
+        )
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     

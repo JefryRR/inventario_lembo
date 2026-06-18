@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 
 type MovimientoReporte = {
     tipo: string;
@@ -129,6 +129,26 @@ export default function InformesProd() {
         .reduce((acc, m) => acc + (Number(m.cantidad ?? 0) * Number(m.valor ?? 0)), 0) ?? 0;
 
     const perdidaGanancia = (totalVenta - (encabezado?.total_perdido ?? 0) * (encabezado?.valor_unitario ?? 0));
+
+    const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
+
+    const handleExportar = async (formato: "pdf" | "excel") => {
+        if (!id_inventario) return;
+
+        setDescargando(formato);
+        try {
+            const extension = formato === "pdf" ? "pdf" : "xlsx";
+            await apiDownload(
+                `inv_produccion/reporte/${id_inventario}/${formato}`,
+                `reporte_produccion_${id_inventario}.${extension}`
+            );
+        } catch (err: any) {
+            alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+        } finally {
+            setDescargando(null);
+        }
+    };
+
     return (
 
         <div className="space-y-6">
@@ -141,12 +161,30 @@ export default function InformesProd() {
                         Resumen detallado del inventario y sus movimientos.
                     </p>
                 </div>
-                <Link
-                    to="/invProd"
-                    className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                >
-                    Volver
-                </Link>
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => handleExportar("pdf")}
+                        disabled={descargando !== null}
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    >
+                        {descargando === "pdf" ? "Generando..." : "Exportar PDF"}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleExportar("excel")}
+                        disabled={descargando !== null}
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    >
+                        {descargando === "excel" ? "Generando..." : "Exportar Excel"}
+                    </button>
+                    <Link
+                        to="/invProd"
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    >
+                        Volver
+                    </Link>
+                </div>
             </div>
 
             {loading ? (

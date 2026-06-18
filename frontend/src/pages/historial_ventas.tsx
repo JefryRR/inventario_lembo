@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 
 type VentasLocationState = {
     refresh?: boolean;
@@ -91,15 +91,23 @@ export default function VentasPage() {
                 
                 const data = (await apiFetch(endpoint)) as VentasResponse;
                 
-                const [ventasData, detallesData] = await Promise.all([
-                    apiFetch("ventas/all/ventas"),
-                    apiFetch("detalles-venta/all/detalles"),
-                ]);
+                const detallesData = await apiFetch("detalles-venta/all/detalles");
 
                 if (!mounted) return;
 
-                const ventasList = Array.isArray(ventasData?.ventas) ? ventasData.ventas : Array.isArray(ventasData) ? ventasData : [];
-                const detallesList = Array.isArray(detallesData?.detalles) ? detallesData.detalles : Array.isArray(detallesData) ? detallesData : [];
+                // Si hay filtro activo, `data` ya trae las ventas filtradas
+                // Si no, `data` es el resultado paginado que también incluye `ventas`
+                const ventasList = Array.isArray(data?.ventas)
+                    ? data.ventas
+                    : Array.isArray(data)
+                    ? data
+                    : [];
+
+                const detallesList = Array.isArray(detallesData?.detalles)
+                    ? detallesData.detalles
+                    : Array.isArray(detallesData)
+                    ? detallesData
+                    : [];
 
                 setVentas(ventasList);
                 setDetalles(detallesList);
@@ -173,6 +181,26 @@ export default function VentasPage() {
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+    const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
+
+    const handleExportarVentas = async (formato: "pdf" | "excel") => {
+        setDescargando(formato);
+        try {
+            const extension = formato === "pdf" ? "pdf" : "xlsx";
+            const filtro = activeDateRange
+                ? `?fecha_inicio=${activeDateRange.fecha_inicio}&fecha_fin=${activeDateRange.fecha_fin}`
+                : "";
+            await apiDownload(
+                `ventas/exportar/${formato}${filtro}`,
+                `reporte_ventas.${extension}`,
+            );
+        } catch (err: any) {
+            alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+        } finally {
+            setDescargando(null);
+        }
+    };
+
     return (
         <>
             <PageBreadcrumb pageTitle="Historial de Ventas" />
@@ -186,6 +214,20 @@ export default function VentasPage() {
                         placeholder="Buscar ventas..."
                         className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
                     />
+                    <button
+                        onClick={() => handleExportarVentas("excel")}
+                        disabled={descargando !== null}
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                        >
+                        {descargando === "excel" ? "Descargando..." : "Exportar Excel"}
+                        </button>
+                        <button
+                        onClick={() => handleExportarVentas("pdf")}
+                        disabled={descargando !== null}
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                        >
+                        {descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
+                        </button>
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha inicio:</label>
                         <input
