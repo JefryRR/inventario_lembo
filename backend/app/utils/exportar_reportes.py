@@ -9,16 +9,14 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.platypus import Paragraph  # type: ignore
 from reportlab.lib.styles import getSampleStyleSheet # type: ignore
 from collections import defaultdict
+from collections import defaultdict
 
 styles = getSampleStyleSheet()
 
-<<<<<<< HEAD
 estilo_observaciones = styles["BodyText"].clone("Observaciones")
 estilo_observaciones.fontSize = 6
 estilo_observaciones.leading = 7
 
-=======
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
 def generar_excel_reporte_insumo(reporte: dict) -> io.BytesIO:
     encabezado = reporte["encabezado"]
     movimientos = reporte["movimientos"]
@@ -267,7 +265,6 @@ def generar_pdf_reporte_perdidas(perdidas: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
-<<<<<<< HEAD
 def generar_excel_reporte_lote_prod(reporte: dict) -> io.BytesIO:
     encabezado = reporte["encabezado"]
     historial = reporte["historial"]
@@ -341,77 +338,22 @@ def generar_excel_reporte_lote_prod(reporte: dict) -> io.BytesIO:
     for col in ws_mort.columns:
         max_len = max((len(str(c.value)) if c.value else 0) for c in col)
         ws_mort.column_dimensions[col[0].column_letter].width = max_len + 4
-=======
-
-def generar_excel_reporte_produccion(reporte: dict) -> io.BytesIO:
-    encabezado = reporte["encabezado"]
-    movimientos = reporte["movimientos"]
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Encabezado"
-
-    ws.append(["Informe de Producción", encabezado["nombre_producto"]])
-    ws["A1"].font = Font(bold=True, size=14)
-    ws.append([])
-    ws.append(["Fecha de ingreso", str(encabezado["fecha_ingreso"])])
-    ws.append(["Fecha de vencimiento", str(encabezado["fecha_vencimiento"])])
-    ws.append(["Costo unitario", float(encabezado["valor_unitario"])])
-    ws.append(["Nombre lote", str(encabezado["nombre_lote"])])
-    ws.append(["Cantidad inicial", encabezado["cantidad_inicial"]])
-    ws.append(["Stock actual", encabezado["stock_actual"]])
-    ws.append(["Total Vendido", encabezado["total_vendido"]])
-    ws.append(["Total perdido", encabezado["total_perdido"]])
-
-    for fila in ws.iter_rows(min_row=3, max_row=9, min_col=1, max_col=1):
-        for celda in fila:
-            celda.font = Font(bold=True)
-
-    ws_mov = wb.create_sheet("Movimientos")
-    ws_mov.append(["Tipo", "Observaciones", "Cantidad", "Unidad", "Valor", "Motivo", "Fecha"])
-    for celda in ws_mov[1]:
-        celda.font = Font(bold=True, color="FFFFFF")
-        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
-
-    for m in movimientos:
-        ws_mov.append([
-            m.get("tipo"),
-            m.get("referencia"),
-            m.get("cantidad"),
-            encabezado.get("simbolo"),
-            float(m["valor"]) if m.get("valor") not in (None, "-") else "-",
-            m.get("motivo"),
-            str(m.get("fecha")),
-        ])
-
-    for columna in ws_mov.columns:
-        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
-        ws_mov.column_dimensions[columna[0].column_letter].width = max_len + 2
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
 
     buffer = io.BytesIO()
     wb.save(buffer)
     buffer.seek(0)
     return buffer
 
-<<<<<<< HEAD
 def generar_pdf_reporte_lotes_prod(reporte: dict) -> io.BytesIO:
     encabezado  = reporte["encabezado"]
     historial   = reporte["historial"]
     mortalidades = reporte["mortalidades"]
-=======
-
-def generar_pdf_reporte_produccion(reporte: dict) -> io.BytesIO:
-    encabezado = reporte["encabezado"]
-    movimientos = reporte["movimientos"]
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     elementos = []
 
-<<<<<<< HEAD
     # ── Título ───────────────────────────────────────────────────────
     elementos.append(Paragraph(
         f"Informe de lote: {encabezado['nombre_lote']}", styles["Title"]
@@ -501,7 +443,187 @@ def generar_pdf_reporte_produccion(reporte: dict) -> io.BytesIO:
         ("VALIGN",     (0, 0), (-1, -1), "MIDDLE"),
     ]))
     elementos.append(tabla_mort)
-=======
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+def generar_excel_reporte_mortalidad(perdidas: list) -> io.BytesIO:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Mortalidad"
+
+    ws.append(["Informe de mortalidad"])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([f"Total de registros: {len(perdidas)}"])
+    ws.append([])
+
+    headers = [
+        "Lote", "Categoría", "especie", "Cantidad", "Fecha reporte", "Observación", "usuario"
+    ]
+    ws.append(headers)
+    fila_encabezado = ws.max_row
+    for celda in ws[fila_encabezado]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+    total_mortalidad = 0.0
+    for p in perdidas:
+       
+        ws.append([ # type: ignore
+            p.get("nombre_lote") if p.get("nombre_lote") else "-",
+            p.get("nombre_categoria") if p.get("nombre_categoria") else "-",
+            p.get("nombre_especie") if p.get("nombre_especie") else "-",
+            p.get("cantidad"),
+            str(p.get("fecha_reporte", "")),
+            p.get("observacion") or "",
+            p.get("nombre_user") if p.get("nombre_user") else "-",
+        ])
+        total_mortalidad += p.get("cantidad", 0)
+    ws.append([]) # type: ignore
+    fila_total = ws.max_row + 1
+    ws.cell(row=fila_total, column=4, value="Total mortalidad:").font = Font(bold=True)
+    ws.cell(row=fila_total, column=5, value=total_mortalidad).font = Font(bold=True)
+
+    for columna in ws.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+def generar_pdf_reporte_mortalidad(mortalidad: list) -> io.BytesIO:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+    elementos = []
+
+    elementos.append(Paragraph("Informe de mortalidad", styles["Title"]))
+    elementos.append(Spacer(1, 12))
+
+    total_mortalidad = 0.0
+    filas = [["Lote", "Categoría", "especie", "Cantidad", "Fecha reporte", "Observación", "usuario"]]
+    for p in mortalidad:
+        total_mortalidad += p.get("cantidad", 0)
+
+        filas.append([
+            p.get("nombre_lote") or "",
+            p.get("nombre_categoria") or "",
+            p.get("nombre_especie") or "",
+            p.get("cantidad", 0),
+            str(p.get("fecha_reporte", "")),
+            Paragraph(p.get("observacion") or "", estilo_observaciones),
+            p.get("nombre_user") or "-",
+        ])
+
+    tabla = Table(
+        filas,
+        repeatRows=1,
+        colWidths=[
+            2.3 * cm,
+            2 * cm,
+            2 * cm,
+            2 * cm,
+            3 * cm,
+            4 * cm,
+            3 * cm,
+        ]
+    )
+    tabla.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 18))
+
+    resumen = [
+        ["Total de registros", str(len(mortalidad))],
+        ["Total mortalidad", f"{total_mortalidad:,.0f}"],
+    ]
+    tabla_resumen = Table(resumen, colWidths=[6 * cm, 6 * cm])
+    tabla_resumen.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+    ]))
+    elementos.append(tabla_resumen)
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+def generar_excel_reporte_produccion(reporte: dict) -> io.BytesIO:
+    encabezado = reporte["encabezado"]
+    movimientos = reporte["movimientos"]
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Encabezado"
+
+    ws.append(["Informe de Producción", encabezado["nombre_producto"]])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([])
+    ws.append(["Fecha de ingreso", str(encabezado["fecha_ingreso"])])
+    ws.append(["Fecha de vencimiento", str(encabezado["fecha_vencimiento"])])
+    ws.append(["Costo unitario", float(encabezado["valor_unitario"])])
+    ws.append(["Nombre lote", str(encabezado["nombre_lote"])])
+    ws.append(["Cantidad inicial", encabezado["cantidad_inicial"]])
+    ws.append(["Stock actual", encabezado["stock_actual"]])
+    ws.append(["Total Vendido", encabezado["total_vendido"]])
+    ws.append(["Total perdido", encabezado["total_perdido"]])
+
+    for fila in ws.iter_rows(min_row=3, max_row=9, min_col=1, max_col=1):
+        for celda in fila:
+            celda.font = Font(bold=True)
+
+    ws_mov = wb.create_sheet("Movimientos")
+    ws_mov.append(["Tipo", "Observaciones", "Cantidad", "Unidad", "Valor", "Motivo", "Fecha"])
+    for celda in ws_mov[1]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+    for m in movimientos:
+        ws_mov.append([
+            m.get("tipo"),
+            m.get("referencia"),
+            m.get("cantidad"),
+            encabezado.get("simbolo"),
+            float(m["valor"]) if m.get("valor") not in (None, "-") else "-",
+            m.get("motivo"),
+            str(m.get("fecha")),
+        ])
+
+    for columna in ws_mov.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws_mov.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+#__________________________________________________________________
+def generar_pdf_reporte_produccion(reporte: dict) -> io.BytesIO:
+    encabezado = reporte["encabezado"]
+    movimientos = reporte["movimientos"]
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elementos = []
+
     elementos.append(Paragraph(f"Informe de Producción: {encabezado['nombre_producto']}", styles["Title"]))
     elementos.append(Spacer(1, 12))
 
@@ -546,59 +668,16 @@ def generar_pdf_reporte_produccion(reporte: dict) -> io.BytesIO:
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
     elementos.append(tabla_movs)
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
 
     doc.build(elementos)
     buffer.seek(0)
     return buffer
-
-<<<<<<< HEAD
-def generar_excel_reporte_mortalidad(perdidas: list) -> io.BytesIO:
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Mortalidad"
-
-    ws.append(["Informe de mortalidad"])
-    ws["A1"].font = Font(bold=True, size=14)
-    ws.append([f"Total de registros: {len(perdidas)}"])
-    ws.append([])
-
-    headers = [
-        "Lote", "Categoría", "especie", "Cantidad", "Fecha reporte", "Observación", "usuario"
-    ]
-    ws.append(headers)
-    fila_encabezado = ws.max_row
-    for celda in ws[fila_encabezado]:
-        celda.font = Font(bold=True, color="FFFFFF")
-        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
-
-    total_mortalidad = 0.0
-    for p in perdidas:
-       
-        ws.append([ # type: ignore
-            p.get("nombre_lote") if p.get("nombre_lote") else "-",
-            p.get("nombre_categoria") if p.get("nombre_categoria") else "-",
-            p.get("nombre_especie") if p.get("nombre_especie") else "-",
-            p.get("cantidad"),
-            str(p.get("fecha_reporte", "")),
-            p.get("observacion") or "",
-            p.get("nombre_user") if p.get("nombre_user") else "-",
-        ])
-        total_mortalidad += p.get("cantidad", 0)
-    ws.append([]) # type: ignore
-    fila_total = ws.max_row + 1
-    ws.cell(row=fila_total, column=4, value="Total mortalidad:").font = Font(bold=True)
-    ws.cell(row=fila_total, column=5, value=total_mortalidad).font = Font(bold=True)
-=======
-from collections import defaultdict
-
 
 def _agrupar_detalles_por_venta(detalles: list) -> dict:
     agrupado = defaultdict(list)
     for d in detalles:
         agrupado[d["venta_id"]].append(d)
     return agrupado
-
 
 def generar_excel_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
     detalles_por_venta = _agrupar_detalles_por_venta(detalles)
@@ -658,7 +737,6 @@ def generar_excel_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
     fila_total = ws.max_row + 1
     ws.cell(row=fila_total, column=4, value="Total general:").font = Font(bold=True)
     ws.cell(row=fila_total, column=5, value=total_general).font = Font(bold=True)
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
 
     for columna in ws.columns:
         max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
@@ -669,14 +747,9 @@ def generar_excel_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
-<<<<<<< HEAD
-def generar_pdf_reporte_mortalidad(mortalidad: list) -> io.BytesIO:
-=======
-
 def generar_pdf_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
     detalles_por_venta = _agrupar_detalles_por_venta(detalles)
 
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -687,26 +760,6 @@ def generar_pdf_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
         bottomMargin=1.5 * cm,
     )
     styles = getSampleStyleSheet()
-<<<<<<< HEAD
-    elementos = []
-
-    elementos.append(Paragraph("Informe de mortalidad", styles["Title"]))
-    elementos.append(Spacer(1, 12))
-
-    total_mortalidad = 0.0
-    filas = [["Lote", "Categoría", "especie", "Cantidad", "Fecha reporte", "Observación", "usuario"]]
-    for p in mortalidad:
-        total_mortalidad += p.get("cantidad", 0)
-
-        filas.append([
-            p.get("nombre_lote") or "",
-            p.get("nombre_categoria") or "",
-            p.get("nombre_especie") or "",
-            p.get("cantidad", 0),
-            str(p.get("fecha_reporte", "")),
-            Paragraph(p.get("observacion") or "", estilo_observaciones),
-            p.get("nombre_user") or "-",
-=======
     elementos = [Paragraph("Informe de Ventas", styles["Title"]), Spacer(1, 12)]
 
     total_general = 0.0
@@ -851,25 +904,12 @@ def generar_pdf_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
             str(cant_convertida) if cant_convertida is not None else "-",
             t.get("nombre_user") or "Sistema",
             Paragraph(t.get("observacion") or "-", estilo_observaciones),
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
         ])
 
     tabla = Table(
         filas,
         repeatRows=1,
-<<<<<<< HEAD
-        colWidths=[
-            2.3 * cm,
-            2 * cm,
-            2 * cm,
-            2 * cm,
-            3 * cm,
-            4 * cm,
-            3 * cm,
-        ]
-=======
         colWidths=[2.5 * cm, 4 * cm, 3 * cm, 3 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm, 5 * cm],
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
     )
     tabla.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
@@ -879,28 +919,8 @@ def generar_pdf_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
     ]))
     elementos.append(tabla)
     elementos.append(Spacer(1, 18))
-<<<<<<< HEAD
-
-    resumen = [
-        ["Total de registros", str(len(mortalidad))],
-        ["Total mortalidad", f"{total_mortalidad:,.0f}"],
-    ]
-    tabla_resumen = Table(resumen, colWidths=[6 * cm, 6 * cm])
-    tabla_resumen.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (0, -1), colors.whitesmoke),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-    ]))
-    elementos.append(tabla_resumen)
-
-    doc.build(elementos)
-    buffer.seek(0)
-    return buffer
-=======
     elementos.append(Paragraph(f"Total de registros: {len(tratamientos)}", styles["Normal"]))
 
     doc.build(elementos)
     buffer.seek(0)
     return buffer
->>>>>>> 589d5c3fc353efd7df73afa81313f4d73d3a05c2
