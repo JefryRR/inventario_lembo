@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 
 type MortalidadRow = {
 	id_mortalidad: number;
@@ -22,6 +22,11 @@ type MortalidadResponse = {
 	page: number;
 	page_size: number;
 	mortalidad: MortalidadRow[];
+};
+
+type DateRangeState = {
+	fecha_inicio: string;
+	fecha_fin: string;
 };
 
 function formatDate(value: string): string {
@@ -44,6 +49,8 @@ export default function Mortalidad() {
 	const [rows, setRows] = useState<MortalidadRow[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [dateRange, setDateRange] = useState<DateRangeState>({ fecha_inicio: "", fecha_fin: "" });
+	const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
 	const [page, setPage] = useState(1);
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
@@ -63,8 +70,20 @@ export default function Mortalidad() {
 			setError(null);
 
 			try {
-				const data = (await apiFetch(`mortalidad/paginated?page=${page}&page_size=${pageSize}`)) as MortalidadResponse;
-				if (!mounted) return;
+				const queryParams = new URLSearchParams({
+					page: String(page),
+					page_size: String(pageSize),
+				});
+
+				const endpoint = activeDateRange
+					? (() => {
+						queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
+						queryParams.set("fecha_fin", activeDateRange.fecha_fin);
+						return `mortalidad/rango-fechas?${queryParams.toString()}`;
+					})()
+					: `mortalidad/paginated?${queryParams.toString()}`;
+
+				const data = (await apiFetch(endpoint)) as MortalidadResponse; if (!mounted) return;
 
 				setRows(Array.isArray(data?.mortalidad) ? data.mortalidad : []);
 				setTotal(Number(data?.total_mortalidad ?? 0));
@@ -81,7 +100,7 @@ export default function Mortalidad() {
 		return () => {
 			mounted = false;
 		};
-	}, [page, pageSize]);
+	}, [page, pageSize, activeDateRange]);
 
 	const filtered = useMemo(() => {
 		const term = search.trim().toLowerCase();
@@ -103,6 +122,43 @@ export default function Mortalidad() {
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+	const applyDateFilter = () => {
+		if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
+			setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
+			return;
+		}
+		if (dateRange.fecha_inicio > dateRange.fecha_fin) {
+			setError("La fecha inicial no puede ser mayor que la fecha final.");
+			return;
+		}
+		setError(null);
+		setPage(1);
+		setActiveDateRange({ ...dateRange });
+	};
+
+	const clearDateFilter = () => {
+		setDateRange({ fecha_inicio: "", fecha_fin: "" });
+		setActiveDateRange(null);
+		setPage(1);
+		setError(null);
+	};
+
+	const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
+
+	const handleExportarMortalidades = async (formato: "pdf" | "excel") => {
+		setDescargando(formato);
+		try {
+			const extension = formato === "pdf" ? "pdf" : "xlsx";
+			await apiDownload(
+				`mortalidad/exportar/${formato}`,
+				`reporte_mortalidad.${extension}`,
+			);
+		} catch (err: any) {
+			alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+		} finally {
+			setDescargando(null);
+		}
+	};
 	return (
 		<>
 			<PageBreadcrumb pageTitle="Mortalidad" />
@@ -114,15 +170,60 @@ export default function Mortalidad() {
 							to="/mortalidad/create"
 							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
 						>
-							Nuevo registro
+							Registrar
 						</Link>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							placeholder="Buscar..."
-							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800 sm:w-72"
+							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800 sm:w-50"
 						/>
+						<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
+							<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha inicio:</label>
+							<input
+								type="date"
+								value={dateRange.fecha_inicio}
+								onChange={(e) => setDateRange((c) => ({ ...c, fecha_inicio: e.target.value }))}
+								className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 lg:w-44"
+							/>
+							<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha fin:</label>
+							<input
+								type="date"
+								value={dateRange.fecha_fin}
+								onChange={(e) => setDateRange((c) => ({ ...c, fecha_fin: e.target.value }))}
+								className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 lg:w-44"
+							/>
+							<button
+								type="button"
+								onClick={applyDateFilter}
+								className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-800 px-4 text-sm font-medium text-white transition hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
+							>
+								Filtrar
+							</button>
+							<button
+								type="button"
+								onClick={clearDateFilter}
+								disabled={!activeDateRange}
+								className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+							>
+								Limpiar
+							</button>
+						</div>
 					</div>
+					<button
+						onClick={() => handleExportarMortalidades("excel")}
+						disabled={descargando !== null}
+						className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+					>
+						{descargando === "excel" ? "Descargando..." : "Exportar Excel"}
+					</button>
+					<button
+						onClick={() => handleExportarMortalidades("pdf")}
+						disabled={descargando !== null}
+						className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+					>
+						{descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
+					</button>
 				</div>
 
 				<div className="overflow-x-auto">
@@ -130,27 +231,27 @@ export default function Mortalidad() {
 						<thead className="bg-gray-50 dark:bg-gray-900/40">
 							<tr>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Lote
-                                </th>
+									Lote
+								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Categoría / Especie
 								</th>
-								
+
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Fecha de reporte
-                                </th>
+									Fecha de reporte
+								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Cantidad
-                                </th>
+									Cantidad
+								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Observación
-                                </th>
+									Observación
+								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Usuario
-                                </th>
+									Usuario
+								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Acciones
-                                </th>
+									Acciones
+								</th>
 							</tr>
 						</thead>
 
@@ -182,9 +283,9 @@ export default function Mortalidad() {
 										<td className="px-5 py-4">
 											<div className="text-sm text-gray-800 dark:text-gray-300">{mortalidad.nombre_categoria || "-"} / {mortalidad.nombre_especie || "-"}</div>
 										</td>
-										
+
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(mortalidad.fecha_reporte)}</td>
-										
+
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.cantidad}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.observacion || "-"}</td>

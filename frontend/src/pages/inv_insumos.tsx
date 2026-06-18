@@ -34,7 +34,7 @@ type DateRangeState = {
 };
 
 function isEditDisabled(cantidad: number, alerta: string): boolean {
-    if (alerta.toLowerCase().includes("vencido")) return true;
+    if (alerta?.toLowerCase().includes("vencido")) return true;
     if (cantidad <= 0) return true;
     return false;
 };

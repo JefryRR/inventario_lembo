@@ -180,7 +180,6 @@ def exportar_reporte_insumo_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/reporte/{inv_insumo_id}/pdf")
 def exportar_reporte_insumo_pdf(
     inv_insumo_id: int,

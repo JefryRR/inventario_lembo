@@ -40,7 +40,6 @@ export default function InvPerd() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState("");
   const [dateRange, setDateRange] = useState<DateRangeState>({
     fecha_inicio: "",
     fecha_fin: "",
@@ -103,11 +102,7 @@ export default function InvPerd() {
   }, [page, pageSize, activeDateRange]);
 
   const filteredInvperd = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) {
-      return invPerd;
-    }
-
+ 
     return invPerd.filter((inv_perd) => {
       return [
         inv_perd.nombre_producto,
@@ -123,9 +118,8 @@ export default function InvPerd() {
       ]
         .join(" ")
         .toLowerCase()
-        .includes(term);
     });
-  }, [search, invPerd, activeDateRange]);
+  }, [ invPerd, activeDateRange]);
 
   const formatearFecha = (fechaString: string | number | Date) => {
     if (!fechaString) return "-";

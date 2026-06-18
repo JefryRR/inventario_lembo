@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 
 type LoteRow = {
 	id_lote: number;
@@ -46,18 +46,18 @@ function formatEstado(value: string): string {
 function formatDate(value: string): string {
 	if (!value) return "-";
 	const normalized = value.endsWith("Z") || value.includes("+") ? value : value + "Z";
-    
-    const date = new Date(normalized);
-    if (Number.isNaN(date.getTime())) return value;
-    
-    return date.toLocaleString("es-CO", {
-        timeZone: "America/Bogota",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+
+	const date = new Date(normalized);
+	if (Number.isNaN(date.getTime())) return value;
+
+	return date.toLocaleString("es-CO", {
+		timeZone: "America/Bogota",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 };
 
 type MetricCardProps = {
@@ -97,6 +97,7 @@ export default function InformeLote() {
 	const [history, setHistory] = useState<HistorialEstadoRow[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
 
 	useEffect(() => {
 		if (!localStorage.getItem("token")) {
@@ -176,12 +177,45 @@ export default function InformeLote() {
 		);
 	}
 
+	const handleExportar = async (formato: "pdf" | "excel") => {
+		if (!id) return;
+
+		setDescargando(formato);
+		try {
+			const extension = formato === "pdf" ? "pdf" : "xlsx";
+			await apiDownload(
+				`lotes_prod/reporte/${id}/${formato}`,
+				`reporte_lote_${id}.${extension}`
+			);
+		} catch (err: any) {
+			alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+		} finally {
+			setDescargando(null);
+		}
+	};
+
 	return (
 		<>
 			<PageBreadcrumb pageTitle={`Informe — ${lote?.nombre_lote ?? ""}`} />
 
 			{/* Botón volver */}
 			<div className="mb-5 align-right flex justify-end">
+				<button
+					type="button"
+					onClick={() => handleExportar("pdf")}
+					disabled={descargando !== null}
+					className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+				>
+					{descargando === "pdf" ? "Generando..." : "Exportar PDF"}
+				</button>
+				<button
+					type="button"
+					onClick={() => handleExportar("excel")}
+					disabled={descargando !== null}
+					className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+				>
+					{descargando === "excel" ? "Generando..." : "Exportar Excel"}
+				</button>
 				<Link
 					to="/lotesProd"
 					className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
@@ -308,12 +342,12 @@ export default function InformeLote() {
 					</table>
 				</div>
 			</div>
-			
+
 			{/* Tabla de detalle de mortalidad */}
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
 					<h2 className="text-base font-semibold text-gray-800 dark:text-white/90">
-						Detalle del mortalidad
+						Detalles de mortalidades
 					</h2>
 				</div>
 

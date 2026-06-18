@@ -8,6 +8,9 @@ from app.schemas.mortalidad import MortalidadCreate, MortalidadUpdate, Paginated
 from app.crud import lotes_prod as crud_lotes
 from app.schemas.users import UserOut
 from app.crud import mortalidad as crud_mortalidad
+from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from fastapi.responses import StreamingResponse   # type: ignore
+from app.utils.exportar_reportes import generar_excel_reporte_mortalidad, generar_pdf_reporte_mortalidad
 
 router = APIRouter()
 modulo = 11 # ID del módulo de lotes para verificar permisos
@@ -83,6 +86,95 @@ def get_mortalidad_by_lote(
         return crud_mortalidad.get_mortalidad_by_lote(db, lote_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar/excel")
+def exportar_mortalidades_excel(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        mortalidad = crud_mortalidad.get_all_mortalidad(db)
+        if not mortalidad:
+            raise HTTPException(status_code=404, detail="No hay mortalidades registradas")
+
+        buffer = generar_excel_reporte_mortalidad(mortalidad)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="reporte_mortalidad.xlsx"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar/pdf")
+def exportar_mortalidades_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        mortalidad = crud_mortalidad.get_all_mortalidad(db)
+        if not mortalidad:
+            raise HTTPException(status_code=404, detail="No hay mortalidades registradas")
+
+        buffer = generar_pdf_reporte_mortalidad(mortalidad)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_mortalidad.pdf"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/rango-fechas", response_model=PaginatedMortalidad)
+def obtener_mortalidades_por_rango_fechas(
+    fecha_inicio: str = Query(..., description="Fecha inicial en formato YYYY-MM-DD"),
+    fecha_fin: str = Query(..., description="Fecha final en formato YYYY-MM-DD"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, "seleccionar"):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        
+        mortalidad = crud_mortalidad.get_mortalidad_by_date_range(db, fecha_inicio, fecha_fin)
+
+        if not mortalidad:
+            raise HTTPException(status_code=404, detail="No hay registro(s) de mortalidades en ese rango de fechas")
+
+        # Aplicar paginación manualmente a los resultados filtrados
+        total = len(mortalidad)
+        skip = (page - 1) * page_size
+        end_index = skip + page_size
+        
+        # Obtener solo la página solicitada
+        mortalidad_paginada = mortalidad[skip:end_index]
+        
+        return PaginatedMortalidad(
+            page=page,
+            page_size=page_size,
+            total_mortalidad=total,
+            total_pages=(total + page_size - 1) // page_size,
+            mortalidad=mortalidad_paginada
+        )
+
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener los registros de las mortalidades: {e}")
+
 
 @router.put("/by-id/{mortalidad_id}")
 def update_mortalidad_by_id( id_mortalidad: int, mortalidad: MortalidadUpdate, db: Session = Depends(get_db),

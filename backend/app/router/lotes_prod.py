@@ -4,9 +4,12 @@ from app.core.database import get_db
 from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
 from app.schemas.lotes_prod import LoteCreate, LoteEstado, LoteOut, LoteUpdate
+from sqlalchemy.exc import SQLAlchemyError
 from app.schemas.users import UserOut
-from app.crud import lotes_prod as crud_lotes_prod
+from app.crud import lotes_prod as crud_lotes_prod, mortalidad as crud_mortalidades
 from typing import Optional
+from fastapi.responses import StreamingResponse   
+from app.utils import exportar_reportes
 
 router = APIRouter()
 modulo = 5 # ID del módulo de lotes para verificar permisos
@@ -75,7 +78,92 @@ def get_historial_by_id(id_lote_p: int, db: Session = Depends(get_db),
         return history_status
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/exportar/pdf")
+def exportar_lotes_prod_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
 
+        lotes = crud_lotes_prod.get_all_lotes(db)
+        if not lotes:
+            raise HTTPException(status_code=404, detail="No hay lotes registrados")
+
+        buffer = exportar_reportes.generar_pdf_reporte_lotes_prod(lotes)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_lotes_prod.pdf"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/reporte/{lote_id}/{formato}")
+def exportar_reporte_lote(
+    lote_id: int,
+    formato: str,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        # Obtener datos
+        lote = crud_lotes_prod.get_lote_by_id(db, lote_id)
+        if not lote:
+            raise HTTPException(status_code=404, detail="Lote no encontrado")
+
+        historial = crud_lotes_prod.get_historial_by_id(db, lote_id)
+        mortalidades = crud_mortalidades.get_mortalidad_by_lote(db, lote_id)
+
+        # Calcular métricas
+        total_muertes = sum(m["cantidad"] for m in mortalidades)
+        cantidad_actual = lote["cantidad"]
+        cantidad_inicial = cantidad_actual + total_muertes
+        porcentaje = round((total_muertes / cantidad_inicial * 100), 1) if cantidad_inicial > 0 else 0.0
+
+        # Armar el dict del reporte
+        reporte = {
+            "encabezado": {
+                **dict(lote),
+                "cantidad_inicial":      cantidad_inicial,
+                "total_muertes":         total_muertes,
+                "porcentaje_mortalidad": porcentaje,
+            },
+            "historial":    [dict(h) for h in historial],
+            "mortalidades": [dict(m) for m in mortalidades],
+        }
+
+        if formato == "excel":
+            buffer = exportar_reportes.generar_excel_reporte_lote_prod(reporte)
+            return StreamingResponse(
+                buffer,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": f"attachment; filename=reporte_lote_{lote_id}.xlsx"}
+            )
+        elif formato == "pdf":
+            buffer = exportar_reportes.generar_pdf_reporte_lotes_prod(reporte)
+            return StreamingResponse(
+                buffer,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename=reporte_lote_{lote_id}.pdf"}
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Formato no soportado. Use 'pdf' o 'excel'")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @router.put("/by-id/{lote_id}")
 def update_lote_by_id( id_lote: int, lote: LoteUpdate, db: Session = Depends(get_db),
                       user_token: UserOut = Depends(get_current_user)

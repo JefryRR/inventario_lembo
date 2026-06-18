@@ -35,8 +35,8 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
-function isEditDisabled(cantidad: number, alerta: string): boolean {
-    if (alerta.toLowerCase() === "este inventario está vencido") return true;
+function isEditDisabled(cantidad: number, alerta: string | undefined): boolean {
+    if (alerta?.toLowerCase().includes("vencido")) return true;
     if (cantidad <= 0) return true;
     return false;
 }

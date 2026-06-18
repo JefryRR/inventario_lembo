@@ -93,8 +93,8 @@ export default function Lotes() {
 
 				setError(
 					requestError?.detail ||
-						requestError?.message ||
-						"No se pudieron cargar los lotes"
+					requestError?.message ||
+					"No se pudieron cargar los lotes"
 				);
 			} finally {
 				if (isMounted) {
@@ -115,7 +115,7 @@ export default function Lotes() {
 		if (!term) {
 			return lotes;
 		}
-	
+
 		return lotes.filter((lote) => {
 			return [
 				lote.nombre_lote,
