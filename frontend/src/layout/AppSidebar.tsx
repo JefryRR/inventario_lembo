@@ -112,11 +112,11 @@ const modulosItems: NavItem[] = [
     name: "Módulo de ventas",
     subItems: [
       {
-        name: "Historial de ventas",
+        name: "H. de ventas producción",
         path: "/ventas/historial",
       },
       {
-        name: "Ventas",
+        name: "Ventas producción",
         path: "/ventas",
       },
     ],

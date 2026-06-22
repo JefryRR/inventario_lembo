@@ -613,7 +613,6 @@ def generar_excel_reporte_produccion(reporte: dict) -> io.BytesIO:
     wb.save(buffer)
     buffer.seek(0)
     return buffer
-
 #__________________________________________________________________
 def generar_pdf_reporte_produccion(reporte: dict) -> io.BytesIO:
     encabezado = reporte["encabezado"]
@@ -709,7 +708,7 @@ def generar_excel_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
             celda.font = Font(bold=True, color="FFFFFF")
             celda.fill = PatternFill(start_color="00304D", end_color="00304D", fill_type="solid")
 
-        ws.append(["Producto", "Cantidad", "Unidad", "Precio unitario", "Total línea", "Estado"])
+        ws.append(["Producto", "Cantidad", "Unidad", "Precio unitario", "Precio total", "Estado"])
         fila_encabezado = ws.max_row
         for celda in ws[fila_encabezado]:
             celda.font = Font(bold=True, color="FFFFFF")
@@ -785,7 +784,7 @@ def generar_pdf_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
         elementos.append(tabla_resumen)
 
         detalles_venta = detalles_por_venta.get(venta["id_venta"], [])
-        filas_detalle = [["Producto", "Cantidad", "Unidad", "Precio unitario", "Total línea", "Estado"]]
+        filas_detalle = [["Producto", "Cantidad", "Unidad", "Precio unitario", "Precio total", "Estado"]]
         if not detalles_venta:
             filas_detalle.append(["Sin productos registrados", "", "", "", "", ""])
         else:
@@ -841,8 +840,7 @@ def generar_excel_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
 
     headers = [
         "Nombre lote", "Fecha inicio", "Fecha fin", "Cantidad",
-        "Nombre producto", "Unidad", "Usuario", "Cantidad convertida",
-        "Observación",
+        "Nombre producto", "Unidad", "Usuario", "Observación",
     ]
     ws.append(headers)
     fila_encabezado = ws.max_row
@@ -859,7 +857,6 @@ def generar_excel_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
             t.get("nombre_producto") or "-",
             t.get("simbolo") or "-",
             t.get("nombre_user") or "Sistema",
-            t.get("cant_convertida"),
             t.get("observacion") or "",
         ])
 
@@ -889,7 +886,7 @@ def generar_pdf_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
 
     elementos = [Paragraph("Informe de Tratamientos", styles["Title"]), Spacer(1, 12)]
 
-    filas = [["Lote", "Producto", "Fecha inicio", "Fecha fin", "Cantidad", "Cant. convertida", "Usuario", "Observación"]]
+    filas = [["Lote", "Producto", "Fecha inicio", "Fecha fin", "Cantidad", "Usuario", "Observación"]]
     for t in tratamientos:
         cantidad = t.get("cantidad")
         simbolo = t.get("simbolo") or ""
@@ -901,7 +898,6 @@ def generar_pdf_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
             str(t.get("fecha_inicio") or "-"),
             str(t.get("fecha_fin") or "-"),
             f"{cantidad} {simbolo}".strip(),
-            str(cant_convertida) if cant_convertida is not None else "-",
             t.get("nombre_user") or "Sistema",
             Paragraph(t.get("observacion") or "-", estilo_observaciones),
         ])

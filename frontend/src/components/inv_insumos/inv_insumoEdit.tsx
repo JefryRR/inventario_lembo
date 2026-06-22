@@ -60,7 +60,6 @@ export default function Inv_insumoEdit() {
     };
 
     useEffect(() => {
-        console.log("ID INSUMO:", id);
         if (!id) return;
 
         let mounted = true;
@@ -68,9 +67,9 @@ export default function Inv_insumoEdit() {
             setLoading(true);
             setError(null);
             try {
-                const [invInsumoData, tipoInsData, UnidMedidasData] = await Promise.all([
+                const [invInsumoData, UnidMedidasData, tipoInsData] = await Promise.all([
                     apiFetch(`inv_insumos/by-id/?id_insumo=${id}`),
-                    apiFetch(`unid-medida/all-unid_medidas`),
+                    apiFetch(`unid-medida/all-unid_medidas?tipo=inventario&tipo=ambas`),
                     apiFetch(`tipo_insumos/all-tipo_insumo`),
                 ]);
                 if (!mounted) return;
@@ -80,10 +79,6 @@ export default function Inv_insumoEdit() {
 
                 const tipoInsList = Array.isArray(tipoInsData?._id_tipo_insumo) ? tipoInsData._id_tipo_insumo :
                     Array.isArray(tipoInsData) ? tipoInsData : [];
-
-                console.log("INSUMO:", invInsumoData);
-                console.log("UNIDADES:", UnidMedidasData);
-                console.log("TIPOS:", tipoInsData);
 
                 setForm({
                     id_insumo: invInsumoData?.id_insumo || "",
@@ -180,7 +175,8 @@ export default function Inv_insumoEdit() {
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Unidad de medida <span className="text-error-500">*</span></label>
-                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} 
+                                        className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {form.unid_medida_id && !unidMedidas.some((unidMed) => String(unidMed.id_unidad) === form.unid_medida_id) && (
                                             <option value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
                                         )}
@@ -196,9 +192,9 @@ export default function Inv_insumoEdit() {
                                     <input type="date" value={form.fecha_vencimiento} onChange={handleChange("fecha_vencimiento")} placeholder="usuario@correo.com" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800" required />
                                 </div>
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre lote <span className="text-error-500">*</span></label>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo insumo <span className="text-error-500">*</span></label>
                                     <select value={form.tipo_id} onChange={handleChange("tipo_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.tipo_id && !tipoIns.some((tipo_insumo) => String(tipo_insumo.id_tipo_insumo) === form.tipo_id) && (
+                                        {tipoIns.length === 0 && form.tipo_id && (
                                             <option value={form.tipo_id}>{form.nombre_tipo || "Tipo insumo asignado"}</option>
                                         )}
                                         {tipoIns.map((tipo_insumo) => (

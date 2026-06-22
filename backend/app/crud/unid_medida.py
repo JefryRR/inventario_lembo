@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from typing import Optional
+from typing import Optional, List
 from app.schemas.unid_medidas import  Unid_medCreate, Unid_medUpdate
 import logging
 
@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 def create_unid_medida(db: Session, unid_medida: Unid_medCreate):
     try:
         query = text("""INSERT INTO unidades_medida (
-                unidad, simbolo, conversion) VALUES (
-                :unidad, :simbolo, :conversion
+                unidad, simbolo, conversion, tipo) VALUES (
+                :unidad, :simbolo, :conversion, :tipo
             )
         """)
         db.execute(query, unid_medida.model_dump())
@@ -24,7 +24,7 @@ def create_unid_medida(db: Session, unid_medida: Unid_medCreate):
 
 def get_unid_medida_by_id(db: Session, id: int):
     try:
-        query = text("""SELECT id_unidad, unidad, simbolo, conversion
+        query = text("""SELECT id_unidad, unidad, simbolo, conversion, tipo
                      FROM unidades_medida
                      WHERE id_unidad = :id
                 """)
@@ -35,12 +35,14 @@ def get_unid_medida_by_id(db: Session, id: int):
         logger.error(f"Error al obtener unidad de medida por id: {e}")
         raise Exception("Error de base de datos al obtener la unidad de medida")
 
-def get_all_unid_medidas(db: Session):
+def get_all_unid_medidas(db: Session, tipo: Optional[List[str]] = None):
     try:
-        query = text("""SELECT
-                     * FROM unidades_medida
-                     """)
-        result = db.execute(query).mappings().all()
+        if tipo:
+            query = text("""SELECT * FROM unidades_medida WHERE tipo IN :tipo""")
+            result = db.execute(query, {"tipo": tuple(tipo)}).mappings().all()
+        else:
+            query = text("""SELECT * FROM unidades_medida""")
+            result = db.execute(query).mappings().all()
         return result
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener las unidades de medida: {e}")

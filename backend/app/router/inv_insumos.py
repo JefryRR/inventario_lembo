@@ -289,3 +289,4 @@ def get_paginated_insumos(
         
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
+    

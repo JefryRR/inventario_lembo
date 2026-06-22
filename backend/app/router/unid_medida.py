@@ -1,5 +1,6 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from typing import Optional, List
 from sqlalchemy.orm import Session
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
@@ -51,14 +52,15 @@ def get_unid_medida_by_id(id: int, db: Session = Depends(get_db),
 @router.get("/all-unid_medidas", response_model=List[Unid_medOut])
 def get_all_unid_medida(
     db: Session = Depends(get_db),
-    user_token: UserOut = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user),
+    tipo: Optional[List[str]] = Query(None)
 ):
     try:
         id_rol = user_token.rol_id
         if not verify_permissions(db, id_rol, modulo, "seleccionar"):
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
-        unid_medida = crud_unid_medidas.get_all_unid_medidas(db)
+        unid_medida = crud_unid_medidas.get_all_unid_medidas(db, tipo=tipo)
         
         if not unid_medida:
             raise HTTPException(status_code=404, detail="No hay unidades de medida registradas o no se pudieron obtener")

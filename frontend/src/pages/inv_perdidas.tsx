@@ -3,6 +3,11 @@ import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale'; // Para que el calendario aparezca en español
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { DayPicker, DateRange } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
 
 type invPerdRow = {
   id_perdida: number;
@@ -44,9 +49,38 @@ export default function InvPerd() {
     fecha_inicio: "",
     fecha_fin: "",
   });
+  
   const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(
     null,
   );
+
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  // Estado que requiere react-day-picker (usa objetos Date de JS)
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
+    from: dateRange.fecha_inicio ? new Date(dateRange.fecha_inicio) : undefined,
+    to: dateRange.fecha_fin ? new Date(dateRange.fecha_fin) : undefined,
+  });
+
+  // 3. Manejador del cambio de fecha en el calendario dual
+  const handleSelectRange = (range: DateRange | undefined) => {
+    setSelectedRange(range);
+
+    // Convertimos los objetos Date a strings (YYYY-MM-DD) para el Backend
+    const inicioStr = range?.from ? format(range.from, 'yyyy-MM-dd') : '';
+    const finStr = range?.to ? format(range.to, 'yyyy-MM-dd') : '';
+
+    const newRange = { fecha_inicio: inicioStr, fecha_fin: finStr };
+    setDateRange(newRange);
+
+    // Si el usuario ya seleccionó ambas fechas, aplicamos el filtro y cerramos
+    if (range?.from && range?.to) {
+      setIsOpen(false);
+      setError(null);
+      setPage(1);
+      setActiveDateRange(newRange);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -63,10 +97,10 @@ export default function InvPerd() {
 
         const endpoint = activeDateRange
           ? (() => {
-              queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
-              queryParams.set("fecha_fin", activeDateRange.fecha_fin);
-              return `inv_perdida/rango-fechas?${queryParams.toString()}`;
-            })()
+            queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
+            queryParams.set("fecha_fin", activeDateRange.fecha_fin);
+            return `inv_perdida/rango-fechas?${queryParams.toString()}`;
+          })()
           : `inv_perdida/paginated-perdida?${queryParams.toString()}`;
 
         const data = (await apiFetch(endpoint)) as invPerdResponse;
@@ -84,8 +118,8 @@ export default function InvPerd() {
 
         setError(
           requestError?.detail ||
-            requestError?.message ||
-            "No se pudieron cargar los datos de las perdidas.",
+          requestError?.message ||
+          "No se pudieron cargar los datos de las perdidas.",
         );
       } finally {
         if (isMounted) {
@@ -102,7 +136,7 @@ export default function InvPerd() {
   }, [page, pageSize, activeDateRange]);
 
   const filteredInvperd = useMemo(() => {
-    
+
     return invPerd.filter((inv_perd) => {
       return [
         inv_perd.nombre_producto,
@@ -119,7 +153,7 @@ export default function InvPerd() {
         .join(" ")
         .toLowerCase()
     });
-  }, [ invPerd, activeDateRange]);
+  }, [invPerd, activeDateRange]);
 
   const formatearFecha = (fechaString: string | number | Date) => {
     if (!fechaString) return "-";
@@ -157,6 +191,7 @@ export default function InvPerd() {
   const clearDateFilter = () => {
     setDateRange({ fecha_inicio: "", fecha_fin: "" });
     setActiveDateRange(null);
+    setSelectedRange(undefined);
     setPage(1);
     setError(null);
   };
@@ -208,52 +243,68 @@ export default function InvPerd() {
               {descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
             </button>
           </div>
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Fecha inicio:
+              Filtrar por fechas:
             </label>
-            <input
-              type="date"
-              value={dateRange.fecha_inicio}
-              onChange={(e) =>
-                setDateRange((current) => ({
-                  ...current,
-                  fecha_inicio: e.target.value,
-                }))
-              }
-              className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
-              aria-label="Fecha inicial"
-            />
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Fecha fin:
-            </label>
-            <input
-              type="date"
-              value={dateRange.fecha_fin}
-              onChange={(e) =>
-                setDateRange((current) => ({
-                  ...current,
-                  fecha_fin: e.target.value,
-                }))
-              }
-              className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
-              aria-label="Fecha final"
-            />
-            <button
-              type="button"
-              onClick={applyDateFilter}
-              className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-800 px-4 text-sm font-medium text-white transition hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
-            >
-              Filtrar
-            </button>
-            <button
-              type="button"
-              onClick={clearDateFilter}
-              disabled={!activeDateRange}
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-            >
-              Limpiar
-            </button>
+
+            {/* BOTÓN INTERACTIVO DEL CALENDARIO UNIFICADO */}
+            <div className="relative w-full lg:w-64">
+              <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                aria-label="Seleccionar rango de fechas"
+              >
+                <span className="truncate">
+                  {selectedRange?.from ? (
+                    selectedRange.to ? (
+                      <>
+                        {format(selectedRange.from, 'dd LLL yyyy', { locale: es })} -{' '}
+                        {format(selectedRange.to, 'dd LLL yyyy', { locale: es })}
+                      </>
+                    ) : (
+                      format(selectedRange.from, 'dd LLL yyyy', { locale: es })
+                    )
+                  ) : (
+                    <span className="text-gray-400">Seleccionar rango</span>
+                  )}
+                </span>
+                <CalendarIcon className="h-4 w-4 text-gray-400" />
+              </button>
+
+              {/* POPOVER / POPUP DEL CALENDARIO DUAL (Se muestra al hacer clic) */}
+              {isOpen && (
+                <>
+                  {/* Overlay para cerrar al hacer clic fuera */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsOpen(false)}
+                  />
+                  <div className="absolute top-12 right-0 z-50 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+                    <DayPicker
+                      mode="range"
+                      defaultMonth={selectedRange?.from || new Date()}
+                      selected={selectedRange}
+                      onSelect={handleSelectRange}
+                      locale={es}
+                      className="text-gray-800 dark:text-white/90"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Botón limpiar — visible solo cuando hay filtro activo */}
+            {activeDateRange && (
+              <button
+                type="button"
+                onClick={clearDateFilter}
+                className="h-11 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+              >
+                Limpiar filtro
+              </button>
+            )}
           </div>
         </div>
 

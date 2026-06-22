@@ -9,6 +9,7 @@ type UnidadRow = {
     unidad: string;
     simbolo: string;
     conversion: number;
+    tipo: string;
 };
 
 type UnidadesResponse = {
@@ -121,6 +122,9 @@ export default function Unidades() {
                                         Conversión
                                     </th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        Tipo unidad
+                                    </th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Acciones
                                     </th>
                                 </tr>
@@ -129,20 +133,20 @@ export default function Unidades() {
                                 {loading ? (
                                     Array.from({ length: 4 }).map((_, index) => (
                                         <tr key={index}>
-                                            <td colSpan={4} className="px-5 py-4">
+                                            <td colSpan={5} className="px-5 py-4">
                                                 <div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
                                             </td>
                                         </tr>
                                     ))
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={4} className="px-5 py-10 text-center text-sm text-error-500">
+                                        <td colSpan={5} className="px-5 py-10 text-center text-sm text-error-500">
                                             {error}
                                         </td>
                                     </tr>
                                 ) : filteredUnidades.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        <td colSpan={5} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                             No hay unidades para mostrar.
                                         </td>
                                     </tr>
@@ -162,6 +166,11 @@ export default function Unidades() {
                                             <td className="px-5 py-4">
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                                     {unidades.conversion}
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {unidades.tipo}
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4">

@@ -91,16 +91,16 @@ export default function InvPerdCreate() {
         const loadUnidMedidas = async () => {
             setLoadingUnidMedidas(true);
             try {
-                const unid_medData = await apiFetch(`unid-medida/all-unid_medidas`);
+                const [invData, ambasData] = await Promise.all([
+                    apiFetch(`unid-medida/all-unid_medidas?tipo=inventario`),
+                    apiFetch(`unid-medida/all-unid_medidas?tipo=ambas`)
+                ]);
                 if (!mounted) return;
-
-                const medidasList = Array.isArray(unid_medData?.unid_medidas)
-                    ? unid_medData.unid_medidas
-                    : Array.isArray(unid_medData)
-                        ? unid_medData
-                        : [];
-
-                setUnidMedidas(medidasList);
+                const invList = Array.isArray(invData?.unid_medidas) ? invData.unid_medidas
+                    : Array.isArray(invData) ? invData : [];
+                const ambasList = Array.isArray(ambasData?.unid_medidas) ? ambasData.unid_medidas
+                    : Array.isArray(ambasData) ? ambasData : [];
+                setUnidMedidas([...invList, ...ambasList]);
             } catch (requestError: any) {
                 if (!mounted) return;
                 setError(requestError?.detail || requestError?.message || "No se pudieron cargar las unidades de medida");
@@ -133,7 +133,7 @@ export default function InvPerdCreate() {
         };
 
         loadInvProd();
-        
+
         const loadInvInsumo = async () => {
             setLoadingInvinsumo(true);
             try {
@@ -316,14 +316,14 @@ export default function InvPerdCreate() {
                                 ))}
                             </select>
                         </div>
-                        
+
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Unidad <span className="text-error-500">*</span>
                             </label>
                             <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                                required disabled={loadingUnidMedidas || unidMedidas.length === 0}>
+                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                required>
                                 <option value="" disabled>
                                     {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
                                 </option>
@@ -334,20 +334,6 @@ export default function InvPerdCreate() {
                                 ))}
                             </select>
                         </div>
-
-                        {/* <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Fecha reporte <span className="text-error-500">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                value={form.fecha_reporte}
-                                onChange={handleChange("fecha_reporte")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                                required
-                            />
-                        </div> */}
-
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Observaciones
@@ -356,7 +342,6 @@ export default function InvPerdCreate() {
                                 value={form.observaciones}
                                 onChange={handleChange("observaciones")}
                                 placeholder="Observaciones"
-
                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                             />
                         </div>

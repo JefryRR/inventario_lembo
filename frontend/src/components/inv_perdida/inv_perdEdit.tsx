@@ -61,9 +61,11 @@ export default function Inv_perdEdit() {
             try {
                 const [invPerdData, UnidMedidasData] = await Promise.all([
                     apiFetch(`inv_perdida/by-id?id=${id}`),
-                    apiFetch(`unid-medida/all-unid_medidas`),
-                  
+                    apiFetch(`unid-medida/all-unid_medidas?tipo=inventario&tipo=ambas`),
                 ]);
+
+                console.log("unidMedidas:", UnidMedidasData);
+                console.log("unid_medida_id del registro:", invPerdData?.unid_medida_id);
                 if (!mounted) return;
 
                 const unidMedList = Array.isArray(UnidMedidasData?.unid_medidas) ? UnidMedidasData.unid_medidas :
@@ -76,9 +78,9 @@ export default function Inv_perdEdit() {
                     motivo: invPerdData?.motivo || "",
                     observaciones: invPerdData?.observaciones || "",
                     simbolo: invPerdData?.simbolo || ""
-                });               
+                });
                 setUnidMedidas(unidMedList);
-               
+
 
             } catch (err: any) {
                 setError(err?.detail || err?.message || "No se pudo cargar el registro de la perdida");
@@ -154,7 +156,8 @@ export default function Inv_perdEdit() {
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Unidad de medida <span className="text-error-500">*</span></label>
-                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")}
+                                        className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {form.unid_medida_id && !unidMedidas.some((unidMed) => String(unidMed.id_unidad) === form.unid_medida_id) && (
                                             <option value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
                                         )}

@@ -3,6 +3,12 @@ import { useLocation } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale'; // Para que el calendario aparezca en español
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { DayPicker, DateRange } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
+
 
 type VentasLocationState = {
     refresh?: boolean;
@@ -68,6 +74,33 @@ export default function VentasPage() {
     });
     const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
 
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    // Estado que requiere react-day-picker (usa objetos Date de JS)
+    const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
+        from: dateRange.fecha_inicio ? new Date(dateRange.fecha_inicio) : undefined,
+        to: dateRange.fecha_fin ? new Date(dateRange.fecha_fin) : undefined,
+    });
+
+    // 3. Manejador del cambio de fecha en el calendario dual
+    const handleSelectRange = (range: DateRange | undefined) => {
+        setSelectedRange(range);
+
+        // Convertimos los objetos Date a strings (YYYY-MM-DD) para el Backend
+        const inicioStr = range?.from ? format(range.from, 'yyyy-MM-dd') : '';
+        const finStr = range?.to ? format(range.to, 'yyyy-MM-dd') : '';
+
+        const newRange = { fecha_inicio: inicioStr, fecha_fin: finStr };
+        setDateRange(newRange);
+
+        // Si el usuario ya seleccionó ambas fechas, aplicamos el filtro y cerramos
+        if (range?.from && range?.to) {
+            setIsOpen(false);
+            setError(null);
+            setPage(1);
+            setActiveDateRange(newRange);
+        }
+    };
     useEffect(() => {
         let mounted = true;
 
@@ -80,7 +113,7 @@ export default function VentasPage() {
                     page: String(page),
                     page_size: String(pageSize),
                 });
-                
+
                 const endpoint = activeDateRange
                     ? (() => {
                         queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
@@ -88,9 +121,9 @@ export default function VentasPage() {
                         return `ventas/rango-fechas?${queryParams.toString()}`;
                     })()
                     : `ventas/paginated-ventas?${queryParams.toString()}`;
-                
+
                 const data = (await apiFetch(endpoint)) as VentasResponse;
-                
+
                 const detallesData = await apiFetch("detalles-venta/all/detalles");
 
                 if (!mounted) return;
@@ -100,14 +133,14 @@ export default function VentasPage() {
                 const ventasList = Array.isArray(data?.ventas)
                     ? data.ventas
                     : Array.isArray(data)
-                    ? data
-                    : [];
+                        ? data
+                        : [];
 
                 const detallesList = Array.isArray(detallesData?.detalles)
                     ? detallesData.detalles
                     : Array.isArray(detallesData)
-                    ? detallesData
-                    : [];
+                        ? detallesData
+                        : [];
 
                 setVentas(ventasList);
                 setDetalles(detallesList);
@@ -175,6 +208,7 @@ export default function VentasPage() {
     const clearDateFilter = () => {
         setDateRange({ fecha_inicio: "", fecha_fin: "" });
         setActiveDateRange(null);
+        setSelectedRange(undefined);
         setPage(1);
         setError(null);
     };
@@ -218,51 +252,81 @@ export default function VentasPage() {
                         onClick={() => handleExportarVentas("excel")}
                         disabled={descargando !== null}
                         className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                        >
+                    >
                         {descargando === "excel" ? "Descargando..." : "Exportar Excel"}
-                        </button>
-                        <button
+                    </button>
+                    <button
                         onClick={() => handleExportarVentas("pdf")}
                         disabled={descargando !== null}
                         className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                        >
+                    >
                         {descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
-                        </button>
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha inicio:</label>
-                        <input
-                            type="date"
-                            value={dateRange.fecha_inicio}
-                            onChange={(e) => setDateRange((current) => ({ ...current, fecha_inicio: e.target.value }))}
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
-                            aria-label="Fecha inicial"
-                        />
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha fin:</label>
-                        <input
-                            type="date"
-                            value={dateRange.fecha_fin}
-                            onChange={(e) => setDateRange((current) => ({ ...current, fecha_fin: e.target.value }))}
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 lg:w-44"
-                            aria-label="Fecha final"
-                        />
-                        <button
-                            type="button"
-                            onClick={applyDateFilter}
-                            className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-800 px-4 text-sm font-medium text-white transition hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
-                        >
-                            Filtrar
-                        </button>
-                        <button
-                            type="button"
-                            onClick={clearDateFilter}
-                            disabled={!activeDateRange}
-                            className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                        >
-                            Limpiar
-                        </button>
+                    </button>
+                    <div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Filtrar por fechas:
+                        </label>
+
+                        {/* BOTÓN INTERACTIVO DEL CALENDARIO UNIFICADO */}
+                        <div className="relative w-full lg:w-64">
+                            <button
+                                type="button"
+                                onClick={() => setIsOpen(!isOpen)}
+                                className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                aria-label="Seleccionar rango de fechas"
+                            >
+                                <span className="truncate">
+                                    {selectedRange?.from ? (
+                                        selectedRange.to ? (
+                                            <>
+                                                {format(selectedRange.from, 'dd LLL yyyy', { locale: es })} -{' '}
+                                                {format(selectedRange.to, 'dd LLL yyyy', { locale: es })}
+                                            </>
+                                        ) : (
+                                            format(selectedRange.from, 'dd LLL yyyy', { locale: es })
+                                        )
+                                    ) : (
+                                        <span className="text-gray-400">Seleccionar rango</span>
+                                    )}
+                                </span>
+                                <CalendarIcon className="h-4 w-4 text-gray-400" />
+                            </button>
+
+                            {/* POPOVER / POPUP DEL CALENDARIO DUAL (Se muestra al hacer clic) */}
+                            {isOpen && (
+                                <>
+                                    {/* Overlay para cerrar al hacer clic fuera */}
+                                    <div
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => setIsOpen(false)}
+                                    />
+                                    <div className="absolute top-12 right-0 z-50 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+                                        <DayPicker
+                                            mode="range"
+                                            defaultMonth={selectedRange?.from || new Date()}
+                                            selected={selectedRange}
+                                            onSelect={handleSelectRange}
+                                            locale={es}
+                                            className="text-gray-800 dark:text-white/90"
+                                        />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Botón limpiar — visible solo cuando hay filtro activo */}
+                        {activeDateRange && (
+                            <button
+                                type="button"
+                                onClick={clearDateFilter}
+                                className="h-11 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                            >
+                                Limpiar filtro
+                            </button>
+                        )}
                     </div>
                 </div>
-                
+
 
                 {/* Tabla de ventas */}
                 <div className="overflow-x-auto px-5 pb-3">
@@ -283,13 +347,13 @@ export default function VentasPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                 {loading ? (
-                                Array.from({ length: 10 }).map((_, index) => (
-                                    <tr key={index}>
-                                        <td colSpan={TABLE_COLUMNS} className="px-5 py-4">
-                                            <div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-                                        </td>
-                                    </tr>
-                                ))
+                                    Array.from({ length: 10 }).map((_, index) => (
+                                        <tr key={index}>
+                                            <td colSpan={TABLE_COLUMNS} className="px-5 py-4">
+                                                <div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                                            </td>
+                                        </tr>
+                                    ))
                                 ) : error ? (
                                     <tr>
                                         <td colSpan={TABLE_COLUMNS} className="px-5 py-10 text-center text-sm text-error-500">
@@ -318,11 +382,10 @@ export default function VentasPage() {
                                                     <button
                                                         onClick={() => toggleExpanded(venta.id_venta)}
                                                         title="Ver detalles"
-                                                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${
-                                                            expandedVenta === venta.id_venta
-                                                                ? "border-brand-300 bg-brand-50 text-green-600 dark:border-green-700 dark:bg-green-500/10 dark:text-green-400"
-                                                                : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:bg-transparent dark:text-gray-300 dark:hover:bg-white/[0.05]"
-                                                        }`}
+                                                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${expandedVenta === venta.id_venta
+                                                            ? "border-brand-300 bg-brand-50 text-green-600 dark:border-green-700 dark:bg-green-500/10 dark:text-green-400"
+                                                            : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:bg-transparent dark:text-gray-300 dark:hover:bg-white/[0.05]"
+                                                            }`}
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                             <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
