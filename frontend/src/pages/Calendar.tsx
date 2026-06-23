@@ -4,129 +4,225 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import esLocale from '@fullcalendar/core/locales/es';
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
+// @ts-ignore: api helper is a JS module without generated declarations
+import { apiFetch } from "@/services/api";
+
+type TipoComida = "desayuno" | "almuerzo" | "refrigerio";
+
+interface Plato {
+  id_plato: number;
+  nombre_plato: string;
+}
+
+interface ProgramacionOut {
+  id_programacion: number;
+  plato_id: number;
+  nombre_plato: string;
+  tipo_comida: TipoComida;
+  cant_personas: number;
+  horario_visita: string;
+  fecha_programacion: string;
+}
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
+    programacion?: ProgramacionOut;
   };
 }
 
-const Calendar: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
-  );
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventStartDate, setEventStartDate] = useState("");
-  const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("");
+const TIPO_COMIDA_COLOR: Record<TipoComida, string> = {
+  desayuno: "Primary",
+  almuerzo: "Success",
+  refrigerio: "Warning",
+};
+
+function programacionToEvent(p: ProgramacionOut): CalendarEvent {
+  return {
+    id: p.id_programacion.toString(),
+    title: `${p.nombre_plato} · ${p.cant_personas} pers.`,
+    start: p.fecha_programacion,
+    allDay: true,
+    extendedProps: {
+      calendar: TIPO_COMIDA_COLOR[p.tipo_comida] ?? "Primary",
+      programacion: p,
+    },
+  };
+}
+
+const FORM_EMPTY = {
+  plato_id: 0,
+  tipo_comida: "" as TipoComida | "",
+  cant_personas: 1,
+  horario_visita: "",
+  fecha_programacion: "",
+};
+
+const CalendarProgramacion: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [platos, setPlatos] = useState<Plato[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [form, setForm] = useState(FORM_EMPTY);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
 
-  const calendarsEvents = {
-    Danger: "danger",
-    Success: "success",
-    Primary: "primary",
-    Warning: "warning",
-  };
-
   useEffect(() => {
-    // Initialize with some events
-    setEvents([
-      {
-        id: "1",
-        title: "Event Conf.",
-        start: new Date().toISOString().split("T")[0],
-        extendedProps: { calendar: "Danger" },
-      },
-      {
-        id: "2",
-        title: "Meeting",
-        start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Success" },
-      },
-      {
-        id: "3",
-        title: "Workshop",
-        start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
-        end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Primary" },
-      },
-    ]);
+    cargarProgramaciones();
+    cargarPlatos();
   }, []);
 
+  async function cargarProgramaciones() {
+    try {
+      const data: ProgramacionOut[] = await apiFetch("prog_platos/all-prog_platos");
+      setEvents(data.map(programacionToEvent));
+    } catch {
+      setError("No se pudieron cargar las programaciones.");
+    }
+  }
+
+  async function cargarPlatos() {
+    try {
+      const data: Plato[] = await apiFetch("platos/all-platos");
+      setPlatos(data);
+    } catch {
+      setError("No se pudieron cargar los platos.");
+    }
+  }
+
   const handleDateSelect = (selectInfo: DateSelectArg) => {
-    resetModalFields();
-    setEventStartDate(selectInfo.startStr);
-    setEventEndDate(selectInfo.endStr || selectInfo.startStr);
+    setSelectedId(null);
+    setForm({ ...FORM_EMPTY, fecha_programacion: selectInfo.startStr });
+    setError(null);
     openModal();
   };
 
   const handleEventClick = (clickInfo: EventClickArg) => {
-    const event = clickInfo.event;
-    setSelectedEvent(event as unknown as CalendarEvent);
-    setEventTitle(event.title);
-    setEventStartDate(event.start?.toISOString().split("T")[0] || "");
-    setEventEndDate(event.end?.toISOString().split("T")[0] || "");
-    setEventLevel(event.extendedProps.calendar);
+    const prog = clickInfo.event.extendedProps.programacion as ProgramacionOut;
+    setSelectedId(prog.id_programacion);
+    setForm({
+      plato_id: prog.plato_id,
+      tipo_comida: prog.tipo_comida,
+      cant_personas: prog.cant_personas,
+      horario_visita: prog.horario_visita,
+      fecha_programacion: prog.fecha_programacion,
+    });
+    setError(null);
     openModal();
   };
 
-  const handleAddOrUpdateEvent = () => {
-    if (selectedEvent) {
-      // Update existing event
-      setEvents((prevEvents) =>
-        prevEvents.map((event) =>
-          event.id === selectedEvent.id
-            ? {
-                ...event,
-                title: eventTitle,
-                start: eventStartDate,
-                end: eventEndDate,
-                extendedProps: { calendar: eventLevel },
-              }
-            : event
-        )
-      );
-    } else {
-      // Add new event
-      const newEvent: CalendarEvent = {
-        id: Date.now().toString(),
-        title: eventTitle,
-        start: eventStartDate,
-        end: eventEndDate,
-        allDay: true,
-        extendedProps: { calendar: eventLevel },
-      };
-      setEvents((prevEvents) => [...prevEvents, newEvent]);
+  const handleGuardar = async () => {
+    if (!form.plato_id || !form.tipo_comida || !form.fecha_programacion || !form.horario_visita) {
+      setError("Completa todos los campos obligatorios.");
+      return;
     }
-    closeModal();
-    resetModalFields();
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (selectedId === null) {
+        // Crear — el backend devuelve el objeto completo
+        const nueva: ProgramacionOut = await apiFetch("prog_platos/crear", {
+          method: "POST",
+          body: {
+            plato_id: form.plato_id,
+            tipo_comida: form.tipo_comida,
+            cant_personas: form.cant_personas,
+            horario_visita: form.horario_visita,
+            fecha_programacion: form.fecha_programacion,
+          },
+        });
+        setEvents((prev) => [...prev, programacionToEvent(nueva)]);
+      } else {
+        // Actualizar — el backend solo devuelve un mensaje,
+        // así que construimos el objeto nosotros con los datos del formulario
+        await apiFetch(`prog_platos/by_id/${selectedId}`, {
+          method: "PUT",
+          body: {
+            plato_id: form.plato_id,
+            tipo_comida: form.tipo_comida,
+            cant_personas: form.cant_personas,
+            horario_visita: form.horario_visita,
+            fecha_programacion: form.fecha_programacion,
+          },
+        });
+
+        // Buscamos el nombre del plato en la lista que ya cargamos al inicio
+        const platoSeleccionado = platos.find((p) => p.id_plato === form.plato_id);
+
+        const actualizada: ProgramacionOut = {
+          id_programacion: selectedId,
+          plato_id: form.plato_id,
+          nombre_plato: platoSeleccionado?.nombre_plato ?? "",
+          tipo_comida: form.tipo_comida as TipoComida,
+          cant_personas: form.cant_personas,
+          horario_visita: form.horario_visita,
+          fecha_programacion: form.fecha_programacion,
+        };
+
+        setEvents((prev) =>
+          prev.map((ev) =>
+            ev.id === selectedId.toString()
+              ? programacionToEvent(actualizada)
+              : ev
+          )
+        );
+      }
+      handleCerrar();
+    } catch (err: any) {
+      console.error("Error completo:", err);
+      setError(err?.message || JSON.stringify(err) || "Error desconocido");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const resetModalFields = () => {
-    setEventTitle("");
-    setEventStartDate("");
-    setEventEndDate("");
-    setEventLevel("");
-    setSelectedEvent(null);
+  const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
+
+  const handleEliminar = async () => {
+    if (selectedId === null) return;
+
+    setLoading(true);
+    try {
+      await apiFetch(`prog_platos/by_id/${selectedId}`, { method: "DELETE" });
+      setEvents((prev) => prev.filter((ev) => ev.id !== selectedId.toString()));
+      handleCerrar();
+    } catch {
+      setError("Error al eliminar. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+      setConfirmandoEliminar(false);
+    }
+  };
+
+  const handleCerrar = () => {
+    closeModal();
+    setSelectedId(null);
+    setForm(FORM_EMPTY);
+    setError(null);
+    setConfirmandoEliminar(false);
   };
 
   return (
     <>
       <PageMeta
-        title="Inventario Lembo"
-        description="Esto es un inventario para la sede El Lembo del SENA"
+        title="Programación de Platos"
+        description="Calendario de programación de platos por fecha"
       />
-      <div className="rounded-2xl border  border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="custom-calendar">
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
+            locale={esLocale}
             headerToolbar={{
               left: "prev,next addEventButton",
               center: "title",
@@ -139,123 +235,210 @@ const Calendar: React.FC = () => {
             eventContent={renderEventContent}
             customButtons={{
               addEventButton: {
-                text: "Add Event +",
-                click: openModal,
+                text: "Nueva programación +",
+                click: () => {
+                  setSelectedId(null);
+                  setForm(FORM_EMPTY);
+                  setError(null);
+                  openModal();
+                },
               },
             }}
           />
         </div>
+
         <Modal
           isOpen={isOpen}
-          onClose={closeModal}
+          onClose={handleCerrar}
           className="max-w-[700px] p-6 lg:p-10"
         >
           <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
+            {/* Cabecera */}
             <div>
               <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
-                {selectedEvent ? "Edit Event" : "Add Event"}
+                {selectedId ? "Editar programación" : "Nueva programación"}
               </h5>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Plan your next big moment: schedule or edit an event to stay on
-                track
+                {selectedId
+                  ? "Modifica los datos de esta programación."
+                  : "Registra un plato para una fecha específica."}
               </p>
             </div>
-            <div className="mt-8">
-              <div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Event Title
-                  </label>
-                  <input
-                    id="event-title"
-                    type="text"
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
-              </div>
-              <div className="mt-6">
-                <label className="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Event Color
+
+            {/* Error global */}
+            {error && (
+              <p className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+                {error}
+              </p>
+            )}
+
+            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+              {/* Plato */}
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Plato <span className="text-red-500">*</span>
                 </label>
-                <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                  {Object.entries(calendarsEvents).map(([key, value]) => (
-                    <div key={key} className="n-chk">
-                      <div
-                        className={`form-check form-check-${value} form-check-inline`}
-                      >
-                        <label
-                          className="flex items-center text-sm text-gray-700 form-check-label dark:text-gray-400"
-                          htmlFor={`modal${key}`}
-                        >
-                          <span className="relative">
-                            <input
-                              className="sr-only form-check-input"
-                              type="radio"
-                              name="event-level"
-                              value={key}
-                              id={`modal${key}`}
-                              checked={eventLevel === key}
-                              onChange={() => setEventLevel(key)}
-                            />
-                            <span className="flex items-center justify-center w-5 h-5 mr-2 border border-gray-300 rounded-full box dark:border-gray-700">
-                              <span className="w-2 h-2 bg-white rounded-full dark:bg-transparent"></span>
-                            </span>
-                          </span>
-                          {key}
-                        </label>
-                      </div>
-                    </div>
+                <select
+                  value={form.plato_id || ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, plato_id: Number(e.target.value) }))
+                  }
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                >
+                  <option value="">Selecciona un plato</option>
+                  {platos.map((p) => (
+                    <option key={p.id_plato} value={p.id_plato}>
+                      {p.nombre_plato}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
-              <div className="mt-6">
+              {/* Tipo de comida */}
+              <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Enter Start Date
+                  Tipo de comida <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    id="event-start-date"
-                    type="date"
-                    value={eventStartDate}
-                    onChange={(e) => setEventStartDate(e.target.value)}
-                    className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
+                <select
+                  value={form.tipo_comida}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      tipo_comida: e.target.value as TipoComida,
+                    }))
+                  }
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                >
+                  <option value="">Selecciona el tipo</option>
+                  <option value="desayuno">Desayuno</option>
+                  <option value="almuerzo">Almuerzo</option>
+                  <option value="refrigerio">Refrigerio</option>
+                </select>
               </div>
 
-              <div className="mt-6">
+              {/* Cantidad de personas */}
+              <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Enter End Date
+                  Cantidad de personas <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    id="event-end-date"
-                    type="date"
-                    value={eventEndDate}
-                    onChange={(e) => setEventEndDate(e.target.value)}
-                    className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.cant_personas}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      cant_personas: Math.max(1, Number(e.target.value)),
+                    }))
+                  }
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                />
+              </div>
+
+              {/* Horario de visita */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Horario de visita <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.horario_visita}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, horario_visita: e.target.value }))
+                  }
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                />
+              </div>
+
+              {/* Fecha */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Fecha <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={form.fecha_programacion}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      fecha_programacion: e.target.value,
+                    }))
+                  }
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                />
               </div>
             </div>
-            <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
-              <button
-                onClick={closeModal}
-                type="button"
-                className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
-              >
-                Close
-              </button>
-              <button
-                onClick={handleAddOrUpdateEvent}
-                type="button"
-                className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 sm:w-auto"
-              >
-                {selectedEvent ? "Update Changes" : "Add Event"}
-              </button>
+
+            {/* Leyenda de colores */}
+            <div className="mt-5 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+                Desayuno
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                Almuerzo
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-yellow-500"></span>
+                Refrigerio
+              </span>
+            </div>
+
+            {/* Acciones */}
+            <div className="mt-6 flex items-center gap-3 sm:justify-end">
+              {confirmandoEliminar ? (
+                <>
+                  <p className="mr-auto text-sm text-gray-600 dark:text-gray-400">
+                    ¿Seguro que deseas eliminar esta programación?
+                  </p>
+                  <button
+                    onClick={() => setConfirmandoEliminar(false)}
+                    disabled={loading}
+                    type="button"
+                    className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleEliminar}
+                    disabled={loading}
+                    type="button"
+                    className="flex w-full justify-center rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 sm:w-auto"
+                  >
+                    {loading ? "Eliminando..." : "Sí, eliminar"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  {selectedId && (
+                    <button
+                      onClick={() => setConfirmandoEliminar(true)}
+                      disabled={loading}
+                      type="button"
+                      className="flex w-full justify-center rounded-lg border border-red-300 bg-white px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 sm:w-auto"
+                    >
+                      Eliminar
+                    </button>
+                  )}
+                  <button
+                    onClick={handleCerrar}
+                    disabled={loading}
+                    type="button"
+                    className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleGuardar}
+                    disabled={loading}
+                    type="button"
+                    className="flex w-full justify-center rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 sm:w-auto"
+                  >
+                    {loading ? "Guardando..." : selectedId ? "Guardar cambios" : "Crear programación"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </Modal>
@@ -277,4 +460,4 @@ const renderEventContent = (eventInfo: any) => {
   );
 };
 
-export default Calendar;
+export default CalendarProgramacion;

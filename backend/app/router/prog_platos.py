@@ -1,15 +1,15 @@
 from typing import List
 
 from app.schemas.venta_platos import VentaPlatosPaginated
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Query   #type: ignore
+from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.prog_platos import ProgramacionCreate, ProgramacionUpdate, ProgramacionOut, ProgramacionPaginated
 from app.schemas.users import UserOut
 from app.crud import prog_platos as crud_prog_platos
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError #type: ignore
 
 router = APIRouter()
 modulo = 20
@@ -27,8 +27,8 @@ def create_progPlato(
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
         
-        crud_prog_platos.create_progPlato(db, plato)
-        return {"message": "Programación registrada correctamente"}
+        result = crud_prog_platos.create_progPlato(db, plato)
+        return result
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -151,7 +151,24 @@ def get_paginated_prog_platos(
             total_pages=(total + page_size - 1) // page_size,
             programaciones=programaciones
         )
-        
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
   
+@router.delete("/by_id/{id_programacion}", status_code=status.HTTP_200_OK)
+def delete_progPlato_by_id(
+    id_programacion: int, 
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+    ):
+
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'borrar'):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        
+        success = crud_prog_platos.delete_progPlato_by_id(db, id_programacion)
+        if not success:
+            raise HTTPException(status_code=400, detail="No se pudo eliminar la programación")
+        return {"message": "Programación eliminada correctamente"}
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))

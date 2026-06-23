@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
@@ -11,6 +10,7 @@ type IngredienteFormState = {
     inventario_id: number;
     cant_inv: string | number;
     unid_med_id: number;
+    fecha_registro?: string;
     nombre_plato?: string;
     nombre_producto?: string;
     simbolo?: string;
@@ -42,6 +42,7 @@ const initialState: IngredienteFormState = {
     cant_inv: "" as string | number,
     unid_med_id: 0,
     inventario_id: 0,
+    fecha_registro: "",
 };
 
 export default function IngredienteCreate() {
@@ -78,8 +79,8 @@ export default function IngredienteCreate() {
 
                 if (!mounted) return;
 
-                const productoList = Array.isArray(productosData?.produccion)
-                    ? productosData.produccion
+                const productoList = Array.isArray(productosData?.inv_produccion)
+                    ? productosData.inv_produccion
                     : Array.isArray(productosData)
                         ? productosData
                         : [];
@@ -90,8 +91,8 @@ export default function IngredienteCreate() {
                         ? platosData
                         : [];
 
-                const insumoList = Array.isArray(insumosData?.insumos)
-                    ? insumosData.insumos
+                const insumoList = Array.isArray(insumosData?.inv_insumos)
+                    ? insumosData.inv_insumos
                     : Array.isArray(insumosData)
                         ? insumosData
                         : [];
@@ -156,6 +157,11 @@ export default function IngredienteCreate() {
             }
         };
 
+    const getLocalISODate = () => {
+        const now = new Date();
+        return now.toISOString().split('T')[0]; // Envía "YYYY-MM-DD"
+    };
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
@@ -178,11 +184,12 @@ export default function IngredienteCreate() {
 
         try {
             const payload = {
-                cant_inv: cantidadValue,
-                unid_medida_id: Number(form.unid_med_id),
-                inventario_id: Number(form.inventario_id),
-                origen_inv: Number(form.origen_inv),
                 plato_id: Number(form.plato_id),
+                cant_inv: cantidadValue,
+                inventario_id: Number(form.inventario_id),
+                unid_med_id: Number(form.unid_med_id),
+                origen_inv: Number(form.origen_inv),
+                fecha_registro: getLocalISODate(),
             };
 
             const data = await apiFetch("ingredientes/crear", {
@@ -203,7 +210,6 @@ export default function IngredienteCreate() {
     return (
         <>
             <PageMeta title="Crear ingrediente | Inventario Lembo" description="Formulario para crear un nuevo ingrediente" />
-            <PageBreadcrumb pageTitle="Crear ingrediente" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
@@ -267,7 +273,7 @@ export default function IngredienteCreate() {
                         {/* Producto dinámico (Producción o Insumo) */}
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Producto / Material <span className="text-error-500">*</span>
+                                Producto <span className="text-error-500">*</span>
                             </label>
                             <select
                                 value={form.inventario_id}
@@ -358,7 +364,7 @@ export default function IngredienteCreate() {
                             disabled={loading}
                             className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {loading ? "Guardando..." : "Guardar detalle"}
+                            {loading ? "Guardando..." : "Guardar ingrediente"}
                         </button>
                         <Link
                             to="/ingredientes"

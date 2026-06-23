@@ -78,6 +78,9 @@ import SolicitudEdit from "./components/solicitud/solicitudEdit";
 import Platos from "./pages/platos";
 import PlatosCreate from "./components/platos/platosCreate";
 import PlatosEdit from "./components/platos/platosEdit";
+import Ingredientes from "./pages/ingredientes";
+import IngredientesCreate from "./components/ingredientes/ingredienteCreate";
+import IngredientesEdit from "./components/ingredientes/ingredienteEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -116,6 +119,9 @@ export default function App() {
             <Route path="/platos" element={<Platos />} />
             <Route path="/platos/crear" element={<PlatosCreate />} />
             <Route path="/platos/edit/:id" element={<PlatosEdit />} />
+            <Route path="/ingredientes" element={<Ingredientes />} />
+            <Route path="/ingredientes/crear" element={<IngredientesCreate />} />
+            <Route path="/ingredientes/edit/:id" element={<IngredientesEdit />} />
             <Route path="/lotesProd" element={<Lotes />} />
             <Route path="/lotesProd/create" element={<LotesCreate />} />
             <Route path="/lotesProd/edit/:id" element={<LotesEdit />} />

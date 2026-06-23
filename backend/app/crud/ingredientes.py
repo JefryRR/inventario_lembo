@@ -53,7 +53,6 @@ def get_ingrediente_by_id(db: Session, id: int):
                 ip.origen_inv, 
                 ip.inventario_id, 
                 ip.cant_inv, 
-                ip.cant_conv_inv, 
                 ip.unid_med_id, 
                 ip.fecha_registro, 
                 p.nombre_plato, 
@@ -109,7 +108,6 @@ def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: st
                         ip.origen_inv, 
                         ip.inventario_id, 
                         ip.cant_inv, 
-                        ip.cant_conv_inv, 
                         ip.unid_med_id, 
                         ip.fecha_registro, 
                         p.nombre_plato, 
@@ -143,7 +141,6 @@ def all_ingredientes(db: Session):
                         ip.origen_inv, 
                         ip.inventario_id, 
                         ip.cant_inv, 
-                        ip.cant_conv_inv, 
                         ip.unid_med_id, 
                         ip.fecha_registro, 
                         p.nombre_plato, 
@@ -167,11 +164,11 @@ def all_ingredientes(db: Session):
 def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
     """
-    Obtiene inventario de producción con paginación.
+    Obtiene ingredientes con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
-        # Total de producción
+        # Total de ingredientes
         count_query = text("""
             SELECT COUNT(id_ingrediente) AS total
             FROM ingredientes_plato
@@ -179,7 +176,7 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         total_result = db.execute(count_query).scalar()
 
-        # Producción paginada
+        # Ingredientes paginados
         data_query = text(""" 
                             SELECT 
                                 ip.id_ingrediente, 
@@ -187,7 +184,6 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
                                 ip.origen_inv, 
                                 ip.inventario_id, 
                                 ip.cant_inv, 
-                                ip.cant_conv_inv, 
                                 ip.unid_med_id, 
                                 ip.fecha_registro, 
                                 p.nombre_plato, 
@@ -203,17 +199,17 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
                             LIMIT :limit OFFSET :skip
                         """)
             
-        platos_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
+        ingredientes_list = db.execute(
+        data_query,
+        {
+            "limit": limit,
+            "skip": skip
+        }
         ).mappings().all()
 
         return {
             "total": total_result or 0,
-            "ingredientes": platos_list
+            "ingredientes": ingredientes_list
         }
 
     except SQLAlchemyError as e:

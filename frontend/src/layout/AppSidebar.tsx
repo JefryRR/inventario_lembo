@@ -35,7 +35,15 @@ const navItems: NavItem[] = [
       {
         name: "Platos",
         path: "/platos",
-      }
+      },
+      {
+        name: "Ingredientes",
+        path: "/ingredientes",
+      },
+      {
+        name: "Programación de comidas",
+        path: "/calendar",
+      },
     ],
   },
 ];
