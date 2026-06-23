@@ -61,11 +61,9 @@ export default function Inv_perdEdit() {
             try {
                 const [invPerdData, UnidMedidasData] = await Promise.all([
                     apiFetch(`inv_perdida/by-id?id=${id}`),
-                    apiFetch(`unid-medida/all-unid_medidas?tipo=inventario&tipo=ambas`),
+                    apiFetch(`unid-medida/all-unid_medidas`),
                 ]);
 
-                console.log("unidMedidas:", UnidMedidasData);
-                console.log("unid_medida_id del registro:", invPerdData?.unid_medida_id);
                 if (!mounted) return;
 
                 const unidMedList = Array.isArray(UnidMedidasData?.unid_medidas) ? UnidMedidasData.unid_medidas :

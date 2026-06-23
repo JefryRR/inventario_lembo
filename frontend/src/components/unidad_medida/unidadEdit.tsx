@@ -128,15 +128,6 @@ export default function UnidadEdit() {
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Equivalencia a unidad base <span className="text-error-500">*</span></label>
                                     <input type="number" value={form.conversion} onChange={handleChange("conversion")} placeholder="Equivalencia a unidad base" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required min={0.000001} step={0.000001} />
                                 </div>
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de unidad <span className="text-error-500">*</span></label>
-                                    <select value={form.tipo} onChange={handleChange("tipo")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required>
-                                        <option value="">Selecciona un tipo</option>
-                                        <option value="inventario">Inventario</option>
-                                        <option value="receta">Receta</option>
-                                        <option value="ambas">Ambas</option>
-                                    </select>
-                                </div>
                             </div>
 
                             {error && (

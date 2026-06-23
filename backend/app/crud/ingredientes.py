@@ -11,9 +11,9 @@ def create_ingrediente(db: Session, ingredientes: IngredienteCreate):
     try:
 
         query = text("""INSERT INTO ingredientes_plato 
-                        (plato_id, origen_inv, inventario_id, cant_inv, cant_conv_inv, unid_med_id
+                        (plato_id, origen_inv, inventario_id, cant_inv, cant_conv_inv, unid_med_id, fecha_registro
                         ) VALUES (
-                        :plato_id, :origen_inv, :inventario_id, :cant_inv, :cant_conv_inv, :unid_med_id
+                        :plato_id, :origen_inv, :inventario_id, :cant_inv, :cant_conv_inv, :unid_med_id, :fecha_registro
                         )
                     """)
         
@@ -35,7 +35,7 @@ def create_ingrediente(db: Session, ingredientes: IngredienteCreate):
         
         params = ingredientes.model_dump()
         params["cant_conv_inv"] = ingredientes.cant_inv * float(conv_inv)
-       
+
         db.execute(query, params)
         db.commit()
         return True
@@ -46,20 +46,35 @@ def create_ingrediente(db: Session, ingredientes: IngredienteCreate):
 
 def get_ingrediente_by_id(db: Session, id: int):
     try:
-        query = text("""SELECT i.id_ingrediente, i.plato_id, i.origen_inv, i.inventario_id, i.cant_inv, i.cant_conv_inv, i.unid_med_id,
-                     p.nombre AS nombre_plato, pr.nombre AS nombre_producto, u.simbolo AS simbolo
-                     FROM ingredientes_plato as i
-                     LEFT JOIN platos as p ON i.plato_id = p.id_plato
-                     LEFT JOIN inv_produccion as pr ON i.inventario_id = pr.id_producto
-                     LEFT JOIN unidades_medida as u ON i.unid_med_id = u.id_unidad
-                     WHERE i.id_ingrediente = :id
-                """)
+        query = text("""
+            SELECT 
+                ip.id_ingrediente, 
+                ip.plato_id, 
+                ip.origen_inv, 
+                ip.inventario_id, 
+                ip.cant_inv, 
+                ip.cant_conv_inv, 
+                ip.unid_med_id, 
+                ip.fecha_registro, 
+                p.nombre_plato, 
+                um.simbolo,
+                -- COALESCE toma el primer valor que NO sea null. 
+                -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
+                COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
+            FROM ingredientes_plato AS ip
+            LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+            LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+            LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+            LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
+            WHERE ip.id_ingrediente = :id
+        """)
+        
         result = db.execute(query, {"id": id}).mappings().first()
         return result
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener ingrediente por ID: {e}")
         raise Exception("Error de base de datos al obtener el ingrediente")
-
+    
 def update_ingrediente_by_id(db: Session, ingrediente_id: int, ingrediente: IngredienteUpdate):
     try:
         ingrediente_data = ingrediente.model_dump(exclude_unset=True)
@@ -81,36 +96,66 @@ def update_ingrediente_by_id(db: Session, ingrediente_id: int, ingrediente: Ingr
         logger.error(f"Error al actualizar el ingrediente {ingrediente_id}: {e}")
         raise Exception("Error de base de datos al actualizar el ingrediente")
 
-# def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
-#     """
-#     Obtiene los ingredientes cuya fecha de inicio o fin esté dentro de un rango de fechas.
-#     Ignora las horas (usa DATE(fecha_hora_init) y DATE(fecha_hora_fin)).
-#     """
-#     try:
-#         query = text("""
-#                     SELECT id_ingrediente, plato_id, origen_inv, inventario_id, cant_inv, cant_conv_inv, unid_med_id
-#                     FROM ingredientes_plato
-#                     WHERE DATE(fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin
-#                     ORDER BY fecha_registro DESC
-#                 """)
-#         result = db.execute(query, {
-#             "fecha_inicio": fecha_inicio,
-#             "fecha_fin": fecha_fin
-#         }).mappings().all()
+def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
+    """
+    Obtiene los ingredientes cuya fecha de inicio o fin esté dentro de un rango de fechas.
+    Ignora las horas (usa DATE(fecha_hora_init) y DATE(fecha_hora_fin)).
+    """
+    try:
+        query = text("""
+                    SELECT 
+                        ip.id_ingrediente, 
+                        ip.plato_id, 
+                        ip.origen_inv, 
+                        ip.inventario_id, 
+                        ip.cant_inv, 
+                        ip.cant_conv_inv, 
+                        ip.unid_med_id, 
+                        ip.fecha_registro, 
+                        p.nombre_plato, 
+                        um.simbolo,
+                        -- COALESCE toma el primer valor que NO sea null. 
+                        -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
+                        COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
+                    FROM ingredientes_plato AS ip
+                    LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+                    LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+                    LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                    LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
+                    WHERE DATE(ip.fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin
+                    ORDER BY ip.fecha_registro DESC
+                """)
+        result = db.execute(query, {
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin
+        }).mappings().all()
         
-#         return [dict(row) for row in result]
+        return [dict(row) for row in result]
 
-#     except SQLAlchemyError as e:
-#         raise Exception(f"Error al consultar los ingredientes por rango de fechas: {e}")
+    except SQLAlchemyError as e:
+        raise Exception(f"Error al consultar los ingredientes por rango de fechas: {e}")
 
 def all_ingredientes(db: Session):
     try:
-        query = text("""SELECT i.id_ingrediente, i.plato_id, i.origen_inv, i.inventario_id, i.cant_inv, i.cant_conv_inv, i.unid_med_id,
-                        p.nombre AS nombre_plato, pr.nombre AS nombre_producto, u.simbolo AS simbolo
-                        FROM ingredientes_plato as i
-                        LEFT JOIN platos as p ON i.plato_id = p.id_plato
-                        LEFT JOIN inv_produccion as pr ON i.inventario_id = pr.id_producto
-                        LEFT JOIN unidades_medida as u ON i.unid_med_id = u.id_unidad
+        query = text("""SELECT 
+                        ip.id_ingrediente, 
+                        ip.plato_id, 
+                        ip.origen_inv, 
+                        ip.inventario_id, 
+                        ip.cant_inv, 
+                        ip.cant_conv_inv, 
+                        ip.unid_med_id, 
+                        ip.fecha_registro, 
+                        p.nombre_plato, 
+                        um.simbolo,
+                        -- COALESCE toma el primer valor que NO sea null. 
+                        -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
+                        COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
+                    FROM ingredientes_plato AS ip
+                    LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+                    LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+                    LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                    LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
                     """)
         result = db.execute(query).mappings().all()
         return result
@@ -136,12 +181,25 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Producción paginada
         data_query = text(""" 
-                            SELECT i.id_ingrediente, i.plato_id, i.origen_inv, i.inventario_id, i.cant_inv, i.cant_conv_inv, i.unid_med_id,
-                            p.nombre AS nombre_plato, pr.nombre AS nombre_producto, u.simbolo AS simbolo
-                            FROM ingredientes_plato as i
-                            LEFT JOIN platos as p ON i.plato_id = p.id_plato
-                            LEFT JOIN inv_produccion as pr ON i.inventario_id = pr.id_producto
-                            LEFT JOIN unidades_medida as u ON i.unid_med_id = u.id_unidad
+                            SELECT 
+                                ip.id_ingrediente, 
+                                ip.plato_id, 
+                                ip.origen_inv, 
+                                ip.inventario_id, 
+                                ip.cant_inv, 
+                                ip.cant_conv_inv, 
+                                ip.unid_med_id, 
+                                ip.fecha_registro, 
+                                p.nombre_plato, 
+                                um.simbolo,
+                                -- COALESCE toma el primer valor que NO sea null. 
+                                -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
+                                COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
+                            FROM ingredientes_plato AS ip
+                            LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+                            LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+                            LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                            LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
                             LIMIT :limit OFFSET :skip
                         """)
             

@@ -1,5 +1,6 @@
 from pydantic import BaseModel   #type: ignore
 from typing import Optional
+from datetime import date
 
 class IngredienteBase(BaseModel):
     plato_id: int
@@ -8,6 +9,7 @@ class IngredienteBase(BaseModel):
     cant_inv: float
     cant_conv_inv: float
     unid_med_id: int
+    fecha_registro: date
    
 class IngredienteCreate(IngredienteBase):
     pass
@@ -21,9 +23,9 @@ class IngredienteUpdate(BaseModel):
 
 class IngredienteOut(IngredienteBase):
     id_ingrediente: int
-    nombre_plato: str
-    nombre_producto: str
-    simbolo: str
+    nombre_plato: Optional[str] = None
+    nombre_producto: Optional[str] = None
+    simbolo: Optional[str] = None
 
 class IngredientesPaginated(BaseModel):
     page: int
