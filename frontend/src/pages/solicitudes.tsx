@@ -211,8 +211,8 @@ export default function Solicitudes() {
 										</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-											<div>Cant. solicitada: {solicitud.cantidad_in}</div>
-											<div>Cant. devuelta: {solicitud.cant_devolver}</div>
+											<div>Cant. solicitada: {solicitud.cantidad_in} {solicitud.simbolo}</div>
+											<div>Cant. devuelta: {solicitud.cant_devolver} {solicitud.simbolo}</div>
 										</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
