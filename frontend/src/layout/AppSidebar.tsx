@@ -30,8 +30,13 @@ const navItems: NavItem[] = [
   },
   {
     icon: <CalenderIcon />,
-    name: "Calendario",
-    path: "/calendar",
+    name: "Comidas",
+    subItems: [
+      {
+        name: "Platos",
+        path: "/platos",
+      }
+    ],
   },
 ];
 

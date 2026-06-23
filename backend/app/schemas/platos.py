@@ -1,5 +1,4 @@
 import datetime
-
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -14,7 +13,6 @@ class PlatoCreate(PlatoBase):
 class PlatoUpdate(BaseModel):
     nombre_plato: Optional[str] = Field(default=None, max_length=25)
     estado: Optional[bool] = Field(default=None)
-    fecha_registro: Optional[datetime.date] = Field(default=None)
 
 class PlatoOut(PlatoBase):
     id_plato: int

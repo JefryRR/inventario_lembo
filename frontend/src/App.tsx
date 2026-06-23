@@ -75,6 +75,9 @@ import HistorialVentas from "./pages/historial_ventas";
 import Solicitud from "./pages/solicitudes";
 import SolicitudCreate from "./components/solicitud/solicitudCreate";
 import SolicitudEdit from "./components/solicitud/solicitudEdit";
+import Platos from "./pages/platos";
+import PlatosCreate from "./components/platos/platosCreate";
+import PlatosEdit from "./components/platos/platosEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -110,6 +113,9 @@ export default function App() {
             <Route path="/especies" element={<Especies />} />
             <Route path="/especies/create" element={<EspeciesCreate />} />
             <Route path="/especies/edit/:id" element={<EspeciesEdit />} />
+            <Route path="/platos" element={<Platos />} />
+            <Route path="/platos/crear" element={<PlatosCreate />} />
+            <Route path="/platos/edit/:id" element={<PlatosEdit />} />
             <Route path="/lotesProd" element={<Lotes />} />
             <Route path="/lotesProd/create" element={<LotesCreate />} />
             <Route path="/lotesProd/edit/:id" element={<LotesEdit />} />

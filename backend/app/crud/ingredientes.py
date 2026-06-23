@@ -46,9 +46,13 @@ def create_ingrediente(db: Session, ingredientes: IngredienteCreate):
 
 def get_ingrediente_by_id(db: Session, id: int):
     try:
-        query = text("""SELECT id_ingrediente, plato_id, origen_inv, inventario_id, cant_inv, cant_conv_inv, unid_med_id
-                     FROM ingredientes_plato
-                     WHERE id_ingrediente = :id
+        query = text("""SELECT i.id_ingrediente, i.plato_id, i.origen_inv, i.inventario_id, i.cant_inv, i.cant_conv_inv, i.unid_med_id,
+                     p.nombre AS nombre_plato, pr.nombre AS nombre_producto, u.simbolo AS simbolo
+                     FROM ingredientes_plato as i
+                     LEFT JOIN platos as p ON i.plato_id = p.id_plato
+                     LEFT JOIN inv_produccion as pr ON i.inventario_id = pr.id_producto
+                     LEFT JOIN unidades_medida as u ON i.unid_med_id = u.id_unidad
+                     WHERE i.id_ingrediente = :id
                 """)
         result = db.execute(query, {"id": id}).mappings().first()
         return result
@@ -101,8 +105,12 @@ def update_ingrediente_by_id(db: Session, ingrediente_id: int, ingrediente: Ingr
 
 def all_ingredientes(db: Session):
     try:
-        query = text("""SELECT id_ingrediente, plato_id, origen_inv, inventario_id, cant_inv, cant_conv_inv, unid_med_id
-                        FROM ingredientes_plato
+        query = text("""SELECT i.id_ingrediente, i.plato_id, i.origen_inv, i.inventario_id, i.cant_inv, i.cant_conv_inv, i.unid_med_id,
+                        p.nombre AS nombre_plato, pr.nombre AS nombre_producto, u.simbolo AS simbolo
+                        FROM ingredientes_plato as i
+                        LEFT JOIN platos as p ON i.plato_id = p.id_plato
+                        LEFT JOIN inv_produccion as pr ON i.inventario_id = pr.id_producto
+                        LEFT JOIN unidades_medida as u ON i.unid_med_id = u.id_unidad
                     """)
         result = db.execute(query).mappings().all()
         return result
@@ -128,8 +136,12 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Producción paginada
         data_query = text(""" 
-                            SELECT id_ingrediente, plato_id, origen_inv, inventario_id, cant_inv, cant_conv_inv, unid_med_id
-                            FROM ingredientes_plato
+                            SELECT i.id_ingrediente, i.plato_id, i.origen_inv, i.inventario_id, i.cant_inv, i.cant_conv_inv, i.unid_med_id,
+                            p.nombre AS nombre_plato, pr.nombre AS nombre_producto, u.simbolo AS simbolo
+                            FROM ingredientes_plato as i
+                            LEFT JOIN platos as p ON i.plato_id = p.id_plato
+                            LEFT JOIN inv_produccion as pr ON i.inventario_id = pr.id_producto
+                            LEFT JOIN unidades_medida as u ON i.unid_med_id = u.id_unidad
                             LIMIT :limit OFFSET :skip
                         """)
             

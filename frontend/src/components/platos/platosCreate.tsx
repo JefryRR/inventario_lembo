@@ -3,28 +3,28 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-type RolFormState = {
-    nombre_rol: string;
-    descripcion: string;
+type PlatoFormState = {
+    nombre_plato: string;
     estado: boolean;
+    fecha_registro: string;
 };
 
-const initialState: RolFormState = {
-    nombre_rol: "",
-    descripcion: "",
+const initialState: PlatoFormState = {
+    nombre_plato: "",
     estado: true,
+    fecha_registro: new Date().toISOString(),
 };
 
-export default function RolesCreate() {
+export default function PlatosCreate() {
     const navigate = useNavigate();
-    const [form, setForm] = useState<RolFormState>(initialState);
+    const [form, setForm] = useState<PlatoFormState>(initialState);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     
     const handleChange =
-        (field: keyof RolFormState) =>
+        (field: keyof PlatoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
                 const value = field === "estado" ? (event.target as HTMLInputElement).checked : event.target.value;
 
@@ -42,22 +42,22 @@ export default function RolesCreate() {
     
         try {
             const payload = {
-                nombre_rol: form.nombre_rol,
-                descripcion: form.descripcion,
+                nombre_plato: form.nombre_plato,
                 estado: form.estado,
+                fecha_registro: form.fecha_registro,
             };
 
-            const data = await apiFetch("roles/crear", {
+            const data = await apiFetch("platos/crear", {
                 method: "POST",
                 body: payload,
             });
 
-            setSuccess(data?.message || "Rol creado correctamente");
+            setSuccess(data?.message || "Plato creado correctamente");
             setForm(initialState);
-            navigate("/roles");
+            navigate("/platos");
         } catch (requestError: any) {
             setError(
-                requestError?.detail || requestError?.message || "Ocurrió un error al crear el rol"
+                requestError?.detail || requestError?.message || "Ocurrió un error al crear el plato"
             );
         } finally {
             setLoading(false);
@@ -70,18 +70,18 @@ export default function RolesCreate() {
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            Nuevo rol
+                            Nuevo plato
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Completa los datos obligatorios para registrar el rol.
+                            Completa los datos obligatorios para registrar el plato.
                         </p>
                     </div>
 
                     <Link
-                        to="/roles"
+                        to="/platos"
                         className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                     >
-                        Volver a roles
+                        Volver a platos
                     </Link>
                 </div>
 
@@ -89,26 +89,12 @@ export default function RolesCreate() {
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Nombre completo <span className="text-error-500">*</span>
+                                Nombre del plato <span className="text-error-500">*</span>
                             </label>
                             <input
-                                value={form.nombre_rol}
-                                onChange={handleChange("nombre_rol")}
-                                placeholder="Administrador"
-                                className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Descripción <span className="text-error-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={form.descripcion}
-                                onChange={handleChange("descripcion")}
-                                placeholder="Rol de administrador"
+                                value={form.nombre_plato}
+                                onChange={handleChange("nombre_plato")}
+                                placeholder="Sopa de verduras"
                                 className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
@@ -123,8 +109,21 @@ export default function RolesCreate() {
                                 className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
                             />
                             <label htmlFor="estado" className="text-sm text-gray-700 dark:text-gray-300">
-                                Rol activo
+                                Plato activo
                             </label>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Fecha de registro <span className="text-error-500">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                value={form.fecha_registro}
+                                onChange={handleChange("fecha_registro")}
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                required
+                            />
                         </div>
                     </div>
 
@@ -146,10 +145,10 @@ export default function RolesCreate() {
                             disabled={loading}
                             className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {loading ? "Guardando..." : "Guardar rol"}
+                            {loading ? "Guardando..." : "Guardar plato"}
                         </button>
                         <Link
-                            to="/roles"
+                            to="/platos"
                             className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                         >
                             Cancelar
