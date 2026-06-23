@@ -69,7 +69,6 @@ const CalendarProgramacion: React.FC = () => {
   const [form, setForm] = useState(FORM_EMPTY);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
 
