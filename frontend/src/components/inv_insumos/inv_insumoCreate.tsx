@@ -87,16 +87,12 @@ export default function UsersCreate() {
         const loadUnidMedidas = async () => {
             setLoadingUnidMedidas(true);
             try {
-                const [invData, ambasData] = await Promise.all([
-                    apiFetch(`unid-medida/all-unid_medidas?tipo=inventario`),
-                    apiFetch(`unid-medida/all-unid_medidas?tipo=ambas`)
-                ]);
+                const invData = await apiFetch(`unid-medida/all-unid_medidas`);
+           
                 if (!mounted) return;
                 const invList = Array.isArray(invData?.unid_medidas) ? invData.unid_medidas
-                    : Array.isArray(invData) ? invData : [];
-                const ambasList = Array.isArray(ambasData?.unid_medidas) ? ambasData.unid_medidas
-                    : Array.isArray(ambasData) ? ambasData : [];
-                setUnidMedidas([...invList, ...ambasList]);
+                    : Array.isArray(invData) ? invData : [];    
+                setUnidMedidas(invList);
             } catch (requestError: any) {
                 if (!mounted) return;
                 setError(requestError?.detail || requestError?.message || "No se pudieron cargar las unidades de medida");

@@ -122,9 +122,6 @@ export default function Unidades() {
                                         Conversión
                                     </th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                        Tipo unidad
-                                    </th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Acciones
                                     </th>
                                 </tr>
@@ -166,11 +163,6 @@ export default function Unidades() {
                                             <td className="px-5 py-4">
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                                     {unidades.conversion}
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                    {unidades.tipo}
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4">

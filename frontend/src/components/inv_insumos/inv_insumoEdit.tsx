@@ -69,7 +69,7 @@ export default function Inv_insumoEdit() {
             try {
                 const [invInsumoData, UnidMedidasData, tipoInsData] = await Promise.all([
                     apiFetch(`inv_insumos/by-id/?id_insumo=${id}`),
-                    apiFetch(`unid-medida/all-unid_medidas?tipo=inventario&tipo=ambas`),
+                    apiFetch(`unid-medida/all-unid_medidas`),
                     apiFetch(`tipo_insumos/all-tipo_insumo`),
                 ]);
                 if (!mounted) return;

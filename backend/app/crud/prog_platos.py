@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from datetime import date
 from app.schemas.prog_platos import ProgramacionCreate, ProgramacionUpdate
 
 import logging
@@ -35,7 +34,7 @@ def get_progPlato_by_id(db: Session, id: int):
         return result
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener la programación por ID: {e}")
-        raise Exception("Error de base de datos al obtener la programación|")
+        raise Exception("Error de base de datos al obtener la programación")
 
 def update_progPlato_by_id(db: Session, programacion_id: int, plato: ProgramacionUpdate):
     try:
