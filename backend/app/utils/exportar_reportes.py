@@ -920,3 +920,82 @@ def generar_pdf_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
     doc.build(elementos)
     buffer.seek(0)
     return buffer
+
+def generar_excel_reporte_ventas_platos(venta_platos: list) -> io.BytesIO:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Ventas de platos"
+
+    ws.append(["Informe de Ventas de Platos"])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([f"Total de registros: {len(venta_platos)}"])
+    ws.append([])
+
+    headers = [
+        "Nombre plato", "Cantidad", "Precio", "Fecha de venta",
+    ]
+    ws.append(headers)
+    fila_encabezado = ws.max_row
+    for celda in ws[fila_encabezado]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+    for t in venta_platos:
+        ws.append([
+            t.get("nombre_plato") or "-",
+            t.get("cantidad"),
+            t.get("precio") or "-",
+            str(t.get("fecha_venta") or "-"),
+        ])
+
+    for columna in ws.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+def generar_pdf_reporte_ventas_platos(venta_platos: list) -> io.BytesIO:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+
+    elementos = [Paragraph("Informe de Ventas de Platos", styles["Title"]), Spacer(1, 12)]
+
+    filas = [["Nombre plato", "Cantidad", "Precio", "Fecha de venta",]]
+    for t in venta_platos:
+
+        filas.append([
+            t.get("nombre_plato") or "-",
+            t.get("cantidad"),
+            t.get("precio") or "-",
+            str(t.get("fecha_venta") or "-"),
+        ])
+
+    tabla = Table(
+        filas,
+        repeatRows=1,
+        colWidths=[2.5 * cm, 2 * cm, 3 * cm, 3 * cm],
+    )
+    tabla.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 18))
+    elementos.append(Paragraph(f"Total de registros: {len(venta_platos)}", styles["Normal"]))
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer

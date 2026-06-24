@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
@@ -209,7 +208,6 @@ export default function IngredienteEdit() {
                 origen_inv: Number(form.origen_inv),
             };
 
-            // Ajusta este endpoint según la firma exacta de tu API de actualización para ingredientes
             const data = await apiFetch(`ingredientes/by_id/${id}`, {
                 method: "PUT",
                 body: payload,
@@ -229,7 +227,6 @@ export default function IngredienteEdit() {
     return (
         <>
             <PageMeta title="Editar ingrediente | Inventario Lembo" description="Formulario para editar un ingrediente existente" />
-            <PageBreadcrumb pageTitle="Editar ingrediente" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">

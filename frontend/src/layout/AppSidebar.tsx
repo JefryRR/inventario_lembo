@@ -132,6 +132,10 @@ const modulosItems: NavItem[] = [
         name: "Ventas producción",
         path: "/ventas",
       },
+      {
+        name: "Ventas de platos",
+        path: "/venta_platos",
+      },
     ],
   },
   {

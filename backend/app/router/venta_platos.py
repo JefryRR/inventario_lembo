@@ -8,11 +8,13 @@ from app.schemas.venta_platos import VentaPlatoCreate, VentaPlatoUpdate, VentaPl
 from app.schemas.users import UserOut
 from app.crud import venta_platos as crud_ventas_plato
 from sqlalchemy.exc import SQLAlchemyError
+from fastapi.responses import StreamingResponse   # type: ignore
+from app.utils.exportar_reportes import generar_excel_reporte_ventas_platos, generar_pdf_reporte_ventas_platos
 
 router = APIRouter()
 modulo = 20
 
-# Endpoint para crear un nuevo rol
+# Endpoint para crear una nueva venta de plato
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_ventaPlato(
     ventaPlato: VentaPlatoCreate, 
@@ -65,6 +67,56 @@ def get_all_venta_platos(
         return plato
 
         
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/exportar/excel")
+def exportar_ventas_platos_excel(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        ventas = crud_ventas_plato.all_ventas_platos(db)
+        if not ventas:
+            raise HTTPException(status_code=404, detail="No hay ventas de platos registradas")
+
+        buffer = generar_excel_reporte_ventas_platos(ventas)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="reporte_ventas_platos.xlsx"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar/pdf")
+def exportar_ventas_platos_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        ventas = crud_ventas_plato.all_ventas_platos(db)
+        if not ventas:
+            raise HTTPException(status_code=404, detail="No hay ventas de platos registradas")
+
+        buffer = generar_pdf_reporte_ventas_platos(ventas)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_ventas_platos.pdf"'}
+        )
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
