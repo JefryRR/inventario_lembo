@@ -16,6 +16,7 @@ type TipoComida = "desayuno" | "almuerzo" | "refrigerio";
 interface Plato {
   id_plato: number;
   nombre_plato: string;
+  estado: boolean;
 }
 
 interface ProgramacionOut {
@@ -89,7 +90,7 @@ const CalendarProgramacion: React.FC = () => {
   async function cargarPlatos() {
     try {
       const data: Plato[] = await apiFetch("platos/all-platos");
-      setPlatos(data);
+      setPlatos(data.filter((p) => p.estado === true));
     } catch {
       setError("No se pudieron cargar los platos.");
     }

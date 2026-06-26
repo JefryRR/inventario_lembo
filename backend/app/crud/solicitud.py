@@ -201,7 +201,7 @@ def change_status_solicitud(db: Session, solicitud_id: int, estado: SolicitudSta
 
 def get_solicitud_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
-    Obtiene las tareas cuya fecha de inicio o fin esté dentro de un rango de fechas.
+    Obtiene las solicitudes cuya fecha de inicio o fin esté dentro de un rango de fechas.
     Ignora las horas (usa DATE(fecha_hora_init) y DATE(fecha_hora_fin)).
     """
     try:

@@ -54,6 +54,28 @@ const modulosItems: NavItem[] = [
     ],
   },
   {
+    icon: <FileIcon />,
+    name: "Módulo de categorias",
+    subItems: [
+      {
+        name: "Categorías",
+        path: "/categorias",
+      },
+      {
+        name: "Especies",
+        path: "/especies",
+      },
+      {
+        name: "Unidades de medida",
+        path: "/unidades",
+      },
+      {
+        name: "Tipos de insumos",
+        path: "/tipos-insumos",
+      },
+    ],
+  },
+  {
     icon: <FolderIcon />,
     name: "Módulo operativo",
     subItems: [
@@ -117,28 +139,6 @@ const modulosItems: NavItem[] = [
       {
         name: "Ventas de platos",
         path: "/venta_platos",
-      },
-    ],
-  },
-  {
-    icon: <FileIcon />,
-    name: "Módulo de categorias",
-    subItems: [
-      {
-        name: "Categorías",
-        path: "/categorias",
-      },
-      {
-        name: "Especies",
-        path: "/especies",
-      },
-      {
-        name: "Unidades de medida",
-        path: "/unidades",
-      },
-      {
-        name: "Tipos de insumos",
-        path: "/tipos-insumos",
       },
     ],
   },

@@ -130,6 +130,70 @@ def update_ingrediente_by_id(db: Session, ingrediente_id: int, ingrediente: Ingr
         db.rollback()
         logger.error(f"Error al actualizar el ingrediente {ingrediente_id}: {e}")
         raise Exception("Error de base de datos al actualizar el ingrediente")
+    
+def delete_ingrediente_by_id(db: Session, id: int):
+    try:
+        # 1. Obtener el ingrediente antes de eliminarlo
+        ingrediente = db.execute(
+            text("""
+                SELECT id_ingrediente, origen_inv, inventario_id, cant_conv_inv
+                FROM ingredientes_plato
+                WHERE id_ingrediente = :id
+            """),
+            {"id": id}
+        ).fetchone()
+
+        if not ingrediente:
+            return False
+
+        # 2. Devolver la cantidad al inventario correspondiente
+        if ingrediente.origen_inv == 1:
+            # Inventario de producción
+            inv = db.execute(
+                text("SELECT id_inventario, cantidad FROM inv_produccion WHERE id_inventario = :inv_id"),
+                {"inv_id": ingrediente.inventario_id}
+            ).fetchone()
+
+            if not inv:
+                raise Exception(f"Inventario de producción {ingrediente.inventario_id} no encontrado")
+
+            db.execute(
+                text("UPDATE inv_produccion SET cantidad = cantidad + :cant WHERE id_inventario = :inv_id"),
+                {"cant": ingrediente.cant_conv_inv, "inv_id": ingrediente.inventario_id}
+            )
+
+        elif ingrediente.origen_inv == 2:
+            # Inventario de insumos
+            inv = db.execute(
+                text("SELECT id_insumo, cantidad FROM inv_insumos WHERE id_insumo = :inv_id"),
+                {"inv_id": ingrediente.inventario_id}
+            ).fetchone()
+
+            if not inv:
+                raise Exception(f"Inventario de insumos {ingrediente.inventario_id} no encontrado")
+
+            db.execute(
+                text("UPDATE inv_insumos SET cantidad = cantidad + :cant WHERE id_insumo = :inv_id"),
+                {"cant": ingrediente.cant_conv_inv, "inv_id": ingrediente.inventario_id}
+            )
+
+        else:
+            raise Exception(f"origen_inv inválido: {ingrediente.origen_inv}")
+
+        # 3. Eliminar el ingrediente
+        result = db.execute(
+            text("DELETE FROM ingredientes_plato WHERE id_ingrediente = :id"),
+            {"id": id}
+        )
+
+        # 4. Commit único — todo o nada
+        db.commit()
+        return result.rowcount > 0
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Error al eliminar el ingrediente {id}: {e}")
+        raise Exception("Error de base de datos al eliminar el ingrediente")
 
 def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
