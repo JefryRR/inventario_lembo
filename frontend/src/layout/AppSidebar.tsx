@@ -27,25 +27,7 @@ const navItems: NavItem[] = [
     icon: <GridIcon />,
     name: "Panel de monitoreo",
     path: "/dashboard"
-  },
-  {
-    icon: <CalenderIcon />,
-    name: "Comidas",
-    subItems: [
-      {
-        name: "Platos",
-        path: "/platos",
-      },
-      {
-        name: "Ingredientes",
-        path: "/ingredientes",
-      },
-      {
-        name: "Programación de comidas",
-        path: "/calendar",
-      },
-    ],
-  },
+  }
 ];
 
 const modulosItems: NavItem[] = [
@@ -157,6 +139,24 @@ const modulosItems: NavItem[] = [
       {
         name: "Tipos de insumos",
         path: "/tipos-insumos",
+      },
+    ],
+  },
+  {
+    icon: <CalenderIcon />,
+    name: " Módulo de comidas",
+    subItems: [
+      {
+        name: "Platos",
+        path: "/platos",
+      },
+      {
+        name: "Ingredientes",
+        path: "/ingredientes",
+      },
+      {
+        name: "Programación de comidas",
+        path: "/calendar",
       },
     ],
   },
