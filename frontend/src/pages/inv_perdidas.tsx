@@ -85,7 +85,7 @@ export default function InvPerd() {
   useEffect(() => {
     let isMounted = true;
 
-    const loadUsers = async () => {
+    const loadPerdidas = async () => {
       setLoading(true);
       setError(null);
 
@@ -128,7 +128,7 @@ export default function InvPerd() {
       }
     };
 
-    loadUsers();
+    loadPerdidas();
 
     return () => {
       isMounted = false;
@@ -172,6 +172,7 @@ export default function InvPerd() {
     const unidad = simbolo?.trim() || "-";
     return `${cantidad ?? 0} ${unidad}`;
   };
+
   const applyDateFilter = () => {
     if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
       setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
@@ -417,13 +418,19 @@ export default function InvPerd() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
+                    {inv_perd.motivo?.toLowerCase() === "vencimiento" ? (
+                      <span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+                        Vencido
+                      </span>
+                    ) : (
                       <Link
                         to={`/invPerd/edit/${inv_perd.id_perdida}`}
                         className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
                       >
                         Editar
                       </Link>
-                    </td>
+                    )}
+                  </td>
                   </tr>
                 ))
               )}

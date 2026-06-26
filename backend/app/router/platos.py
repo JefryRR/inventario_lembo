@@ -85,6 +85,28 @@ def update_plato_by_id(id_plato: int, plato: PlatoUpdate, db: Session = Depends(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@router.put("/cambiar-estado/{id_plato}", status_code=status.HTTP_200_OK)
+def change_plato_estado(
+    id_plato: int,
+    nuevo_estado: bool,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.id_rol
+        if not verify_permissions(db, id_rol, modulo, 'actualizar'):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+
+        success = crud_platos.change_plato_estado(db, id_plato, nuevo_estado)
+        if not success:
+            raise HTTPException(status_code=404, detail="Plato no encontrado")
+
+        return {"message": f"Estado del plato actualizado a {nuevo_estado}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+    
 @router.get("/platos_paginated", response_model=PlatosPaginated)
 def get_paginated_platos(
     page: int = 1,

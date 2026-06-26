@@ -75,6 +75,15 @@ import HistorialVentas from "./pages/historial_ventas";
 import Solicitud from "./pages/solicitudes";
 import SolicitudCreate from "./components/solicitud/solicitudCreate";
 import SolicitudEdit from "./components/solicitud/solicitudEdit";
+import Platos from "./pages/platos";
+import PlatosCreate from "./components/platos/platosCreate";
+import PlatosEdit from "./components/platos/platosEdit";
+import Ingredientes from "./pages/ingredientes";
+import IngredientesCreate from "./components/ingredientes/ingredienteCreate";
+import IngredientesEdit from "./components/ingredientes/ingredienteEdit";
+import VentaPlatos from "./pages/ventasPlatos";
+import VentaPlatosCreate from "./components/ventas_platos/ventasPlatosCreate";
+import VentaPlatosEdit from "./components/ventas_platos/ventasPlatosEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -110,6 +119,12 @@ export default function App() {
             <Route path="/especies" element={<Especies />} />
             <Route path="/especies/create" element={<EspeciesCreate />} />
             <Route path="/especies/edit/:id" element={<EspeciesEdit />} />
+            <Route path="/platos" element={<Platos />} />
+            <Route path="/platos/crear" element={<PlatosCreate />} />
+            <Route path="/platos/edit/:id" element={<PlatosEdit />} />
+            <Route path="/ingredientes" element={<Ingredientes />} />
+            <Route path="/ingredientes/crear" element={<IngredientesCreate />} />
+            <Route path="/ingredientes/edit/:id" element={<IngredientesEdit />} />
             <Route path="/lotesProd" element={<Lotes />} />
             <Route path="/lotesProd/create" element={<LotesCreate />} />
             <Route path="/lotesProd/edit/:id" element={<LotesEdit />} />
@@ -141,6 +156,9 @@ export default function App() {
             <Route path="/ventas" element={< Ventas />} />
             <Route path="/ventas/create" element={<VentasCreate />} />
             <Route path="/ventas/edit/:id" element={<VentasEdit />} />
+            <Route path="/venta_platos" element={<VentaPlatos />} />
+            <Route path="/venta_platos/crear" element={<VentaPlatosCreate />} />
+            <Route path="/venta_platos/edit/:id" element={<VentaPlatosEdit />} />
             <Route path="/detalle-ventas/create" element={< DetalleCreate />} />
             <Route path="/detalle-ventas/edit/:id" element={< DetalleEdit />} />
             <Route path="/tipos-insumos" element={<TiposInsumos />} />

@@ -14,9 +14,21 @@ def create_progPlato(db: Session, platos: ProgramacionCreate):
                         ) VALUES (
                         :plato_id, :tipo_comida, :cant_personas, :horario_visita, :fecha_programacion)
                     """)
-        db.execute(query, platos.model_dump())
+        result = db.execute(query, platos.model_dump())
         db.commit()
-        return True
+
+        # Obtenemos el id recién insertado y devolvemos el objeto completo
+        nuevo_id = result.lastrowid
+        nueva_prog = db.execute(text("""
+            SELECT pp.id_programacion, pp.plato_id, pp.tipo_comida, pp.cant_personas,
+                   pp.horario_visita, pp.fecha_programacion, p.nombre_plato
+            FROM prog_platos pp
+            JOIN platos p ON p.id_plato = pp.plato_id
+            WHERE pp.id_programacion = :id
+        """), {"id": nuevo_id}).mappings().one()
+
+        return dict(nueva_prog)
+
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"Error al crear la programación: {e}")
@@ -129,3 +141,16 @@ def get_progPlatos_paginated(db: Session, skip: int = 0, limit: int = 10):
         logger.error(f"Error al obtener las programaciones: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener las programaciones")
     
+def delete_progPlato_by_id(db: Session, programacion_id: int):
+    try:
+        query = text("""
+            DELETE FROM prog_platos
+            WHERE id_programacion = :id_programacion
+        """)
+        result = db.execute(query, {"id_programacion": programacion_id})
+        db.commit()
+        return result.rowcount > 0
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Error al eliminar la programación {programacion_id}: {e}")
+        raise Exception("Error de base de datos al eliminar la programación")

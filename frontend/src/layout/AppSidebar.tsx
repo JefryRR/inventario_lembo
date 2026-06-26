@@ -25,13 +25,26 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Dashboard",
+    name: "Panel de monitoreo",
     path: "/dashboard"
   },
   {
     icon: <CalenderIcon />,
-    name: "Calendario",
-    path: "/calendar",
+    name: "Comidas",
+    subItems: [
+      {
+        name: "Platos",
+        path: "/platos",
+      },
+      {
+        name: "Ingredientes",
+        path: "/ingredientes",
+      },
+      {
+        name: "Programación de comidas",
+        path: "/calendar",
+      },
+    ],
   },
 ];
 
@@ -118,6 +131,10 @@ const modulosItems: NavItem[] = [
       {
         name: "Ventas producción",
         path: "/ventas",
+      },
+      {
+        name: "Ventas de platos",
+        path: "/venta_platos",
       },
     ],
   },

@@ -88,6 +88,24 @@ def all_platos(db: Session):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas los platos")
+    
+def change_plato_estado(db: Session, plato_id: int, nuevo_estado: bool):
+    """
+    Cambia el estado de un plato.
+    """
+    try:
+        query = text("""
+            UPDATE platos
+            SET estado = :nuevo_estado
+            WHERE id_plato = :plato_id
+        """)
+        result = db.execute(query, {"nuevo_estado": nuevo_estado, "plato_id": plato_id})
+        db.commit()
+        return result.rowcount > 0
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Error al cambiar el estado del plato {plato_id}: {e}")
+        raise Exception("Error de base de datos al cambiar el estado del plato")
 
 def get_platos_paginated(db: Session, skip: int = 0, limit: int = 10):
 

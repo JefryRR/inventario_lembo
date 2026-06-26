@@ -53,7 +53,6 @@ def get_ingrediente_by_id(db: Session, id: int):
                 ip.origen_inv, 
                 ip.inventario_id, 
                 ip.cant_inv, 
-                ip.cant_conv_inv, 
                 ip.unid_med_id, 
                 ip.fecha_registro, 
                 p.nombre_plato, 
@@ -139,10 +138,24 @@ def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: st
     """
     try:
         query = text("""
-                    SELECT ip.id_ingrediente, ip.plato_id, ip.origen_inv, ip.inventario_id, ip.cant_inv, ip.cant_conv_inv,
-                    ip.unid_med_id, ip.fecha_registro, p.nombre_plato
+                    SELECT 
+                        ip.id_ingrediente, 
+                        ip.plato_id, 
+                        ip.origen_inv, 
+                        ip.inventario_id, 
+                        ip.cant_inv, 
+                        ip.unid_med_id, 
+                        ip.fecha_registro, 
+                        p.nombre_plato, 
+                        um.simbolo,
+                        -- COALESCE toma el primer valor que NO sea null. 
+                        -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
+                        COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
                     FROM ingredientes_plato AS ip
                     LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+                    LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+                    LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                    LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
                     WHERE DATE(ip.fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin
                     ORDER BY ip.fecha_registro DESC
                 """)
@@ -158,9 +171,24 @@ def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: st
 
 def all_ingredientes(db: Session):
     try:
-        query = text("""SELECT ip.id_ingrediente, ip.plato_id, ip.origen_inv, ip.inventario_id, ip.cant_inv, ip.cant_conv_inv, ip.unid_med_id, ip.fecha_registro, p.nombre_plato
-                        FROM ingredientes_plato AS ip
-                        LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+        query = text("""SELECT 
+                        ip.id_ingrediente, 
+                        ip.plato_id, 
+                        ip.origen_inv, 
+                        ip.inventario_id, 
+                        ip.cant_inv, 
+                        ip.unid_med_id, 
+                        ip.fecha_registro, 
+                        p.nombre_plato, 
+                        um.simbolo,
+                        -- COALESCE toma el primer valor que NO sea null. 
+                        -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
+                        COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
+                    FROM ingredientes_plato AS ip
+                    LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+                    LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+                    LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                    LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
                     """)
         result = db.execute(query).mappings().all()
         return result
@@ -172,11 +200,11 @@ def all_ingredientes(db: Session):
 def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
     """
-    Obtiene inventario de producción con paginación.
+    Obtiene ingredientes con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
-        # Total de producción
+        # Total de ingredientes
         count_query = text("""
             SELECT COUNT(id_ingrediente) AS total
             FROM ingredientes_plato
@@ -184,7 +212,7 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         total_result = db.execute(count_query).scalar()
 
-        # Producción paginada
+        # Ingredientes paginados
         data_query = text(""" 
                             SELECT 
                                 ip.id_ingrediente, 
@@ -207,17 +235,17 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
                             LIMIT :limit OFFSET :skip
                         """)
             
-        platos_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
+        ingredientes_list = db.execute(
+        data_query,
+        {
+            "limit": limit,
+            "skip": skip
+        }
         ).mappings().all()
 
         return {
             "total": total_result or 0,
-            "ingredientes": platos_list
+            "ingredientes": ingredientes_list
         }
 
     except SQLAlchemyError as e:
