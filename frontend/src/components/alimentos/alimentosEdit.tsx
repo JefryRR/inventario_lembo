@@ -26,6 +26,8 @@ type InsumoOption = {
     nombre_producto: string;
     tipo_id: number;
     fecha_vencimiento: string;
+    cantidad: number;
+    simbolo: string;
 };
 
 type UnidadOption = {
@@ -268,7 +270,7 @@ export default function AlimentoEdit() {
                                         </option>
                                         {insumos.map((insumo) => (
                                             <option key={insumo.id_insumo} value={insumo.id_insumo}>
-                                                {insumo.nombre_producto}
+                                                {insumo.nombre_producto} cantidad: {insumo.cantidad} {insumo.simbolo}
                                             </option>
                                         ))}
                                     </select>

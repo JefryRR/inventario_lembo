@@ -29,6 +29,8 @@ type MedicinaOption = {
   nombre_producto: string;
   tipo_id: number;
   fecha_vencimiento: string;
+  cantidad: number;
+  simbolo: string;
 };
 
 type MedidaOption = {
@@ -248,7 +250,7 @@ export default function TratamientoCreate() {
                 </option>
                 {medicinas.map((inv_insumos) => (
                   <option key={inv_insumos.id_insumo} value={inv_insumos.id_insumo}>
-                    {inv_insumos.nombre_producto}
+                    {inv_insumos.nombre_producto} cantidad: {inv_insumos.cantidad} {inv_insumos.simbolo}
                   </option>
                 ))}
               </select>

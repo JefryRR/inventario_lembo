@@ -12,15 +12,6 @@ logger = logging.getLogger(__name__)
 
 def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
     try:
-
-        solicitud_exitente = db.execute(
-            text("SELECT id_solicitud FROM solicitud_insumo WHERE solicitante = :solicitante"),
-            {"solicitante": solicitud.solicitante}
-        ).fetchone()
-
-        if solicitud_exitente:
-            raise Exception("Ya existe una solicitud a nombre de ese solicitante")
-        
         conv = db.execute(text("""
             SELECT conversion FROM unidades_medida
             WHERE id_unidad = :unid_med_id
@@ -85,7 +76,6 @@ def get_solicitud_by_id(db: Session, solicitud_id: int):
         raise
 
 def get_all_solicitudes(db: Session):
-    #registrar_vencidos_como_perdidas(db);  # Registrar vencidos antes de obtener la lista
     try:
         query = text("""SELECT sol.id_solicitud, sol.solicitante, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
                      sol.fecha_solicitud, sol.fecha_entrega, sol.fecha_devolucion, sol.cant_devolver, sol.estado_solicitud, t_i.nombre_tipo, 
@@ -166,6 +156,10 @@ def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudU
             solicitud_data.get("estado_solicitud") == "devuelto"
             and estado_actual != "devuelto"
         ):
+            solicitud_data["fecha_devolucion"] = date.today()
+
+        if (solicitud_data.get("estado_solicitud") == "cancelado" 
+            and estado_actual != "cancelado"):
             solicitud_data["fecha_devolucion"] = date.today()
 
         set_clauses = ", ".join(

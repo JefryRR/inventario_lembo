@@ -10,33 +10,34 @@ type SolicitudEstado =
   | "devuelto";
 
 type SolicitudFormState = {
-    solicitante: string
-    insumo_id: number
-    cantidad_in: number
-    cant_devolver: number
-    unid_med_id: number
-    tipo_insumo_id: number
-    estado_solicitud: SolicitudEstado
-    nombre_tipo: string
-    simbolo: string
-    nombre_producto: string
+  solicitante: string
+  insumo_id: number
+  cantidad_in: number
+  cant_devolver: number
+  unid_med_id: number
+  tipo_insumo_id: number
+  estado_solicitud: SolicitudEstado
+  nombre_tipo: string
+  simbolo: string
+  nombre_producto: string
 };
 
 type TipoOption = {
-    id_tipo_insumo: number;
-    nombre_tipo: string;
+  id_tipo_insumo: number;
+  nombre_tipo: string;
 };
 
 type InventarioOption = {
-    id_insumo: number;
-    nombre_producto: string;
-    cantidad: number;
-    simbolo: string;
+  id_insumo: number;
+  nombre_producto: string;
+  cantidad: number;
+  simbolo: string;
+  tipo_id: number;
 };
 
 type MedidaOption = {
-    id_unidad: number;
-    simbolo: string;
+  id_unidad: number;
+  simbolo: string;
 };
 
 const emptyState: SolicitudFormState = {
@@ -144,32 +145,48 @@ export default function SolicitudEdit() {
     };
   }, [id]);
 
+   useEffect(() => {
+    if (form.insumo_id && form.insumo_id !== 0) {
+      const insumoEncontrado = inventarios.find(
+        (item) => item.id_insumo === Number(form.insumo_id)
+      );
+
+      // 3. Si lo encuentra, extraemos su tipo y lo guardamos automáticamente en el formulario
+      if (insumoEncontrado && insumoEncontrado.tipo_id) {
+        setForm((current) => ({
+          ...current,
+          tipo_insumo_id: insumoEncontrado.tipo_id, 
+        }));
+      }
+    }
+  }, [form.insumo_id, inventarios]);
+
   const handleChange =
     (field: keyof SolicitudFormState) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value = event.target.value;
+      (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const value = event.target.value;
 
-      if (field === "cantidad_in" || field === "insumo_id" || field === "unid_med_id" || field === "tipo_insumo_id") {
+        if (field === "cantidad_in" || field === "insumo_id" || field === "unid_med_id" || field === "tipo_insumo_id") {
+          setForm((current) => ({
+            ...current,
+            [field]: Number(value),
+          }));
+          return;
+        }
+
+        if (field === "estado_solicitud") {
+          setForm((current) => ({
+            ...current,
+            estado_solicitud: value as SolicitudEstado,
+          }));
+          return;
+        }
+
         setForm((current) => ({
           ...current,
-          [field]: Number(value),
+          [field]: value,
         }));
-        return;
-      }
-
-      if (field === "estado_solicitud") {
-        setForm((current) => ({
-          ...current,
-          estado_solicitud: value as SolicitudEstado,
-        }));
-        return;
-      }
-
-      setForm((current) => ({
-        ...current,
-        [field]: value,
-      }));
-    };
+      };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -179,38 +196,38 @@ export default function SolicitudEdit() {
     setError(null);
     setSuccess(null);
 
-      try {
-        const payload = {
-          solicitante: form.solicitante.trim(),
-          cantidad: Number(form.cantidad_in),
-          cant_devolver: Number(form.cant_devolver),
-          insumo_id: Number(form.insumo_id),
-          unid_med_id: Number(form.unid_med_id),
-          estado_solicitud: form.estado_solicitud,
-          tipo_insumo_id: Number(form.tipo_insumo_id),
-        };
+    try {
+      const payload = {
+        solicitante: form.solicitante.trim(),
+        cantidad: Number(form.cantidad_in),
+        cant_devolver: Number(form.cant_devolver),
+        insumo_id: Number(form.insumo_id),
+        unid_med_id: Number(form.unid_med_id),
+        estado_solicitud: form.estado_solicitud,
+        tipo_insumo_id: Number(form.tipo_insumo_id),
+      };
 
-        // Primero actualizar campos editables por SolicitudUpdate
-        await apiFetch(`solicitud/update/${id}`, {
+      // Primero actualizar campos editables por SolicitudUpdate
+      await apiFetch(`solicitud/update/${id}`, {
+        method: "PUT",
+        body: payload,
+      });
+
+      // Si el estado cambió, llamar al endpoint específico de estado
+      if (originalEstado && originalEstado !== form.estado_solicitud) {
+        // El router espera 'estado' (query) y toma 'id_solicitud' desde query también
+        await apiFetch(`solicitud/estado/${id}?estado=${id}&estado=${form.estado_solicitud}`, {
           method: "PUT",
-          body: payload,
         });
-
-        // Si el estado cambió, llamar al endpoint específico de estado
-        if (originalEstado && originalEstado !== form.estado_solicitud) {
-          // El router espera 'estado' (query) y toma 'id_solicitud' desde query también
-          await apiFetch(`solicitud/estado/${id}?estado=${id}&estado=${form.estado_solicitud}`, {
-            method: "PUT",
-          });
-        }
-
-        setSuccess("Solicitud actualizada correctamente");
-        setTimeout(() => navigate("/solicitud"), 800);
-      } catch (requestError: any) {
-        setError(requestError?.detail || requestError?.message || "No se pudo actualizar la solicitud");
-      } finally {
-        setSaving(false);
       }
+
+      setSuccess("Solicitud actualizada correctamente");
+      setTimeout(() => navigate("/solicitud"), 800);
+    } catch (requestError: any) {
+      setError(requestError?.detail || requestError?.message || "No se pudo actualizar la solicitud");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -313,23 +330,10 @@ export default function SolicitudEdit() {
                   <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Tipo de insumo <span className="text-error-500">*</span>
                   </label>
-                  <select
-                    value={form.tipo_insumo_id}
-                    onChange={handleChange("tipo_insumo_id")}
-                    className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                    required
-                    disabled={tipos.length === 0}
-                  >
-                    <option value={0} disabled>
-                      Selecciona un tipo de insumo
-                    </option>
-                    {tipos.map((tipo) => (
-                      <option key={tipo.id_tipo_insumo} value={tipo.id_tipo_insumo}>
-                        {tipo.nombre_tipo}
-
-                      </option>
-                    ))}
-                  </select>
+                  <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                    {/* Buscamos el nombre en la lista de tipos usando el ID guardado de forma automática */}
+                    {tipos.find(t => t.id_tipo_insumo === form.tipo_insumo_id)?.nombre_tipo || "Cargando tipo..."}
+                  </div>
                 </div>
 
                 <div>

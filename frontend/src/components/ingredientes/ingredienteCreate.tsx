@@ -24,11 +24,17 @@ type PlatoOption = {
 type ProductoOption = {
     id_inventario: number;
     nombre_producto: string;
+    cantidad: number;
+    simbolo: string;
 };
 
 type InsumoOption = {
     id_insumo: number;
     nombre_producto: string;
+    cantidad: number;
+    simbolo: string;
+    tipo_id: number;
+    fecha_vencimiento: string;
 };
 
 type MedidaOption = {
@@ -97,6 +103,12 @@ export default function IngredienteCreate() {
                         ? insumosData
                         : [];
 
+                const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
+                    const esAlimento = insumo.tipo_id === 2;
+                    const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
+                    return esAlimento && noVencido;
+                });
+
                 const medidaList = Array.isArray(medidasData?.medidas)
                     ? medidasData.medidas
                     : Array.isArray(medidasData)
@@ -105,7 +117,7 @@ export default function IngredienteCreate() {
 
                 setProductos(productoList);
                 setPlatos(platoList);
-                setInsumos(insumoList);
+                setInsumos(alimentosVigentes);
                 setMedidas(medidaList);
 
             } catch (requestError: any) {
@@ -130,32 +142,32 @@ export default function IngredienteCreate() {
 
     const handleChange =
         (field: keyof IngredienteFormState) =>
-        (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-            const value = event.target.value;
+            (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+                const value = event.target.value;
 
-            // Si cambia el origen, reiniciamos el inventario_id seleccionado para evitar inconsistencias
-            if (field === "origen_inv") {
-                setForm((current) => ({
-                    ...current,
-                    origen_inv: Number(value),
-                    inventario_id: 0, 
-                }));
-                return;
-            }
+                // Si cambia el origen, reiniciamos el inventario_id seleccionado para evitar inconsistencias
+                if (field === "origen_inv") {
+                    setForm((current) => ({
+                        ...current,
+                        origen_inv: Number(value),
+                        inventario_id: 0,
+                    }));
+                    return;
+                }
 
-            if (
-                field === "cant_inv" || 
-                field === "unid_med_id" || 
-                field === "inventario_id" || 
-                field === "plato_id"
-            ) {
-                setForm((current) => ({
-                    ...current,
-                    [field]: field === "cant_inv" ? value : Number(value),
-                }));
-                return;
-            }
-        };
+                if (
+                    field === "cant_inv" ||
+                    field === "unid_med_id" ||
+                    field === "inventario_id" ||
+                    field === "plato_id"
+                ) {
+                    setForm((current) => ({
+                        ...current,
+                        [field]: field === "cant_inv" ? value : Number(value),
+                    }));
+                    return;
+                }
+            };
 
     const getLocalISODate = () => {
         const now = new Date();
@@ -283,24 +295,24 @@ export default function IngredienteCreate() {
                                 disabled={form.origen_inv === 0 || (form.origen_inv === 1 ? productos.length === 0 : insumos.length === 0)}
                             >
                                 <option value={0} disabled>
-                                    {form.origen_inv === 0 
-                                        ? "Primero selecciona el origen" 
-                                        : form.origen_inv === 1 && loadingProductos 
-                                        ? "Cargando producción..." 
-                                        : form.origen_inv === 2 && loadingInsumos 
-                                        ? "Cargando insumos..." 
-                                        : "Selecciona un producto"}
+                                    {form.origen_inv === 0
+                                        ? "Primero selecciona el origen"
+                                        : form.origen_inv === 1 && loadingProductos
+                                            ? "Cargando producción..."
+                                            : form.origen_inv === 2 && loadingInsumos
+                                                ? "Cargando insumos..."
+                                                : "Selecciona un producto"}
                                 </option>
-                                
+
                                 {form.origen_inv === 1 && productos.map((producto) => (
                                     <option key={producto.id_inventario} value={producto.id_inventario}>
-                                        {producto.nombre_producto}
+                                        {producto.nombre_producto} cantidad: {producto.cantidad} {producto.simbolo}
                                     </option>
                                 ))}
 
                                 {form.origen_inv === 2 && insumos.map((insumo) => (
                                     <option key={insumo.id_insumo} value={insumo.id_insumo}>
-                                        {insumo.nombre_producto}
+                                        {insumo.nombre_producto} cantidad: {insumo.cantidad} {insumo.simbolo}
                                     </option>
                                 ))}
                             </select>

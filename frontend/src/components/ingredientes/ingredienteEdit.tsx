@@ -23,11 +23,17 @@ type PlatoOption = {
 type ProductoOption = {
     id_inventario: number;
     nombre_producto: string;
+    cantidad: number;
+    simbolo: string;
 };
 
 type InsumoOption = {
     id_insumo: number;
     nombre_producto: string;
+    cantidad: number;
+    simbolo: string;
+    tipo_id: number;
+    fecha_vencimiento: string;
 };
 
 type MedidaOption = {
@@ -112,6 +118,12 @@ export default function IngredienteEdit() {
                     : Array.isArray(insumosData)
                         ? insumosData
                         : [];
+                
+                const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
+                    const esAlimento = insumo.tipo_id === 2;
+                    const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
+                    return esAlimento && noVencido;
+                });
 
                 const medidaList = Array.isArray(medidasData?.medidas)
                     ? medidasData.medidas
@@ -122,7 +134,7 @@ export default function IngredienteEdit() {
                 setProductos(productoList);
                 setMedidas(medidaList);
                 setPlatos(platoList);
-                setInsumos(insumoList);
+                setInsumos(alimentosVigentes);
 
                 setForm({
                     plato_id: Number(ingrediente?.plato_id ?? 0),
@@ -305,13 +317,13 @@ export default function IngredienteEdit() {
                                         
                                         {form.origen_inv === 1 && productos.map((producto) => (
                                             <option key={producto.id_inventario} value={producto.id_inventario}>
-                                                {producto.nombre_producto}
+                                                {producto.nombre_producto} cantidad: {producto.cantidad} {producto.simbolo}
                                             </option>
                                         ))}
 
                                         {form.origen_inv === 2 && insumos.map((insumo) => (
                                             <option key={insumo.id_insumo} value={insumo.id_insumo}>
-                                                {insumo.nombre_producto || insumo.nombre_producto}
+                                                {insumo.nombre_producto} cantidad: {insumo.cantidad} {insumo.simbolo}
                                             </option>
                                         ))}
                                     </select>

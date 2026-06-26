@@ -7,13 +7,15 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def create_venta(db: Session, venta: VentasCreate):
+def create_venta(db: Session, venta: VentasCreate, user_id: int):
     try:
         query = text("""INSERT INTO ventas 
                     (nombre_comprador, id_comprador, fecha_venta, user_id)
                     VALUES (:nombre_comprador, :id_comprador, :fecha_venta, :user_id)
         """)
-        result = db.execute(query, venta.model_dump())
+        params =  venta.model_dump();
+        params["user_id"] = user_id
+        result = db.execute(query, params);
         db.commit()
         return result.lastrowid
     except SQLAlchemyError as e:

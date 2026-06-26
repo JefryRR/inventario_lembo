@@ -173,41 +173,6 @@ export default function VentasCreate() {
                                 maxLength={20}
                             />
                         </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Fecha de venta <span className="text-error-500">*</span>
-                            </label>
-                            <input
-                                type="datetime-local"
-                                value={form.fecha_venta}
-                                onChange={handleChange("fecha_venta")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Usuario responsable <span className="text-error-500">*</span>
-                            </label>
-                            <select
-                                value={form.user_id}
-                                onChange={handleChange("user_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                                required
-                                disabled={loadingUsers || users.length === 0}
-                            >
-                                <option value={0} disabled>
-                                    {loadingUsers ? "Cargando usuarios..." : "Selecciona un usuario"}
-                                </option>
-                                {users.map((user) => (
-                                    <option key={user.id_user} value={user.id_user}>
-                                        {user.nombre_user}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
                     </div>
 
                     {error && (

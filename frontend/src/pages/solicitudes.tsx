@@ -228,13 +228,19 @@ export default function Solicitudes() {
 										</td>
 
 										<td className="px-5 py-4">
-											<div className="flex flex-col items-center gap-2">
-												<Link
-													to={`/solicitud/edit/${solicitud.id_solicitud}`}
-													className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-													Editar
-												</Link>
-											</div>
+											{solicitud.estado_solicitud?.toLowerCase() === "cancelado" || solicitud.estado_solicitud?.toLowerCase() === "devuelto" ? (
+                    						  <span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+                    						    Editar
+                    						  </span>
+                    						) : (
+												<div className="flex flex-col items-center gap-2">
+													<Link
+														to={`/solicitud/edit/${solicitud.id_solicitud}`}
+														className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+														Editar
+													</Link>
+												</div>
+											)}
 										</td>
 									</tr>
 								))

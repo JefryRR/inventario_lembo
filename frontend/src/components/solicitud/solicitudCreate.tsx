@@ -35,6 +35,7 @@ type InventarioOption = {
   dias_restantes: number;
   cantidad: number;
   simbolo: string;
+  tipo_id: number;
 };
 
 type MedidaOption = {
@@ -68,7 +69,6 @@ export default function SolicitudCreate() {
   const navigate = useNavigate();
   const [form, setForm] = useState<SolicitudFormState>(initialState);
   const [loading, setLoading] = useState(false);
-  const [loadingTipos, setLoadingTipos] = useState(false);
   const [loadingInventarios, setLoadingInventarios] = useState(false);
   const [loadingMedidas, setLoadingMedidas] = useState(false);
   const [tipos, setTipos] = useState<TipoOption[]>([]);
@@ -81,7 +81,6 @@ export default function SolicitudCreate() {
     let mounted = true;
 
     const loadCatalogs = async () => {
-      setLoadingTipos(true);
       setLoadingInventarios(true);
       setLoadingMedidas(true);
 
@@ -99,7 +98,7 @@ export default function SolicitudCreate() {
           : Array.isArray(tiposData)
             ? tiposData
             : [];
-     
+
         const InventarioList = Array.isArray(inventariosData)
           ? inventariosData.filter((insumo: InventarioOption) => insumo.dias_restantes > 0)
           : Array.isArray(inventariosData?.inventarios)
@@ -122,7 +121,6 @@ export default function SolicitudCreate() {
 
       } finally {
         if (mounted) {
-          setLoadingTipos(false);
           setLoadingInventarios(false);
           setLoadingMedidas(false);
         }
@@ -130,11 +128,26 @@ export default function SolicitudCreate() {
     };
 
     loadCatalogs();
-
     return () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (form.insumo_id && form.insumo_id !== 0) {
+      const insumoEncontrado = inventarios.find(
+        (item) => item.id_insumo === Number(form.insumo_id)
+      );
+
+      // 3. Si lo encuentra, extraemos su tipo y lo guardamos automáticamente en el formulario
+      if (insumoEncontrado && insumoEncontrado.tipo_id) {
+        setForm((current) => ({
+          ...current,
+          tipo_insumo_id: insumoEncontrado.tipo_id, 
+        }));
+      }
+    }
+  }, [form.insumo_id, inventarios]);
 
   const handleChange =
     (field: keyof SolicitudFormState) =>
@@ -308,22 +321,10 @@ export default function SolicitudCreate() {
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Tipo de insumo <span className="text-error-500">*</span>
               </label>
-              <select
-                value={form.tipo_insumo_id}
-                onChange={handleChange("tipo_insumo_id")}
-                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                required
-                disabled={loadingTipos || tipos.length === 0}
-              >
-                <option value={0} disabled>
-                  {loadingTipos ? "Cargando tipos..." : "Selecciona un tipo de insumo"}
-                </option>
-                {tipos.map((tipo) => (
-                  <option key={tipo.id_tipo_insumo} value={tipo.id_tipo_insumo}>
-                    {tipo.nombre_tipo}
-                  </option>
-                ))}
-              </select>
+              <div className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                {/* Buscamos el nombre en la lista de tipos usando el ID guardado de forma automática */}
+                {tipos.find(t => t.id_tipo_insumo === form.tipo_insumo_id)?.nombre_tipo || "Cargando tipo..."}
+              </div>
             </div>
 
             <div>
