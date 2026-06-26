@@ -6,15 +6,15 @@ import { apiFetch } from "@/services/api";
 
 type IngredienteRow = {
 	id_ingrediente: number;
-    plato_id: number;
-    cant_inv: number;
-    unid_med_id: number;
-    inventario_id: number;
-    origen_inv: number;
+	plato_id: number;
+	cant_inv: number;
+	unid_med_id: number;
+	inventario_id: number;
+	origen_inv: number;
 	fecha_registro: string;
-    nombre_plato: string;
-    nombre_producto: string;
-    simbolo: string;
+	nombre_plato: string;
+	nombre_producto: string;
+	simbolo: string;
 };
 
 type IngredienteResponse = {
@@ -26,10 +26,8 @@ type IngredienteResponse = {
 
 function formatDate(value: string): string {
 	if (!value) return "-";
-
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;
-
 	return date.toLocaleString("es-CO", {
 		year: "numeric",
 		month: "2-digit",
@@ -47,6 +45,10 @@ export default function Ingrediente() {
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
 
+	// Estado para el modal de confirmación de eliminación
+	const [selectedId, setSelectedId] = useState<number | null>(null);
+	const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
+
 	useEffect(() => {
 		if (!localStorage.getItem("token")) {
 			navigate("/signin");
@@ -61,55 +63,69 @@ export default function Ingrediente() {
 			setError(null);
 
 			try {
-				const data = (await apiFetch(`ingredientes/ingredientes_pag?page=${page}&page_size=${pageSize}`)) as IngredienteResponse;
+				const data = (await apiFetch(
+					`ingredientes/ingredientes_pag?page=${page}&page_size=${pageSize}`
+				)) as IngredienteResponse;
 
-				if (!isMounted) {
-					return;
-				}
+				if (!isMounted) return;
 
 				setIngredientes(Array.isArray(data?.ingredientes) ? data.ingredientes : []);
 				setTotal(Number(data?.total_ingredientes ?? 0));
 			} catch (requestError: any) {
-				if (!isMounted) {
-					return;
-				}
-
+				if (!isMounted) return;
 				setError(
 					requestError?.detail ||
 						requestError?.message ||
 						"No se pudieron cargar los ingredientes"
 				);
 			} finally {
-				if (isMounted) {
-					setLoading(false);
-				}
+				if (isMounted) setLoading(false);
 			}
 		};
 
 		loadIngredientes();
-
-		return () => {
-			isMounted = false;
-		};
+		return () => { isMounted = false; };
 	}, [page, pageSize]);
 
 	const filteredIngredientes = useMemo(() => {
 		const term = search.trim().toLowerCase();
-		if (!term) {
-			return ingredientes;
-		}
+		if (!term) return ingredientes;
 
-		return ingredientes.filter((ingrediente) => {
-			return [
-				ingrediente.nombre_plato,
-				ingrediente.nombre_producto,
-                ingrediente.simbolo,
-			]
+		return ingredientes.filter((ing) =>
+			[ing.nombre_plato, ing.nombre_producto, ing.simbolo]
 				.join(" ")
 				.toLowerCase()
-				.includes(term);
-		});
+				.includes(term)
+		);
 	}, [search, ingredientes]);
+
+	const handleConfirmarEliminar = (id: number) => {
+		setSelectedId(id);
+		setConfirmandoEliminar(true);
+	};
+
+	const handleCancelarEliminar = () => {
+		setSelectedId(null);
+		setConfirmandoEliminar(false);
+		setError(null);
+	};
+
+	const handleEliminar = async () => {
+		if (selectedId === null) return;
+
+		setLoading(true);
+		try {
+			await apiFetch(`ingredientes/by_id/${selectedId}`, { method: "DELETE" });
+			setIngredientes((prev) =>
+				prev.filter((ing) => ing.id_ingrediente !== selectedId)
+			);
+			handleCancelarEliminar();
+		} catch {
+			setError("Error al eliminar. Intenta de nuevo.");
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -118,6 +134,8 @@ export default function Ingrediente() {
 			<PageBreadcrumb pageTitle="Ingredientes" />
 
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+
+				{/* Barra superior */}
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 						<Link
@@ -130,48 +148,39 @@ export default function Ingrediente() {
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							placeholder="Buscar ingrediente..."
-							className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-72"
+							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-72"
 						/>
 					</div>
 				</div>
 
+				{/* Tabla */}
 				<div className="overflow-x-auto">
 					<table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
 						<thead className="bg-gray-50 dark:bg-gray-900/40">
 							<tr>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Plato
-								</th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Origen
-                                </th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Producto
-								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Cantidad
-								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Fecha de registro
-								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Acciones
-								</th>
+								{["Plato", "Origen", "Producto", "Cantidad", "Fecha de registro", "Acciones"].map((col) => (
+									<th
+										key={col}
+										className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+									>
+										{col}
+									</th>
+								))}
 							</tr>
 						</thead>
 
 						<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
 							{loading ? (
-								Array.from({ length: 5 }).map((_, index) => (
-									<tr key={index}>
+								Array.from({ length: 5 }).map((_, i) => (
+									<tr key={i}>
 										<td colSpan={6} className="px-5 py-4">
 											<div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
 										</td>
 									</tr>
 								))
-							) : error ? (
+							) : error && !confirmandoEliminar ? (
 								<tr>
-									<td colSpan={6} className="px-5 py-10 text-center text-sm text-error-500">
+									<td colSpan={6} className="px-5 py-10 text-center text-sm text-red-500">
 										{error}
 									</td>
 								</tr>
@@ -184,23 +193,37 @@ export default function Ingrediente() {
 							) : (
 								filteredIngredientes.map((ingrediente) => (
 									<tr key={ingrediente.id_ingrediente} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
-
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{ingrediente.nombre_plato}</td>
-
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{ingrediente.origen_inv === 1 ? "Producción" : "Insumo"}</td>
-
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{ingrediente.nombre_producto}</td>
-
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{ingrediente.cant_inv} {ingrediente.simbolo || "-"}</td>
-
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(ingrediente.fecha_registro)}</td>
-										<td className="px-5 py-4">
-											<Link
-												to={`/ingredientes/edit/${ingrediente.id_ingrediente}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-											>
-												Editar
-											</Link>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{ingrediente.nombre_plato}
+										</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{ingrediente.origen_inv === 1 ? "Producción" : "Insumo"}
+										</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{ingrediente.nombre_producto}
+										</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{ingrediente.cant_inv} {ingrediente.simbolo || "-"}
+										</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{formatDate(ingrediente.fecha_registro)}
+										</td>
+										<td className="px-5 py-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+											<div className="flex flex-col items-center gap-2">
+												<Link
+													to={`/ingredientes/edit/${ingrediente.id_ingrediente}`}
+													className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+												>
+													Editar
+												</Link>
+												<button
+													type="button"
+													onClick={() => handleConfirmarEliminar(ingrediente.id_ingrediente)}
+													className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700"
+												>
+													Eliminar
+												</button>
+											</div>
 										</td>
 									</tr>
 								))
@@ -209,11 +232,12 @@ export default function Ingrediente() {
 					</table>
 				</div>
 
+				{/* Paginación */}
 				<div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-center">
 					<div className="flex items-center gap-2">
 						<button
 							type="button"
-							onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+							onClick={() => setPage((p) => Math.max(1, p - 1))}
 							disabled={page <= 1 || loading}
 							className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
 						>
@@ -224,7 +248,7 @@ export default function Ingrediente() {
 						</span>
 						<button
 							type="button"
-							onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
+							onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
 							disabled={page >= totalPages || loading}
 							className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
 						>
@@ -233,6 +257,43 @@ export default function Ingrediente() {
 					</div>
 				</div>
 			</div>
+
+			{/* Modal de confirmación de eliminación */}
+			{confirmandoEliminar && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+					<div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+						<h2 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
+							¿Eliminar ingrediente?
+						</h2>
+						<p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+							La cantidad será devuelta al inventario correspondiente. Esta acción no se puede deshacer.
+						</p>
+
+						{error && (
+							<p className="mb-4 text-sm text-red-500">{error}</p>
+						)}
+
+						<div className="flex justify-end gap-3">
+							<button
+								type="button"
+								onClick={handleCancelarEliminar}
+								disabled={loading}
+								className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
+							>
+								Cancelar
+							</button>
+							<button
+								type="button"
+								onClick={handleEliminar}
+								disabled={loading}
+								className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+							>
+								{loading ? "Eliminando..." : "Eliminar"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</>
 	);
 }

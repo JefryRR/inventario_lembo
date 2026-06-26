@@ -88,6 +88,24 @@ def update_ingrediente_by_id(id_ingrediente: int, ingrediente: IngredienteUpdate
         return {"message": "Ingrediente actualizado correctamente"}
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.delete("/by_id/{id_ingrediente}")
+def delete_ingrediente_by_id(
+    id_ingrediente: int, 
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)):
+    
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'borrar'):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+
+        success = crud_ingredientes.delete_ingrediente_by_id(db, id_ingrediente)
+        if not success:
+            raise HTTPException(status_code=400, detail="No se pudo eliminar el ingrediente")
+        return {"message": "Ingrediente eliminado correctamente"}
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/rango-fechas", response_model=IngredientesPaginated)
 def obtener_ingredientes_por_rango_fechas(
