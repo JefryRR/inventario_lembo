@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session   # type: ignore
 from sqlalchemy import text  # type: ignore
 from sqlalchemy.exc import SQLAlchemyError  # type: ignore
@@ -42,12 +43,33 @@ def create_tratamiento(db: Session, tratamiento: TratamientoCreate, user_id: int
         db.execute(query, params)
         db.commit()
         return True
-
     except SQLAlchemyError as e:
         db.rollback()
-        logger.error(f"Error al crear el registro del tratamiento: {e}")
-        raise Exception("Error de base de datos al crear el registro del tratamiento")
-    
+        orig = getattr(e, 'orig', None)
+        mensaje_orig = str(orig) if orig else str(e)
+        mensaje_completo = f"{str(e)} {mensaje_orig}".lower()
+
+        if "1264" in mensaje_completo or "out of range" in mensaje_completo:
+            raise HTTPException(status_code=422, detail="La cantidad ingresada es demasiado grande. Verifique las unidades.")
+
+        # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+        if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+            trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+            if "no hay suficiente stock" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar el tratamiento")
+            
+            if "unidades del tratamiento" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="Las unidades del tratamiento y del inventario son incompatibles")
+            
+            if "límite permitido" in trigger_msg.lower() or "supera el límite" in trigger_msg.lower():
+                raise HTTPException(status_code=422, detail="La cantidad ingresada es demasiado grande. Verifique las unidades.")
+            
+            # Cualquier otro SIGNAL del trigger, mostrar el mensaje limpio
+            raise HTTPException(status_code=409, detail=trigger_msg)
+        logger.error(f"Error al registrar el tratamiento: {e}")
+        raise HTTPException(status_code=500, detail="Error en base de datos al registrar el tratamiento")    
+
 def get_all_tratamientos(db: Session):
     try:
         query = text("""
@@ -100,7 +122,7 @@ def update_tratamiento_by_id(db: Session, id_tratamiento: int, tratamiento: Trat
         tratamiento_data = tratamiento.model_dump(exclude_unset=True)
         if not tratamiento_data:
             return False
-
+        
         # Si se actualiza cantidad o unidad, recalcular cant_convertida
         if "cantidad" in tratamiento_data or "unid_medida_id" in tratamiento_data:
             
@@ -138,9 +160,28 @@ def update_tratamiento_by_id(db: Session, id_tratamiento: int, tratamiento: Trat
         db.commit()
         return result.rowcount > 0
     except SQLAlchemyError as e:
-            db.rollback()
-            logger.error(f"Error al actualizar tratamiento {id_tratamiento}: {e}")
-            raise Exception("Error de base de datos al actualizar el registro de tratamiento")
+        db.rollback()
+        orig = getattr(e, 'orig', None)
+        
+        # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+        if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+            trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+            if "no hay suficiente stock" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar el tratamiento")
+            
+            if "unidades del tratamiento" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="Las unidades del tratamiento y del inventario son incompatibles")
+            
+            if orig.args[0] == 1264 or "out of range" in trigger_msg.lower():
+                raise HTTPException(
+                    status_code=422,
+                    detail="La cantidad ingresada es demasiado grande. Verifique el valor y las unidades."
+                )
+            # Cualquier otro SIGNAL del trigger, mostrar el mensaje limpio
+            raise HTTPException(status_code=409, detail=trigger_msg)
+        logger.error(f"Error al registrar el tratamiento: {e}")
+        raise HTTPException(status_code=500, detail="Error interno al registrar el tratamiento")
 
 def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
     """

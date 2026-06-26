@@ -19,16 +19,20 @@ type AlimentoFormState = {
 type LoteOption = {
     id_lote: number;
     nombre_lote: string;
+    estado_lote: string;
 };
 
 type InsumoOption = {
     id_insumo: number;
     nombre_producto: string;
+    tipo_id: number;
+    fecha_vencimiento: string;
 };
 
 type UnidadOption = {
     id_unidad: number;
     simbolo: string;
+    tipo_unidad: string;
 };
 
 const initialState: AlimentoFormState = {
@@ -78,11 +82,22 @@ export default function AlimentoCreate() {
             ? lotesData
             : [];
 
+        const Lotesvisibles = LoteList.filter((lote: LoteOption) => {
+          const estado = lote.estado_lote === "activo" || lote.estado_lote === "cuarentena";
+          return estado;
+        });
+
         const insumoList = Array.isArray(insumosData?.insumos)
           ? insumosData.insumos
           : Array.isArray(insumosData)
             ? insumosData
             : [];
+
+        const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
+          const esAlimento = insumo.tipo_id === 2;
+          const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
+          return esAlimento && noVencido;
+        });
 
         const unidadList = Array.isArray(unidadesData?.unidades)
           ? unidadesData.unidades
@@ -90,9 +105,14 @@ export default function AlimentoCreate() {
             ? unidadesData
             : [];
 
-        setLotes(LoteList);
-        setInsumos(insumoList);
-        setUnidades(unidadList);
+        const medidasVigentes = unidadList.filter((medida: UnidadOption) => {
+          const esAlimento = medida.tipo_unidad !== "otro";
+          return esAlimento;
+        });
+
+        setLotes(Lotesvisibles);
+        setInsumos(alimentosVigentes);
+        setUnidades(medidasVigentes);
       } catch (requestError: any) {
         if (!mounted) return;
         setError(requestError?.detail || requestError?.message || "No se pudieron cargar los lotes");

@@ -31,6 +31,10 @@ def create_detalle_venta(
         mensaje_error = str(e)
         if "no hay suficiente stock" in mensaje_error.lower() or "inventario insuficiente" in mensaje_error.lower() or "No se puede crear el detalle de venta" in mensaje_error:
             raise HTTPException(status_code=409, detail=mensaje_error)
+        
+        if not detalle.venta_id or detalle.venta_id == 0:
+            raise HTTPException(status_code=400, detail="No ha seleccionado una venta para este detalle")
+        
         raise HTTPException(status_code=500, detail=mensaje_error)
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -49,6 +53,7 @@ def get_detalle_venta_by_id(
         detalle = crud_detalles.get_detalle_venta_by_id(db, id)
         if not detalle:
             raise HTTPException(status_code=404, detail="Detalle de venta no encontrado")
+        
         return detalle
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))

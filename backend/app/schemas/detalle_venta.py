@@ -8,7 +8,7 @@ class EstadoVenta(str, Enum):
     anulado = "Anulado"
 
 class DetalleVentaBase(BaseModel):
-    cantidad: int
+    cantidad: float
     unid_medida_id:int 
     precio_venta: float
     inv_prod_id: int
@@ -19,15 +19,15 @@ class DetalleVentaCreate(DetalleVentaBase):
     pass
 
 class DetalleVentaUpdate(BaseModel):
-    cantidad: Optional[int] = None
+    cantidad: Optional[float] = None
     inv_prod_id: Optional[int] = None
     unid_medida_id: Optional[int] = None
     precio_venta: Optional[float] = Field(default=None)
 
 class DetalleVentaOut(DetalleVentaBase):
-    cant_convertida: Optional[float] = None
     id_detalle_venta: int
     nombre_producto: str
+    cant_convertida: Optional[float] = None
     nombre_comprador: str
     simbolo: str
 

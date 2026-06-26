@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
@@ -24,8 +25,6 @@ def create_detalle_venta(db: Session, detalle: DetalleVentaCreate):
             logger.error("Unidad de medida no encontrada")
             raise Exception("Unidad de medida no encontrada")
         
-        factor_conversion = result_conv["conversion"]
-
         query = text("""
                      INSERT INTO detalle_ventas (
                         cantidad, unid_medida_id,
@@ -37,7 +36,7 @@ def create_detalle_venta(db: Session, detalle: DetalleVentaCreate):
                     """)
 
         params = detalle.model_dump()
-        params["cant_convertida"] = params["cantidad"] * factor_conversion
+        params["cant_convertida"] = params["cantidad"] * float(result_conv["conversion"])
         logger.info(f"params a insertar: {params}")
         result = db.execute(query, params)
         db.commit()
@@ -45,17 +44,26 @@ def create_detalle_venta(db: Session, detalle: DetalleVentaCreate):
     
     except SQLAlchemyError as e:
         db.rollback()
-        mensaje_error = f"{e}"
-        mensaje_origen = f"{getattr(e, 'orig', '')}"
-        mensaje_completo = f"{mensaje_error} {mensaje_origen}".lower()
-        if (
-            "45000" in mensaje_completo
-            or "1644" in mensaje_completo
-            or "no hay suficiente stock" in mensaje_completo
-            or "no se puede crear el detalle de venta" in mensaje_completo
-        ):
-            raise Exception(f"No hay suficiente stock para realizar esta venta")
-        raise Exception("Error de base de datos al crear el detalle de venta")
+        orig = getattr(e, 'orig', None)
+        
+        # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+        if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+            trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+            if "no hay suficiente stock" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar la venta")
+            
+            if "unidad de venta" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="La unidad de venta y la del inventario son incompatibles")
+            
+            if orig.args[0] == 1264 or "out of range" in trigger_msg.lower():
+                raise HTTPException(
+                    status_code=422,
+                    detail="La cantidad ingresada es demasiado grande. Verifique el valor y las unidades."
+                )
+            
+        logger.error(f"Error al registrar la venta: {e}")
+        raise
     
 def get_detalle_venta_by_id(db: Session, id: int) -> Optional[DetalleVentaOut]:
     try:
@@ -134,9 +142,9 @@ def update_detalle_venta_by_id(db: Session, id: int, detalle_update: DetalleVent
                 raise Exception("Unidad de medida no encontrada")
         
          # Agregar el valor recalculado al dict
-            detalle_data["cant_convertida"] = cantidad * conv["conversion"]
-   
-         # Construir dinámicamente la sentencia UPDATE
+            detalle_data["cant_convertida"] = cantidad * float(conv["conversion"])
+                        
+                     # Construir dinámicamente la sentencia UPDATE
         set_clauses = ", ".join([f"{key} = :{key}" for key in detalle_data.keys()])
         sentencia = text(f"""
              UPDATE detalle_ventas
@@ -151,6 +159,25 @@ def update_detalle_venta_by_id(db: Session, id: int, detalle_update: DetalleVent
     
     except SQLAlchemyError as e:
         db.rollback()
+        orig = getattr(e, 'orig', None)
+        
+        # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+        if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+            trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+            if "no hay suficiente stock" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar el tratamiento")
+            
+            if "unidades del tratamiento" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="Las unidades del tratamiento y del inventario son incompatibles")
+            
+            if orig.args[0] == 1264 or "out of range" in trigger_msg.lower():
+                raise HTTPException(
+                    status_code=422,
+                    detail="La cantidad ingresada es demasiado grande. Verifique el valor y las unidades."
+                )
+            # Cualquier otro SIGNAL del trigger, mostrar el mensaje limpio
+            raise HTTPException(status_code=409, detail=trigger_msg)
         logger.error(f"Error al actualizar detalle de venta {id}: {e}")
         raise Exception("Error de base de datos al actualizar el detalle de venta")
 

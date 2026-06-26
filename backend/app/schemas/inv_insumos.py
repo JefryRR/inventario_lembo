@@ -4,8 +4,8 @@ from datetime import datetime
 
 class InsumoBase(BaseModel):
     nombre_producto: str = Field(min_length=1, max_length=100)
-    cantidad: int
-    min_stock: Optional[int] = None
+    cantidad: float
+    min_stock: Optional[float] = None
     unid_medida_id: int
     precio_unitario: float
     fecha_ingreso: datetime
@@ -17,11 +17,11 @@ class InsumoCreate(InsumoBase):
 
 class InsumoUpdate(BaseModel):
     nombre_producto: Optional[str] = Field(None, min_length=1, max_length=100)
-    cantidad: Optional[int] = None
+    cantidad: Optional[float] = None
     unid_medida_id: Optional[int] = None
     precio_unitario: Optional[float] = None
     fecha_vencimiento: Optional[datetime] = None
-    min_stock: Optional[int] = None
+    min_stock: Optional[float] = None
     tipo_id: Optional[int] = None
 
 class InsumoOut(InsumoBase):

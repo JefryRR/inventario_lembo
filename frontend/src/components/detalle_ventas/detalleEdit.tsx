@@ -23,6 +23,8 @@ type ProductoOption = {
 	id_inventario: number;
 	nombre_producto: string;
 	nombre_lote?: string;
+	simbolo?: string;
+	cantidad?: number;
 };
 
 type MedidaOption = {
@@ -73,7 +75,8 @@ export default function DetalleEdit() {
 	const [medidas, setMedidas] = useState<MedidaOption[]>([]);
 	const [originalEstado, setOriginalEstado] = useState<EstadoVenta | null>(null);
 	const [loading, setLoading] = useState(false);
-	const [loadingCatalogs, setLoadingCatalogs] = useState(false);
+	const [loadingCatalogs, setLoadingCatalogs] = useState(false);	
+    const [loadError, setLoadError] = useState<string | null>(null);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<string | null>(null);
@@ -133,7 +136,7 @@ export default function DetalleEdit() {
 				setOriginalEstado(estadoDetalle);
 			} catch (requestError: any) {
 				if (!mounted) return;
-				setError(requestError?.detail || requestError?.message || "No se pudo cargar el detalle de venta");
+				setLoadError(requestError?.detail || requestError?.message || "No se pudo cargar el detalle de venta");
 			} finally {
 				if (mounted) {
 					setLoading(false);
@@ -242,8 +245,8 @@ export default function DetalleEdit() {
 				<form onSubmit={handleSubmit} className="p-5 lg:p-6">
 					{loading ? (
 						<div className="p-6 text-center text-sm text-gray-500">Cargando detalle de venta...</div>
-					) : error ? (
-						<div className="p-6 text-center text-sm text-error-500">{error}</div>
+					) : loadError ? (
+						<div className="p-6 text-center text-sm text-error-500">{loadError}</div>
 					) : (
 						<>
 							<div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -309,7 +312,7 @@ export default function DetalleEdit() {
 										)}
 										{productos.map((producto) => (
 											<option key={producto.id_inventario} value={producto.id_inventario}>
-												{producto.nombre_producto}{producto.nombre_lote ? ` - ${producto.nombre_lote}` : ""}
+												{producto.nombre_producto}{producto.nombre_lote ? ` - ${producto.nombre_lote}` : ""} - cantidad: {producto.cantidad ?? "N/A"} {producto.simbolo ?? ""}
 											</option>
 										))}
 									</select>
@@ -353,15 +356,6 @@ export default function DetalleEdit() {
 											</option>
 										))}
 									</select>
-								</div>
-
-								<div>
-									<label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Cantidad convertida</label>
-									<input
-										value={form.cant_convertida}
-										readOnly
-										className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-									/>
 								</div>
 							</div>
 

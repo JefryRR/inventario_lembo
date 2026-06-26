@@ -150,7 +150,42 @@ def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
         perdida_data = perdida_update.model_dump(exclude_unset=True)
         if not perdida_data:
             return False  # nada que actualizar
+        
+        if "cantidad" in perdida_data or "unid_med_id" in perdida_data:
+            
+            # Necesitamos ambos valores para el cálculo. Si uno no viene en el update, lo buscamos de la BD actual
+            cantidad = perdida_data.get("cantidad")
+            unid_med_id = perdida_data.get("unid_med_id")
+
+            if cantidad is None or unid_med_id is None:
+                # Buscamos el registro actual para rellenar el dato faltante
+                perdida_actual = db.execute(
+                    text("SELECT cantidad, unid_medida_id FROM inv_perdidas WHERE id_perdida = :id"),
+                    {"id": id}
+                ).fetchone()
+                
+                if not perdida_actual:
+                    return False # La pérdida no existe
+                
+                if cantidad is None:
+                    cantidad = perdida_actual.cantidad
+                if unid_med_id is None:
+                    unid_med_id = perdida_actual.unid_medida_id
+
+            # 2. Buscar la conversión correspondiente
+            conv_inv = db.execute(text("""
+                SELECT conversion FROM unidades_medida
+                WHERE id_unidad = :unid_medida_id
+            """), {"unid_medida_id": unid_med_id}).scalar()
+
+            if not conv_inv:
+                raise Exception("Unidad de medida no encontrada")
+
+            # 3. Calcular la nueva cantidad convertida e inyectarla en los datos a actualizar
+            perdida_data["cant_convertida"] = float(cantidad) * float(conv_inv)
+
          # Construir dinámicamente la sentencia UPDATE
+        
         set_clauses = ", ".join([f"{key} = :{key}" for key in perdida_data.keys()])
         sentencia = text(f"""
              UPDATE inv_perdidas

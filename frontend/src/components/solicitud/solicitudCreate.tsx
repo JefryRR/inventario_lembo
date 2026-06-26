@@ -33,6 +33,8 @@ type InventarioOption = {
   id_insumo: number;
   nombre_producto: string;
   dias_restantes: number;
+  cantidad: number;
+  simbolo: string;
 };
 
 type MedidaOption = {
@@ -97,9 +99,7 @@ export default function SolicitudCreate() {
           : Array.isArray(tiposData)
             ? tiposData
             : [];
-        console.log("inventariosData completo:", inventariosData);
-        console.log("primer insumo:", inventariosData?.inventarios?.[0]);
-
+     
         const InventarioList = Array.isArray(inventariosData)
           ? inventariosData.filter((insumo: InventarioOption) => insumo.dias_restantes > 0)
           : Array.isArray(inventariosData?.inventarios)
@@ -220,11 +220,12 @@ export default function SolicitudCreate() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <label htmlFor="solicitante" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Nombre del solicitante
+                Nombre del solicitante<span className="text-error-500">*</span>
               </label>
               <input
                 type="text"
                 id="solicitante"
+                required
                 value={form.solicitante || ""}
                 onChange={(e) => setForm({ ...form, solicitante: e.target.value })}
                 className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
@@ -248,7 +249,7 @@ export default function SolicitudCreate() {
                 </option>
                 {inventarios.map((inv_insumos) => (
                   <option key={inv_insumos.id_insumo} value={inv_insumos.id_insumo}>
-                    {inv_insumos.nombre_producto}
+                    {inv_insumos.nombre_producto} - cant disponible: {inv_insumos.cantidad} {inv_insumos.simbolo}
                   </option>
                 ))}
               </select>

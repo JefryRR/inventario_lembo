@@ -30,6 +30,8 @@ type TipoOption = {
 type InventarioOption = {
     id_insumo: number;
     nombre_producto: string;
+    cantidad: number;
+    simbolo: string;
 };
 
 type MedidaOption = {
@@ -265,7 +267,7 @@ export default function SolicitudEdit() {
                     </option>
                     {inventarios.map((insumo) => (
                       <option key={insumo.id_insumo} value={insumo.id_insumo}>
-                        {insumo.nombre_producto}
+                        {insumo.nombre_producto} - cant disponible: {insumo.cantidad} {insumo.simbolo}
                       </option>
                     ))}
                   </select>

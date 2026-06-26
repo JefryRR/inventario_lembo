@@ -4,50 +4,52 @@ import { Link, useNavigate } from "react-router";
 import { apiFetch } from "@/services/api";
 
 type TratamientoFormState = {
-    lote_id: number;
-    medicina_id: number;
-    fecha_inicio: string;
-    fecha_fin: string;
-    cantidad: number;
-    unid_medida_id: number;
-    observacion: string;
-    user_id: number;
-    cant_convertida: number;
-    nombre_lote: string;
-    nombre_producto: string;
-    nombre_user: string;
-    simbolo: string;
+  lote_id: number;
+  medicina_id: number;
+  fecha_inicio: string;
+  fecha_fin: string;
+  cantidad: number;
+  unid_medida_id: number;
+  observacion: string;
+  user_id: number;
+  cant_convertida: number;
+  nombre_lote: string;
+  nombre_producto: string;
+  nombre_user: string;
+  simbolo: string;
 };
 
 type LoteOption = {
-    id_lote_g: number;
-    nombre_lote: string;
+  id_lote_g: number;
+  nombre_lote: string;
 };
 
 type MedicinaOption = {
-    id_insumo: number;
-    nombre_producto: string;
+  id_insumo: number;
+  nombre_producto: string;
+  tipo_id: number;
+  fecha_vencimiento: string;
 };
 
 type MedidaOption = {
-    id_unidad: number;
-    simbolo: string;
+  id_unidad: number;
+  simbolo: string;
 };
 
 const initialState: TratamientoFormState = {
-    lote_id: 0,
-    medicina_id: 0,
-    fecha_inicio: "",
-    fecha_fin: "",
-    cantidad: 0,
-    unid_medida_id: 0,
-    observacion: "",
-    user_id: 0,
-    cant_convertida: 0,
-    nombre_lote: "",
-    nombre_producto: "",
-    simbolo: "",
-    nombre_user: "",
+  lote_id: 0,
+  medicina_id: 0,
+  fecha_inicio: "",
+  fecha_fin: "",
+  cantidad: 0,
+  unid_medida_id: 0,
+  observacion: "",
+  user_id: 0,
+  cant_convertida: 0,
+  nombre_lote: "",
+  nombre_producto: "",
+  simbolo: "",
+  nombre_user: "",
 };
 
 export default function TratamientoCreate() {
@@ -92,6 +94,11 @@ export default function TratamientoCreate() {
             ? medicinasData
             : [];
 
+        const medicinasVigentes = medicinaList.filter((insumo: MedicinaOption) => {
+          const esMedicamento = insumo.tipo_id === 1;
+          const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
+          return esMedicamento && noVencido;
+        });
         const medidaList = Array.isArray(medidasData?.medidas)
           ? medidasData.medidas
           : Array.isArray(medidasData)
@@ -99,13 +106,13 @@ export default function TratamientoCreate() {
             : [];
 
         setLotes(LoteList);
-        setMedicinas(medicinaList);
+        setMedicinas(medicinasVigentes);
         setMedidas(medidaList);
 
       } catch (requestError: any) {
         if (!mounted) return;
         setError(requestError?.detail || requestError?.message || "No se pudieron cargar los lotes");
-        
+
       } finally {
         if (mounted) {
           setLoadingLotes(false);
@@ -122,23 +129,23 @@ export default function TratamientoCreate() {
     };
   }, []);
 
-    const handleChange =
-        (field: keyof TratamientoFormState) =>
-        (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-            const value = event.target.value;
+  const handleChange =
+    (field: keyof TratamientoFormState) =>
+      (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const value = event.target.value;
 
-            if (field === "cantidad" || field === "medicina_id" || field === "unid_medida_id" || field === "lote_id") {
-                setForm((current) => ({ ...current, [field]: Number(value) }));
-                return;
-            }
+        if (field === "cantidad" || field === "medicina_id" || field === "unid_medida_id" || field === "lote_id") {
+          setForm((current) => ({ ...current, [field]: Number(value) }));
+          return;
+        }
 
-            if (field === "observacion") {
-              setForm((current) => ({ ...current, observacion: value }));
-                return;
-            }
+        if (field === "observacion") {
+          setForm((current) => ({ ...current, observacion: value }));
+          return;
+        }
 
-            setForm((current) => ({...current,[field]: value }));
-        };
+        setForm((current) => ({ ...current, [field]: value }));
+      };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -310,17 +317,17 @@ export default function TratamientoCreate() {
             </div>
 
             <div>
-                <label htmlFor="observacion" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Observación
-                </label>
-                <input
-                    type="text"
-                    id="observacion"
-                    value={form.observacion || ""}
-                    onChange={(e) => setForm({ ...form, observacion: e.target.value })}
-                    className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
-                    placeholder="Observación"
-                />
+              <label htmlFor="observacion" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Observación
+              </label>
+              <input
+                type="text"
+                id="observacion"
+                value={form.observacion || ""}
+                onChange={(e) => setForm({ ...form, observacion: e.target.value })}
+                className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                placeholder="Observación"
+              />
             </div>
           </div>
 

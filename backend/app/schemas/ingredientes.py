@@ -7,7 +7,6 @@ class IngredienteBase(BaseModel):
     origen_inv: int
     inventario_id: int
     cant_inv: float
-    cant_conv_inv: float
     unid_med_id: int
     fecha_registro: date
    

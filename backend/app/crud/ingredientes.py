@@ -80,6 +80,42 @@ def update_ingrediente_by_id(db: Session, ingrediente_id: int, ingrediente: Ingr
         ingrediente_data = ingrediente.model_dump(exclude_unset=True)
         if not ingrediente_data:
             return False
+        
+        # 1. Verificar si se está intentando actualizar la cantidad o la unidad de medida
+        if "cant_inv" in ingrediente_data or "unid_med_id" in ingrediente_data:
+            
+            # Necesitamos ambos valores para el cálculo. Si uno no viene en el update, lo buscamos de la BD actual
+            cant_inv = ingrediente_data.get("cant_inv")
+            unid_med_id = ingrediente_data.get("unid_med_id")
+
+            if cant_inv is None or unid_med_id is None:
+                # Buscamos el registro actual para rellenar el dato faltante
+                ingrediente_actual = db.execute(
+                    text("SELECT cant_inv, unid_med_id FROM ingredientes_plato WHERE id_ingrediente = :id"),
+                    {"id": ingrediente_id}
+                ).fetchone()
+                
+                if not ingrediente_actual:
+                    return False # El ingrediente no existe
+                
+                if cant_inv is None:
+                    cant_inv = ingrediente_actual.cant_inv
+                    
+                if unid_med_id is None:
+                    unid_med_id = ingrediente_actual.unid_med_id
+
+            # 2. Buscar la conversión correspondiente
+            conv_inv = db.execute(text("""
+                SELECT conversion FROM unidades_medida
+                WHERE id_unidad = :unid_medida_id
+            """), {"unid_medida_id": unid_med_id}).scalar()
+
+            if not conv_inv:
+                raise Exception("Unidad de medida no encontrada")
+
+            # 3. Calcular la nueva cantidad convertida e inyectarla en los datos a actualizar
+            ingrediente_data["cant_conv_inv"] = float(cant_inv) * float(conv_inv)
+
         set_clauses = ", ".join([f"{key} = :{key}" for key in ingrediente_data.keys()])
         query = text(f"""
             UPDATE ingredientes_plato
@@ -150,9 +186,24 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Producción paginada
         data_query = text(""" 
-                            SELECT ip.id_ingrediente, ip.plato_id, ip.origen_inv, ip.inventario_id, ip.cant_inv, ip.cant_conv_inv, ip.unid_med_id, ip.fecha_registro, p.nombre_plato
+                            SELECT 
+                                ip.id_ingrediente, 
+                                ip.plato_id, 
+                                ip.origen_inv, 
+                                ip.inventario_id, 
+                                ip.cant_inv, 
+                                ip.unid_med_id, 
+                                ip.fecha_registro, 
+                                p.nombre_plato, 
+                                um.simbolo,
+                                -- COALESCE toma el primer valor que NO sea null. 
+                                -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
+                                COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
                             FROM ingredientes_plato AS ip
                             LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+                            LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+                            LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                            LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
                             LIMIT :limit OFFSET :skip
                         """)
             

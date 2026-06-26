@@ -9,7 +9,7 @@ class TratamientoBase(BaseModel):
     fecha_fin: datetime
     cantidad: int = Field(gt=0)
     unid_medida_id: int
-    observacion: str
+    observacion: Optional[str] = None
 
 class TratamientoCreate(TratamientoBase):
     pass

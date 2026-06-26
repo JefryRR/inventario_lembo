@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 def create_unid_medida(db: Session, unid_medida: Unid_medCreate):
     try:
         query = text("""INSERT INTO unidades_medida (
-                unidad, simbolo, conversion) VALUES (
-                :unidad, :simbolo, :conversion
+                unidad, simbolo, conversion, tipo_unidad) VALUES (
+                :unidad, :simbolo, :conversion, :tipo_unidad
             )
         """)
         db.execute(query, unid_medida.model_dump())
@@ -24,7 +24,7 @@ def create_unid_medida(db: Session, unid_medida: Unid_medCreate):
 
 def get_unid_medida_by_id(db: Session, id: int):
     try:
-        query = text("""SELECT id_unidad, unidad, simbolo, conversion
+        query = text("""SELECT id_unidad, unidad, simbolo, conversion, tipo_unidad
                      FROM unidades_medida
                      WHERE id_unidad = :id
                 """)

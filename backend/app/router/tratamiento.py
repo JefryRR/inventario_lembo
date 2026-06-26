@@ -25,10 +25,14 @@ def create_tratamiento(tratamiento: TratamientoCreate, db: Session = Depends(get
         
         crud_tratamiento.create_tratamiento(db, tratamiento, user_token.id_user)
         return {"message": "Registro de tratamiento creado correctamente"}
-    
+    except HTTPException:
+        raise
     except Exception as e:
-      raise HTTPException(status_code=500, detail=str(e))
-
+        mensaje_error = str(e)
+        if "no hay suficiente stock" in mensaje_error.lower() or "inventario insuficiente" in mensaje_error.lower() or "No se puede crear el tratamiento" in mensaje_error:
+            raise HTTPException(status_code=409, detail=mensaje_error)
+        raise HTTPException(status_code=500, detail=mensaje_error)
+   
 @router.get("/all-tratamientos", response_model=list[TratamientoOut])
 def get_all_tratamientos(db: Session = Depends(get_db),
             user_token: UserOut = Depends(get_current_user)

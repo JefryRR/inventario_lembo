@@ -4,7 +4,7 @@ from datetime import datetime
 
 class ProduccionBase(BaseModel):
     nombre_producto: str = Field(min_length=3, max_length=50)
-    cantidad: int
+    cantidad: float
     unid_medida_id: int
     fecha_ingreso: datetime
     fecha_vencimiento: datetime
@@ -17,7 +17,7 @@ class ProduccionCreate(ProduccionBase):
 
 class ProduccionUpdate(BaseModel):
     nombre_producto: Optional[str] = Field(default=None, min_length=3, max_length=50)
-    cantidad: Optional[int] = None
+    cantidad: Optional[float] = None
     unid_medida_id: Optional[int] = None
     fecha_ingreso: Optional[datetime] = None
     fecha_vencimiento: Optional[datetime] = None

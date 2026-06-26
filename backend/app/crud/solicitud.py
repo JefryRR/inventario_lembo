@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text 
 from typing import Optional
 from sqlalchemy.exc import SQLAlchemyError 
+from fastapi import HTTPException
 from app.schemas.solicitud import SolicitudCreate, SolicitudUpdate, SolicitudStatus
 
 import logging
@@ -18,17 +19,8 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
         ).fetchone()
 
         if solicitud_exitente:
-            raise Exception("Ya existe un solicitud a nombre de ese solicitante")
+            raise Exception("Ya existe una solicitud a nombre de ese solicitante")
         
-
-        # estado_insumo = db.execute(text("""
-        #     SELECT fecha_vencimiento FROM inv_insumos
-        #     WHERE id_insumo = :insumo_id
-        # """), {"insumo_id": solicitud.insumo_id}).scalar()
-
-        # if estado_insumo <= date.today():
-        #     raise Exception("No se puede crear la solicitud porque el insumo está vencido")
-
         conv = db.execute(text("""
             SELECT conversion FROM unidades_medida
             WHERE id_unidad = :unid_med_id
@@ -52,16 +44,26 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
         return True
     except SQLAlchemyError as e:
         db.rollback()
-        mensaje_error = f"{e}"
-        mensaje_origen = f"{getattr(e, 'orig', '')}"
-        mensaje_completo = f"{mensaje_error} {mensaje_origen}".lower()
-        if (
-            "45000" in mensaje_completo
-            or "1644" in mensaje_completo
-            or "No hay suficiente stock" in mensaje_completo
-            or "No se puede crear la solicitud" in mensaje_completo
-        ):
-            raise Exception(f"No hay suficiente stock para registrar esta solicitud.")
+        orig = getattr(e, 'orig', None)
+        mensaje_orig = str(orig) if orig else str(e)
+        mensaje_completo = f"{str(e)} {mensaje_orig}".lower()
+
+        if "1264" in mensaje_completo or "out of range" in mensaje_completo:
+            raise HTTPException(status_code=422, detail="La cantidad ingresada es demasiado grande. Verifique las unidades.")
+
+        # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+        if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+            trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+            if "no hay suficiente stock" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar el tratamiento")
+            
+            if "unidad" in trigger_msg.lower() and "incompatible" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="La unidad de la solicitud y del inventario son incompatibles")
+            
+            if "límite permitido" in trigger_msg.lower() or "supera el límite" in trigger_msg.lower():
+                raise HTTPException(status_code=422, detail="La cantidad ingresada es demasiado grande. Verifique las unidades.")
+            
         logger.error(f"Error al registrar la solicitud: {e}")
         raise
 
@@ -93,6 +95,7 @@ def get_all_solicitudes(db: Session):
                      LEFT JOIN unidades_medida AS u_m ON sol.unid_med_id = u_m.id_unidad
                      LEFT JOIN inv_insumos AS ii ON sol.insumo_id = ii.id_insumo
                      LEFT JOIN users AS us ON sol.user_id = us.id_user
+                     ORDER BY sol.fecha_solicitud DESC
                      """)
         result = db.execute(query).mappings().all()
         return result
@@ -106,6 +109,40 @@ def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudU
 
         if not solicitud_data:
             return False
+
+        # 1. Verificar si se está intentando actualizar la cantidad o la unidad de medida
+        if "cantidad_in" in solicitud_data or "unid_med_id" in solicitud_data:
+            
+            # Necesitamos ambos valores para el cálculo. Si uno no viene en el update, lo buscamos de la BD actual
+            cantidad_in = solicitud_data.get("cantidad_in")
+            unid_med_id = solicitud_data.get("unid_med_id")
+
+            if cantidad_in is None or unid_med_id is None:
+                # Buscamos el registro actual para rellenar el dato faltante
+                solicitud_actual = db.execute(
+                    text("SELECT cantidad_in, unid_med_id FROM solicitud_insumo WHERE id_solicitud = :id"),
+                    {"id": solicitud_id}
+                ).fetchone()
+                
+                if not solicitud_actual:
+                    return False # El ingrediente no existe
+                
+                if cantidad_in is None:
+                    cantidad_in = solicitud_actual.cantidad_in
+                if unid_med_id is None:
+                    unid_med_id = solicitud_actual.unid_med_id
+
+            # 2. Buscar la conversión correspondiente
+            conv_inv = db.execute(text("""
+                SELECT conversion FROM unidades_medida
+                WHERE id_unidad = :unid_medida_id
+            """), {"unid_medida_id": unid_med_id}).scalar()
+
+            if not conv_inv:
+                raise Exception("Unidad de medida no encontrada")
+
+            # 3. Calcular la nueva cantidad convertida e inyectarla en los datos a actualizar
+            solicitud_data["cant_convertida"] = float(cantidad_in) * float(conv_inv)
 
         # Obtener estado actual
         estado_actual = db.execute(
@@ -220,6 +257,7 @@ def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN unidades_medida AS u_m ON sol.unid_med_id = u_m.id_unidad
                         LEFT JOIN inv_insumos AS ii ON sol.insumo_id = ii.id_insumo
                         LEFT JOIN users AS us ON sol.user_id = us.id_user
+                        ORDER BY sol.fecha_solicitud DESC
                         LIMIT :limit OFFSET :skip
                     """)
 

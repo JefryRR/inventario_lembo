@@ -270,7 +270,7 @@ export default function DetalleCreate() {
                                 {productos.map((producto) => (
                                     <option key={producto.id_inventario} value={producto.id_inventario}>
                                         {producto.nombre_producto}
-                                        {producto.nombre_lote ? ` - ${producto.nombre_lote}` : ""}
+                                        {producto.nombre_lote ? ` - ${producto.nombre_lote}` : ""} - cantidad: {producto.cantidad ?? "N/A"} {producto.simbolo ?? ""}
                                     </option>
                                 ))}
                             </select>
