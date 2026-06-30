@@ -79,7 +79,7 @@ def get_all_solicitudes(db: Session):
     try:
         query = text("""SELECT sol.id_solicitud, sol.solicitante, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
                      sol.fecha_solicitud, sol.fecha_entrega, sol.fecha_devolucion, sol.cant_devolver, sol.estado_solicitud, t_i.nombre_tipo, 
-                     u_m.simbolo, ii.nombre_producto, us.nombre_user
+                     u_m.simbolo, ii.nombre_producto, us.nombre_user, sol.user_id
                      FROM solicitud_insumo AS sol
                      INNER JOIN  tipo_insumo AS t_i ON sol.tipo_insumo_id = t_i.id_tipo_insumo
                      LEFT JOIN unidades_medida AS u_m ON sol.unid_med_id = u_m.id_unidad
