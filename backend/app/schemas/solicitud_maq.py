@@ -5,18 +5,16 @@ from datetime import date
 
 class EstadoSolicitud(str, Enum):
     pendiente = 'pendiente'
-    aprovada = 'aprobada'
     entregada = 'entregada'
     devuelta = 'devuelta'
     cancelada = 'cancelada'
    
-
 class SolicitudMaqBase(BaseModel):
     maquinaria_id: int
     user_id: int
     fecha_solicitud: date
     estado: EstadoSolicitud
-    observaciones: str
+    observaciones: Optional[str] = Field(None, max_length=500)
 
 class SolicitudMaqCreate(SolicitudMaqBase):
     pass
@@ -33,6 +31,8 @@ class SolicitudMaqOut(SolicitudMaqBase):
     id_solicitud_maq: int
     nombre_maq: str
     nombre_user: str
+    fecha_entrega: Optional[date] = None
+    fecha_devolucion: Optional[date] = None
     
 class PaginatedSolicitudes(BaseModel):
     page: int
