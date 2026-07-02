@@ -101,7 +101,7 @@ def get_all_insumos(db: Session):
             
         return resultado
     except SQLAlchemyError as e:
-        logger.error(f"Error al obtener todas las insumoses: {e}")
+        logger.error(f"Error al obtener todos los insumos: {e}")
         raise
 
 def get_factura_by_id(db: Session, insumo_id: int):
