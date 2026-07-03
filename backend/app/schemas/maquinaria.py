@@ -33,11 +33,12 @@ class MaquinariaUpdate(BaseModel):
     fecha_compra: Optional[date] = None
     estado: Optional[estadoMaquinaria] = None
     ubicacion: Optional[str] = Field(None, min_length=1, max_length=100)
-    observaciones: Optional[str] = Field(None, min_length=1, max_length=200)
+    observaciones: Optional[str] = None
     fecha_de_baja: Optional[date] = None
 
 class MaquinariaOut(MaquinariaBase):
     id_maquina: int
+    fecha_de_baja: Optional[date] = None
     
 class PaginatedMaquinarias(BaseModel):
     page: int

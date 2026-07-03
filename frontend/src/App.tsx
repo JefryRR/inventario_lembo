@@ -86,6 +86,10 @@ import VentaPlatosCreate from "./components/ventas_platos/ventasPlatosCreate";
 import VentaPlatosEdit from "./components/ventas_platos/ventasPlatosEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
+import Maquinaria from "./pages/maquinaria";
+import MaquinariaCreate from "./components/maquinaria.py/maquinaCreate";
+import MaquinariaEdit from "./components/maquinaria.py/maquinaEdit";
+import InformeMaquina from "./components/maquinaria.py/informes_maq";
 import Home from "./pages/Dashboard/Home";
 
 export default function App() {
@@ -174,6 +178,10 @@ export default function App() {
             <Route path="/solicitud" element={<Solicitud />} />
             <Route path="/solicitud/crear" element={<SolicitudCreate />} />
             <Route path="/solicitud/edit/:id" element={<SolicitudEdit />} />
+            <Route path="/maquinaria" element={<Maquinaria />} />
+            <Route path="/maquinaria/crear" element={<MaquinariaCreate />} />
+            <Route path="/maquinaria/edit/:id_maquina" element={<MaquinariaEdit />} />
+            <Route path="/maquinas/historial/:id_maquina" element={<InformeMaquina />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse  #type: ignore
 # from app.utils.exportar_reportes import generar_excel_reporte_maquina, generar_pdf_reporte_maquina
 
 router = APIRouter()
-modulo = 17
+modulo = 25
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_solicitud(
