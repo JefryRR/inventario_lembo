@@ -84,6 +84,9 @@ import IngredientesEdit from "./components/ingredientes/ingredienteEdit";
 import VentaPlatos from "./pages/ventasPlatos";
 import VentaPlatosCreate from "./components/ventas_platos/ventasPlatosCreate";
 import VentaPlatosEdit from "./components/ventas_platos/ventasPlatosEdit";
+import SolicitudMaquinaria from "./pages/solic_maquinaria";
+import SoliMaquinariaCreate from "./components/solic_maquinaria/soliMaquinariaCreate";
+import SoliMaquinariaEdit from "./components/solic_maquinaria/soliMaquinariaEdit";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Maquinaria from "./pages/maquinaria";
@@ -182,6 +185,9 @@ export default function App() {
             <Route path="/maquinaria/crear" element={<MaquinariaCreate />} />
             <Route path="/maquinaria/edit/:id_maquina" element={<MaquinariaEdit />} />
             <Route path="/maquinas/historial/:id_maquina" element={<InformeMaquina />} />
+            <Route path="/solicitud-maq" element={<SolicitudMaquinaria />} />
+            <Route path="/solicitud-maq/crear" element={<SoliMaquinariaCreate />} />
+            <Route path="/solicitud-maq/edit/:id" element={<SoliMaquinariaEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

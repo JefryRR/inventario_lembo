@@ -2,27 +2,31 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch, apiDownload } from "@/services/api";
+import { apiFetch } from "@/services/api";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Para que el calendario aparezca en español
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 
-type VentaPlatosRow = {
-	id_venta_plato: number;
-    plato_id: number;
-    cantidad: number;
-    precio: number;
-	fecha_venta: string;
-    nombre_plato: string;
+type SolicitudRow = {
+	id_solicitud_maq: number;
+    maquinaria_id: number;
+	fecha_solicitud: string;
+	fecha_entrega: string;
+	fecha_devolucion: string;
+	estado: string;
+    nombre_maq: string;
+    user_id: number;
+    nombre_user: string;
+    observaciones: string;
 };
 
-type VentaPlatosResponse = {
-	total_ventaPlatos: number;
+type SolicitudResponse = {
+	total_solicitudes: number;
 	page: number;
 	page_size: number;
-	ventaPlatos: VentaPlatosRow[];
+	solicitudes: SolicitudRow[];
 };
 
 type DateRangeState = {
@@ -30,34 +34,43 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
+const ESTADO_LABELS: Record<string, string> = {
+	pendiente: "Pendiente",
+	entregada: "Entregada",
+	cancelada: "Cancelada",
+	devuelta: "Devuelta"
+};
+
+function formatEstado(value: string): string {
+	return ESTADO_LABELS[value] || value;
+}
+
 function formatDate(value: string): string {
 	if (!value) return "-";
 
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
+	const normalizedValue = value.includes("T") ? value.split("T")[0] : value;
+	const [year, month, day] = normalizedValue.split("-");
 
-	return date.toLocaleString("es-CO", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-	});
+	if (!year || !month || !day) return value;
+
+	return `${day}/${month}/${year}`;
 }
 
-export default function VentaPlatos() {
-	const [ventas, setVentas] = useState<VentaPlatosRow[]>([]);
+export default function Solicitudes() {
+	const [solicitudes, setSolicitudes] = useState<SolicitudRow[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [page, setPage] = useState(1);
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
-	const [dateRange, setDateRange] = useState<DateRangeState>({
-			fecha_inicio: "",
-			fecha_fin: "",
-		});
-	const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
-
-	const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [dateRange, setDateRange] = useState<DateRangeState>({
+                fecha_inicio: "",
+                fecha_fin: "",
+            });
+        const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
+    
+        const [isOpen, setIsOpen] = useState<boolean>(false);
 
     // Estado que requiere react-day-picker (usa objetos Date de JS)
     const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
@@ -88,32 +101,32 @@ export default function VentaPlatos() {
 	useEffect(() => {
 		let isMounted = true;
 
-		const loadVentas = async () => {
+		const loadSolicitudes = async () => {
 			setLoading(true);
 			setError(null);
 
 			try {
-				const queryParams = new URLSearchParams({
+                const queryParams = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
                 });
 
-                const endpoint = activeDateRange
+                 const endpoint = activeDateRange
                     ? (() => {
                         queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
                         queryParams.set("fecha_fin", activeDateRange.fecha_fin);
-                        return `venta_platos/rango-fechas?${queryParams.toString()}`;
+                        return `solicitud-maq/rango-fechas?${queryParams.toString()}`;
                     })()
-                    : `venta_platos/venta_platos_paginated?${queryParams.toString()}`;
-				
-				const data = (await apiFetch(endpoint)) as VentaPlatosResponse;
+                    : `solicitud-maq/paginated-solicitudes?${queryParams.toString()}`;
+
+				const data = (await apiFetch(endpoint)) as SolicitudResponse;
 
 				if (!isMounted) {
 					return;
 				}
 
-				setVentas(Array.isArray(data?.ventaPlatos) ? data.ventaPlatos : []);
-				setTotal(Number(data?.total_ventaPlatos ?? 0));
+				setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
+				setTotal(Number(data?.total_solicitudes ?? 0));
 			} catch (requestError: any) {
 				if (!isMounted) {
 					return;
@@ -122,7 +135,7 @@ export default function VentaPlatos() {
 				setError(
 					requestError?.detail ||
 						requestError?.message ||
-						"No se pudieron cargar las ventas"
+						"No se pudieron cargar las solicitudes"
 				);
 			} finally {
 				if (isMounted) {
@@ -131,30 +144,33 @@ export default function VentaPlatos() {
 			}
 		};
 
-		loadVentas();
+		loadSolicitudes();
 
 		return () => {
 			isMounted = false;
 		};
 	}, [page, pageSize, activeDateRange]);
 
-	const filteredVentas = useMemo(() => {
+	const filteredSolicitudes = useMemo(() => {
 		const term = search.trim().toLowerCase();
 		if (!term) {
-			return ventas;
+			return solicitudes;
 		}
-
-		return ventas.filter((venta) => {
+	
+		return solicitudes.filter((solicitud) => {
 			return [
-				venta.nombre_plato,				
+				solicitud.nombre_maq,
+				solicitud.nombre_user,
+				solicitud.estado,
+				formatEstado(solicitud.estado),
 			]
 				.join(" ")
 				.toLowerCase()
 				.includes(term);
 		});
-	}, [search, ventas, activeDateRange]);
+	}, [search, solicitudes, activeDateRange]);
 
-	const applyDateFilter = () => {
+    const applyDateFilter = () => {
 		if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
 		setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
 		return;
@@ -178,64 +194,29 @@ export default function VentaPlatos() {
 		setError(null);
 	};
 
-    const totalGeneral = useMemo(() => {
-            return filteredVentas.reduce((acc, venta) => acc + venta.precio * venta.cantidad, 0);
-        }, [filteredVentas]);
-
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-	const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
-
-	const handleExportarVentas = async (formato: "pdf" | "excel") => {
-		setDescargando(formato);
-		try {
-		const extension = formato === "pdf" ? "pdf" : "xlsx";
-		await apiDownload(
-			`venta_platos/exportar/${formato}`,
-			`reporte_ventas_platos.${extension}`,
-		);
-		} catch (err: any) {
-		alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
-		} finally {
-		setDescargando(null);
-		}
-	};
 
 	return (
 		<>
-			<PageBreadcrumb pageTitle="Ventas de platos" />
+			<PageBreadcrumb pageTitle="Solicitudes de máquinas" />
 
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 						<Link
-							to="/venta_platos/crear"
+							to="/solicitud-maq/crear"
 							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
 						>
-							Nueva venta
+							Nueva solicitud
 						</Link>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Buscar venta..."
-							className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-72"
+							placeholder="Buscar solicitudes..."
+							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800 sm:w-72"
 						/>
-						<button
-							onClick={() => handleExportarVentas("excel")}
-							disabled={descargando !== null}
-							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-							>
-							{descargando === "excel" ? "Descargando..." : "Exportar Excel"}
-							</button>
-							<button
-							onClick={() => handleExportarVentas("pdf")}
-							disabled={descargando !== null}
-							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-							>
-							{descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
-						</button>
 					</div>
-					<div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
+                    <div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
 						<label className="text-sm font-medium text-gray-700 dark:text-gray-300">
 						Filtrar por fechas:
 						</label>
@@ -305,19 +286,19 @@ export default function VentaPlatos() {
 						<thead className="bg-gray-50 dark:bg-gray-900/40">
 							<tr>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Plato
+									Solicitante
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Cantidad
+									Fechas
 								</th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Precio
-								</th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    Total venta
-                                </th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Fecha de venta
+									Máquina
+								</th>
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Estado
+								</th>
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Observaciones
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Acciones
@@ -340,34 +321,53 @@ export default function VentaPlatos() {
 										{error}
 									</td>
 								</tr>
-							) : filteredVentas.length === 0 ? (
+							) : filteredSolicitudes.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
-										No hay ventas de platos para mostrar.
+										No hay registros de solicitudes para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredVentas.map((venta) => (
-									<tr key={venta.id_venta_plato} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+								filteredSolicitudes.map((solicitud) => (
+									<tr key={solicitud.id_solicitud_maq} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+										<td className="px-5 py-4">
+											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{solicitud.nombre_user}</div>
+										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{venta.nombre_plato}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											<div>Solicitud: {formatDate(solicitud.fecha_solicitud)}</div>
+											<div>Entrega: {formatDate(solicitud.fecha_entrega)}</div>
+											<div>Devolución: {formatDate(solicitud.fecha_devolucion)}</div>
+										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{venta.cantidad}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{solicitud.nombre_maq}
+										</td>
 
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{venta.precio}</td>
+										<td className="px-5 py-4">
+											<span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+												{formatEstado(solicitud.estado)}
+											</span>
+										</td>
 
                                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            {(venta.precio * venta.cantidad).toLocaleString("es-CO", { style: "currency", currency: "COP" })}
+                                            {solicitud.observaciones || "-"}
                                         </td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(venta.fecha_venta)}</td>
 										<td className="px-5 py-4">
-											<Link
-												to={`/venta_platos/edit/${venta.id_venta_plato}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-											>
-												Editar
-											</Link>
+											{solicitud.estado?.toLowerCase() === "cancelada" || solicitud.estado?.toLowerCase() === "devuelta" ? (
+                    						  <span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+                    						    Editar
+                    						  </span>
+                    						) : (
+												<div className="flex flex-col items-center gap-2">
+													<Link
+														to={`/solicitud-maq/edit/${solicitud.id_solicitud_maq}`}
+														className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+														Editar
+													</Link>
+												</div>
+											)}
 										</td>
 									</tr>
 								))
@@ -375,13 +375,6 @@ export default function VentaPlatos() {
 						</tbody>
 					</table>
 				</div>
-
-                <div className="flex justify-end border-t border-gray-200 px-5 py-3 dark:border-gray-800">
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Total de ventas:{" "}
-                        {totalGeneral.toLocaleString("es-CO", { style: "currency", currency: "COP" })}
-                    </span>
-                </div>
 
 				<div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-center">
 					<div className="flex items-center gap-2">

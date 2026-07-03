@@ -76,7 +76,6 @@ export default function StatisticsChart() {
   ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sinValorUnitario, setSinValorUnitario] = useState(0);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -104,12 +103,6 @@ export default function StatisticsChart() {
             throw err;
           }),
         ]);
-
-        // Cuenta cuántas pérdidas no tienen valor_unitario (se contabilizan como $0)
-        const conteoSinValor = perdidas.filter(
-          (p) => p.valor_unitario === null || p.valor_unitario === undefined
-        ).length;
-        setSinValorUnitario(conteoSinValor);
 
         const valorProduccionPorMes = agruparValorPorMes(
           produccion.map((p) => ({
@@ -222,12 +215,6 @@ export default function StatisticsChart() {
           )}
         </div>
       </div>
-
-      {sinValorUnitario > 0 && (
-        <p className="mt-3 text-xs text-amber-500">
-          {sinValorUnitario} registro(s) de pérdidas no tienen valor_unitario asociado y se contabilizaron como $0.
-        </p>
-      )}
     </div>
   );
 }

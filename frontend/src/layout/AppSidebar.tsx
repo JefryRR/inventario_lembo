@@ -12,6 +12,7 @@ import {
   TableIcon,
   DollarLineIcon,
   FileIcon,
+  MailIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -125,25 +126,7 @@ const modulosItems: NavItem[] = [
     ],
   },
   {
-    icon: <DollarLineIcon />,
-    name: "Módulo de ventas",
-    subItems: [
-      {
-        name: "H. de ventas producción",
-        path: "/ventas/historial",
-      },
-      {
-        name: "Ventas producción",
-        path: "/ventas",
-      },
-      {
-        name: "Ventas de platos",
-        path: "/venta_platos",
-      },
-    ],
-  },
-  {
-    icon: <DollarLineIcon />,
+    icon: <MailIcon />,
     name: "Módulo de solicitudes",
     subItems: [
       {
@@ -152,8 +135,12 @@ const modulosItems: NavItem[] = [
       },
       {
         name: "Solicitud de maquinaria",
-        path: "/sol_maquina",
-      }
+        path: "/solicitud-maq",
+      },
+      {
+        name: "Ventas de platos",
+        path: "/venta_platos",
+      },
     ],
   },
   {
@@ -171,6 +158,24 @@ const modulosItems: NavItem[] = [
       {
         name: "Programación de comidas",
         path: "/calendar",
+      },
+    ],
+  },
+  {
+    icon: <DollarLineIcon />,
+    name: "Módulo de ventas",
+    subItems: [
+      {
+        name: "H. de ventas producción",
+        path: "/ventas/historial",
+      },
+      {
+        name: "Ventas producción",
+        path: "/ventas",
+      },
+      {
+        name: "Ventas de platos",
+        path: "/venta_platos",
       },
     ],
   },

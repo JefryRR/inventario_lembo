@@ -147,6 +147,9 @@ def get_solicitudes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str
                      FROM solicitud_maquinaria AS sm
                      LEFT JOIN users AS u ON sm.user_id = u.id_user
                      LEFT JOIN maquinaria AS m ON sm.maquinaria_id = m.id_maquina
+                     WHERE DATE(sm.fecha_solicitud) BETWEEN :fecha_inicio AND :fecha_fin
+                        OR (sm.fecha_entrega IS NOT NULL AND DATE(sm.fecha_entrega) BETWEEN :fecha_inicio AND :fecha_fin)
+                        OR (sm.fecha_devolucion IS NOT NULL AND DATE(sm.fecha_devolucion) BETWEEN :fecha_inicio AND :fecha_fin)
                     ORDER BY sm.fecha_solicitud DESC
                 """)
         result = db.execute(query, {
@@ -166,7 +169,7 @@ def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
-        # Total de producción
+        # Total de solicitudes
         count_query = text("""
             SELECT COUNT(id_solicitud_maq) AS total
             FROM solicitud_maquinaria
@@ -175,13 +178,13 @@ def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         total_result = db.execute(count_query).scalar()
 
-        # Producción paginada
+        # Solicitudes paginadas
         data_query = text(""" 
                         SELECT sm.id_solicitud_maq, sm.maquinaria_id, sm.user_id, sm.fecha_solicitud, sm.fecha_entrega, 
                          sm.fecha_devolucion, sm.estado, sm.observaciones, u.nombre_user, m.nombre_maq
                          FROM solicitud_maquinaria AS sm
                          LEFT JOIN users AS u ON sm.user_id = u.id_user
-                         LEFT JOIN maquinaria AS m ON sm.maquinaria_id = m.id_maq
+                         LEFT JOIN maquinaria AS m ON sm.maquinaria_id = m.id_maquina
                          ORDER BY sm.fecha_solicitud DESC
                         LIMIT :limit OFFSET :skip
                     """)
