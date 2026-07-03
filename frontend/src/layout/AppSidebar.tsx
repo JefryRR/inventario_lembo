@@ -136,11 +136,7 @@ const modulosItems: NavItem[] = [
       {
         name: "Solicitud de maquinaria",
         path: "/solicitud-maq",
-      },
-      {
-        name: "Ventas de platos",
-        path: "/venta_platos",
-      },
+      }
     ],
   },
   {
