@@ -95,11 +95,12 @@ export default function UnidadesCreate() {
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <div>
                             <label htmlFor="unidad" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Nombre de unidad
+                                Nombre de unidad<span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 id="unidad"
+                                required
                                 value={form.unidad}
                                 onChange={(e) => setForm({ ...form, unidad: e.target.value })}
                                 className="mt-1 h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
@@ -108,12 +109,13 @@ export default function UnidadesCreate() {
                         </div>
                         <div>
                             <label htmlFor="simbolo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Símbolo
+                                Símbolo<span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 id="simbolo"
                                 value={form.simbolo}
+                                required
                                 onChange={(e) => setForm({ ...form, simbolo: e.target.value })}
                                 className="mt-1 h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 placeholder="Símbolo de la unidad"
@@ -121,11 +123,12 @@ export default function UnidadesCreate() {
                         </div>
                         <div>
                             <label htmlFor="conversion" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Conversión
+                                Conversión<span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="number"
                                 id="conversion"
+                                required
                                 value={form.conversion}
                                 onChange={(e) => setForm({ ...form, conversion: e.target.value })}
                                 className="mt-1 h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"

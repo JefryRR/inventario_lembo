@@ -8,7 +8,7 @@ type AlimentoFormState = {
     lote_id: number;
     insumo_id: number;
     fecha_alimento: string;
-    cantidad: number;
+    cantidad: string;
     unid_medida_id: number;
     nombre_producto: string;
     simbolo: string;
@@ -40,7 +40,7 @@ const emptyState: AlimentoFormState = {
     lote_id: 0,
     insumo_id: 0,
     fecha_alimento: "",
-    cantidad: 0,
+    cantidad: "",
     unid_medida_id: 0,
     nombre_producto: "",
     simbolo: "",
@@ -135,7 +135,7 @@ export default function AlimentoEdit() {
                     nombre_lote: alimentoData?.nombre_lote || "",
                     nombre_producto: alimentoData?.nombre_producto || "",
                     fecha_alimento: toDatetimeLocal(alimentoData?.fecha_alimento),
-                    cantidad: Number(alimentoData?.cantidad ?? 0),
+                    cantidad: String(alimentoData?.cantidad ?? ""),
                     unid_medida_id: Number(alimentoData?.unid_medida_id ?? 0),
                     insumo_id: Number(alimentoData?.insumo_id ?? 0),
                     lote_id: Number(alimentoData?.lote_id ?? 0),
