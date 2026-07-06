@@ -100,6 +100,10 @@ const modulosItems: NavItem[] = [
         name: "Tratamiento",
         path: "/tratamientos",
       },
+      {
+        name: "Maquinaria",
+        path: "/maquinaria",
+      },
     ],
   },
   {
@@ -132,11 +136,7 @@ const modulosItems: NavItem[] = [
       {
         name: "Solicitud de maquinaria",
         path: "/solicitud-maq",
-      },
-      {
-        name: "Ventas de platos",
-        path: "/venta_platos",
-      },
+      }
     ],
   },
   {

@@ -4,18 +4,20 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+type estadoMaquina = "operativa" | "dañada" | "mantenimiento" | "de_baja";
+
 type MaquinaRow = {
 	id_maquina: number;
-    nombre_maq: string 
-    tipo_maq: string 
-    marca: string 
-    modelo: string 
-    num_serie: string 
-    fecha_compra: string 
-    estado: string
-    ubicacion: string 
-    observaciones: string
-	fecha_de_baja: string | null;
+	nombre_maq: string
+	tipo_maq: string
+	marca: string
+	modelo: string
+	num_serie: string
+	fecha_compra: string
+	estado: estadoMaquina
+	ubicacion: string
+	observaciones: string
+	fecha_de_baja: string;
 };
 
 type MaquinasResponse = {
@@ -25,18 +27,26 @@ type MaquinasResponse = {
 	maquinas: MaquinaRow[];
 };
 
-
 function formatDate(value: string): string {
 	if (!value) return "-";
 
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
+	// value viene como "YYYY-MM-DD" desde el backend (date de Pydantic)
+	const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+	if (!match) return value;
 
-	return date.toLocaleString("es-CO", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-	});
+	const [, year, month, day] = match;
+	return `${day}/${month}/${year}`;
+}
+
+const ESTADO_LABELS: Record<string, string> = {
+	activo: "Activo",
+	inactivo: "Inactivo",
+	en_mantenimiento: "En mantenimiento",
+	de_baja: "Dado de baja",
+};
+
+function formatEstado(value: string): string {
+	return ESTADO_LABELS[value] || value;
 }
 
 export default function Maquinas() {
@@ -63,7 +73,7 @@ export default function Maquinas() {
 			setError(null);
 
 			try {
-				const data = (await apiFetch(`alimento_prod/paginated?page=${page}&page_size=${pageSize}`)) as MaquinasResponse;
+				const data = (await apiFetch(`maquinas/paginated-maquinas?page=${page}&page_size=${pageSize}`)) as MaquinasResponse;
 
 				if (!isMounted) {
 					return;
@@ -78,8 +88,8 @@ export default function Maquinas() {
 
 				setError(
 					requestError?.detail ||
-						requestError?.message ||
-						"No se pudieron cargar los Maquinas"
+					requestError?.message ||
+					"No se pudieron cargar los Maquinas"
 				);
 			} finally {
 				if (isMounted) {
@@ -105,11 +115,11 @@ export default function Maquinas() {
 			return [
 				maquina.nombre_maq,
 				maquina.tipo_maq,
-                maquina.marca,
+				maquina.marca,
 				maquina.modelo,
 				maquina.num_serie,
 				maquina.fecha_compra,
-				maquina.estado,
+				formatEstado(maquina.estado),
 				maquina.ubicacion,
 				maquina.observaciones,
 			]
@@ -117,7 +127,7 @@ export default function Maquinas() {
 				.toLowerCase()
 				.includes(term);
 		});
-	}, [search, Maquinas]);
+	}, [search, maquinas]);
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -129,7 +139,7 @@ export default function Maquinas() {
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 						<Link
-							to="/Maquinas/create"
+							to="/maquinaria/crear"
 							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
 						>
 							Nueva máquina
@@ -159,20 +169,20 @@ export default function Maquinas() {
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Número de Serie
 								</th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Fecha de compra
 								</th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Estado
 								</th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Ubicación
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Observaciones
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Fecha de baja 
+									Fecha retiro
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Acciones
@@ -184,20 +194,20 @@ export default function Maquinas() {
 							{loading ? (
 								Array.from({ length: 5 }).map((_, index) => (
 									<tr key={index}>
-										<td colSpan={6} className="px-5 py-4">
+										<td colSpan={10} className="px-5 py-4">
 											<div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
 										</td>
 									</tr>
 								))
 							) : error ? (
 								<tr>
-									<td colSpan={6} className="px-5 py-10 text-center text-sm text-error-500">
+									<td colSpan={10} className="px-5 py-10 text-center text-sm text-error-500">
 										{error}
 									</td>
 								</tr>
 							) : filteredMaquinas.length === 0 ? (
 								<tr>
-									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+									<td colSpan={10} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay máquinas para mostrar.
 									</td>
 								</tr>
@@ -206,41 +216,44 @@ export default function Maquinas() {
 									<tr key={maquina.id_maquina} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-											{formatDate(maquina.fecha_compra)}
-										</td>
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{maquina.nombre_maq}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{maquina.tipo_maq}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{maquina.marca} / {maquina.modelo}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{maquina.num_serie}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-											{maquina.fecha_compra}
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{formatDate(maquina.fecha_compra)}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-											{maquina.estado}
+
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{formatEstado(maquina.estado)}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{maquina.ubicacion}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-											{maquina.observaciones}
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{maquina.observaciones ? maquina.observaciones : "-"}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{maquina.fecha_de_baja ? formatDate(maquina.fecha_de_baja) : "-"}
 										</td>
 										<td className="px-5 py-4">
 											<Link
-												to={`/Maquinas/edit/${maquina.id_maquina}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+												to={`/maquinaria/edit/${maquina.id_maquina}`}
+												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700 mb-2"
 											>
 												Editar
+											</Link>
+											<Link
+												to={`/maquinas/historial/${maquina.id_maquina}`}
+												className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-600 px-3 text-sm font-medium text-white transition hover:bg-gray-700">
+												Informe
 											</Link>
 										</td>
 									</tr>

@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from datetime import date
+from datetime import date, datetime
 from app.schemas.maquinaria import MaquinariaCreate, MaquinariaUpdate
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-def create_maquina(db: Session, maquina: MaquinariaCreate):
+def create_maquina(db: Session, maquina: MaquinariaCreate, user_id: int):
     try:
         existing_maquina = get_maquina_by_num_serie(db, maquina.num_serie)
         if existing_maquina:
@@ -19,7 +19,21 @@ def create_maquina(db: Session, maquina: MaquinariaCreate):
                         ) VALUES (
                         :nombre_maq, :tipo_maq, :marca, :modelo, :num_serie, :fecha_compra, :ubicacion, :observaciones )
                     """)
-        db.execute(query, maquina.model_dump())
+        result = db.execute(query, maquina.model_dump())
+
+        id_maquina = result.lastrowid  # o db.execute(text("SELECT LASTVAL()")).scalar() según motor
+
+        historial_query = text("""
+            INSERT INTO historial_maquinaria (id_maquina, estado, user_id, fecha_cambio, observaciones)
+            VALUES (:id_maquina, 'operativa', :user_id, :fecha_cambio, :observaciones)
+        """)
+        db.execute(historial_query, {
+            "id_maquina": id_maquina,
+            "user_id": user_id,
+            "fecha_cambio": datetime.now(),
+            "observaciones": maquina.observaciones,
+        })
+
         db.commit()
         return True
     except SQLAlchemyError as e:
@@ -30,7 +44,7 @@ def create_maquina(db: Session, maquina: MaquinariaCreate):
 def get_maquina_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_maquina, nombre_maq, tipo_maq, marca, modelo,
-                  num_serie, fecha_compra, estado, ubicacion, observaciones
+                  num_serie, fecha_compra, estado, ubicacion, observaciones, fecha_de_baja
                      FROM maquinaria
                      WHERE id_maquina = :id_maq
                 """)
@@ -43,7 +57,7 @@ def get_maquina_by_id(db: Session, id: int):
 def get_maquina_by_num_serie(db: Session, num_serie: str):
     try:
         query = text("""SELECT id_maquina, nombre_maq, tipo_maq, marca, modelo,
-                  num_serie, fecha_compra, estado, ubicacion, observaciones
+                  num_serie, fecha_compra, estado, ubicacion, observaciones, fecha_de_baja
                      FROM maquinaria
                      WHERE num_serie = :num_serie
                 """)
@@ -53,132 +67,26 @@ def get_maquina_by_num_serie(db: Session, num_serie: str):
         logger.error(f"Error al obtener la máquina por número de serie: {e}")
         raise Exception("Error de base de datos al obtener la máquina")
 
-# def get_reporte_encabezado(db: Session, inv_prod_id: int):
-#     try:
-#         query = text("""
-#            SELECT 
-#             pr.id_inventario,
-#             pr.nombre_producto,
-#             pr.fecha_ingreso,
-#             pr.fecha_vencimiento,
-#             pr.valor_unitario,
-#             um.simbolo,
-#             l_g.nombre_lote,
-    
-#             -- Cantidad inicial: reconstruida sumando todo lo que salió
-#             CASE
-#                 WHEN pr.fecha_vencimiento IS NOT NULL
-#                      AND pr.fecha_vencimiento < CURRENT_DATE
-#                 THEN COALESCE(ventas_netas.total_vendido_neto, 0)
-#                      + COALESCE(pe.total_perdido, 0)
-#                 ELSE pr.cantidad
-#                     + COALESCE(ventas_netas.total_vendido_neto, 0)
-#                     + COALESCE(pe.total_perdido, 0)
-#             END AS cantidad_inicial,
-    
-#             -- Stock actual: pr.cantidad ya tiene descontado ventas y pérdidas
-#             CASE 
-#                 WHEN pr.fecha_vencimiento IS NOT NULL 
-#                      AND pr.fecha_vencimiento < CURRENT_DATE 
-#                 THEN 0
-#                 ELSE pr.cantidad
-#             END AS stock_actual,
-    
-#             COALESCE(ventas_netas.total_vendido_neto, 0) AS total_vendido,
-#             COALESCE(pe.total_perdido, 0)                AS total_perdido
-    
-#             FROM maquinaria pr
-#             LEFT JOIN lote_maquina l ON pr.lote_id = l.id_lote
-#             LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
-        
-#             LEFT JOIN (
-#                 SELECT 
-#                     inv_prod_id, 
-#                     SUM(cant_convertida) AS total_vendido_neto
-#                 FROM detalle_ventas
-#                 WHERE estado_venta = 'Vendido'
-#                 GROUP BY inv_prod_id
-#             ) ventas_netas ON ventas_netas.inv_prod_id = pr.id_inventario
-        
-#             LEFT JOIN (
-#                 SELECT inv_prod_id, SUM(cant_convertida) AS total_perdido
-#                 FROM inv_perdidas
-#                 GROUP BY inv_prod_id
-#             ) pe ON pe.inv_prod_id = pr.id_inventario
-                     
-#             LEFT JOIN unidades_medida um ON pr.unid_medida_id = um.id_unidad
-        
-#             WHERE pr.id_inventario = :inv_prod_id   
-#         """)
-#         return db.execute(query, {"inv_prod_id": inv_prod_id}).mappings().first()
-#     except SQLAlchemyError as e:
-#         logger.error(f"Error al obtener encabezado del reporte: {e}")
-#         raise Exception("Error al obtener encabezado del reporte")
-    
-# def get_reporte_movimientos(db: Session, inv_prod_id: int):
-#     try:
-#         query = text("""
-#             -- Ventas individuales
-#             SELECT 
-#                 'venta'                     as tipo,
-#                 dv.id_detalle_venta         as id_registro,
-#                 dv.cant_convertida          as cantidad,
-#                 dv.precio_venta             as valor,
-#                 dv.estado_venta             as estado,
-#                 v.nombre_comprador          as referencia,
-#                 v.fecha_venta               as fecha,
-#                 ' '                        as motivo
-#             FROM detalle_ventas dv
-#             LEFT JOIN ventas v ON dv.venta_id = v.id_venta
-#             WHERE dv.inv_prod_id = :inv_prod_id
-
-#             UNION ALL
-
-#             -- Pérdidas y devoluciones individuales
-#             SELECT 
-#                 'perdida'                   as tipo,
-#                 p.id_perdida                as id_registro,
-#                 p.cant_convertida           as cantidad,
-#                 ip.valor_unitario           as valor,
-#                 ' '                        as estado,
-#                 p.observaciones             as referencia,
-#                 p.fecha_reporte             as fecha,
-#                 p.motivo                    as motivo
-#             FROM inv_perdidas p
-#             LEFT JOIN maquinaria ip ON p.inv_prod_id = ip.id_inventario
-#             WHERE p.inv_prod_id = :inv_prod_id            ORDER BY fecha ASC
-#         """)
-#         return db.execute(query, {"inv_prod_id": inv_prod_id}).mappings().all()
-#     except SQLAlchemyError as e:
-#         logger.error(f"Error al obtener movimientos del reporte: {e}")
-#         raise Exception("Error al obtener movimientos del reporte")
-
-# def get_reporte_maquina_detallado(db: Session, inv_prod_id: int):
-#     encabezado = get_reporte_encabezado(db, inv_prod_id)
-#     if not encabezado:
-#         return None
-    
-#     movimientos = get_reporte_movimientos(db, inv_prod_id)
-
-#     return {
-#         "encabezado": dict(encabezado),
-#         "movimientos": [dict(m) for m in movimientos]
-#     }
-
-def update_maquina(db: Session, maquina_id: int, maquina: MaquinariaUpdate):
+def update_maquina(db: Session, maquina_id: int, maquina: MaquinariaUpdate, user_id: int):
     try:
+        estado_actual = db.execute(
+            text("SELECT estado FROM maquinaria WHERE id_maquina = :id_maquina"),
+            {"id_maquina": maquina_id}
+        ).scalar_one_or_none()
 
-        estado_actual = text("SELECT estado FROM maquinaria WHERE id_maquina = :id_maquina");
-        row = db.execute(estado_actual, {"id_maquina": maquina_id}).fetchone()
-        if row is None:
+        if estado_actual is None:
             raise ValueError(f"No se encontró la máquina con id {maquina_id}")
-        
-        if row.estado == 'de_baja':
-            raise ValueError("No se puede modificar una máquina que está dada de baja")
+
+        if estado_actual == 'de_baja':
+            raise ValueError("No se puede modificar los datos de la máquina que está de baja")
 
         maquina_data = maquina.model_dump(exclude_unset=True)
         if not maquina_data:
             return False
+        
+        if maquina_data.get("estado") == 'de_baja' and estado_actual != 'de_baja':
+            maquina_data["fecha_de_baja"] = date.today()
+
         set_clauses = ", ".join([f"{key} = :{key}" for key in maquina_data.keys()])
         query = text(f"""
             UPDATE maquinaria
@@ -188,6 +96,21 @@ def update_maquina(db: Session, maquina_id: int, maquina: MaquinariaUpdate):
         
         maquina_data["id_maquina"] = maquina_id
         result = db.execute(query, maquina_data)
+
+        nuevo_estado = maquina_data.get("estado")
+        if nuevo_estado and nuevo_estado != estado_actual:
+            historial_query = text("""
+                INSERT INTO historial_maquinaria (id_maquina, estado, user_id, fecha_cambio, observaciones)
+                VALUES (:id_maquina, :estado, :user_id, :fecha_cambio, :observaciones)
+            """)
+            db.execute(historial_query, {
+                "id_maquina": maquina_id,
+                "estado": nuevo_estado,
+                "user_id": user_id,
+                "fecha_cambio": datetime.now(),
+                "observaciones": maquina_data.get("observaciones"),
+            })
+
         db.commit()
         return result.rowcount > 0
     except SQLAlchemyError as e:
@@ -195,10 +118,55 @@ def update_maquina(db: Session, maquina_id: int, maquina: MaquinariaUpdate):
         logger.error(f"Error al actualizar la máquina {maquina_id}: {e}")
         raise Exception("Error de base de datos al actualizar la máquina")
 
+def get_historial_maquina(db: Session, id_maquina: int | None = None, skip: int = 0, limit: int = 10):
+    try:
+        where_clause = "WHERE h.id_maquina = :id_maquina" if id_maquina is not None else ""
+        params: dict = {"limit": limit, "skip": skip}
+        if id_maquina is not None:
+            params["id_maquina"] = id_maquina
+
+        count_query = text(f"""
+            SELECT COUNT(*) AS total
+            FROM historial_maquinaria h
+            {where_clause}
+        """)
+        total_result = db.execute(count_query, params).scalar()
+
+        data_query = text(f"""
+            SELECT * FROM (
+                SELECT
+                    h.id_historial,
+                    h.id_maquina,
+                    m.nombre_maq,
+                    m.num_serie,
+                    h.estado AS estado_actual,
+                    h.fecha_cambio,
+                    m.marca,
+                    m.modelo,
+                    m.tipo_maq,
+                    m.fecha_compra,
+                    h.user_id,
+                    u.nombre_user,
+                    h.observaciones
+                FROM historial_maquinaria h
+                INNER JOIN maquinaria m ON h.id_maquina = m.id_maquina
+                INNER JOIN users u ON h.user_id = u.id_user
+            ) sub
+            {where_clause.replace('h.', 'sub.')}
+            ORDER BY sub.fecha_cambio DESC
+            LIMIT :limit OFFSET :skip
+        """)
+        historial_list = db.execute(data_query, params).mappings().all()
+
+        return {"total": total_result or 0, "historial": historial_list}
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener el historial de maquinaria: {e}", exc_info=True)
+        raise Exception("Error de base de datos al obtener el historial de maquinaria")
+
 def all_maquina(db: Session):
     try:
         query = text("""SELECT id_maquina, nombre_maq, tipo_maq, marca, modelo,
-                      num_serie, fecha_compra, estado, ubicacion, observaciones
+                      num_serie, fecha_compra, estado, ubicacion, observaciones, fecha_de_baja
                      FROM maquinaria
                     """)
         result = db.execute(query).mappings().all()
@@ -227,7 +195,7 @@ def get_maquina_paginated(db: Session, skip: int = 0, limit: int = 10):
         # Producción paginada
         data_query = text(""" 
                         SELECT id_maquina, nombre_maq, tipo_maq, marca, modelo,
-                            num_serie, fecha_compra, estado, ubicacion, observaciones
+                            num_serie, fecha_compra, estado, ubicacion, observaciones, fecha_de_baja
                             FROM maquinaria
                             ORDER BY fecha_compra ASC
                         LIMIT :limit OFFSET :skip

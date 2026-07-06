@@ -10,12 +10,25 @@ from reportlab.platypus import Paragraph  # type: ignore
 from reportlab.lib.styles import getSampleStyleSheet # type: ignore
 from collections import defaultdict
 from collections import defaultdict
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.styles import ParagraphStyle
 
 styles = getSampleStyleSheet()
 
 estilo_observaciones = styles["BodyText"].clone("Observaciones")
 estilo_observaciones.fontSize = 6
 estilo_observaciones.leading = 7
+
+
+def _normalizar_reporte_maquina(reporte: dict) -> tuple[dict, list[dict]]:
+    historial = reporte.get("historial") or reporte.get("movimientos") or []
+
+    if reporte.get("encabezado"):
+        encabezado = reporte["encabezado"]
+    else:
+        encabezado = historial[0] if historial else {}
+
+    return encabezado, historial
 
 def generar_excel_reporte_insumo(reporte: dict) -> io.BytesIO:
     encabezado = reporte["encabezado"]
@@ -613,7 +626,7 @@ def generar_excel_reporte_produccion(reporte: dict) -> io.BytesIO:
     wb.save(buffer)
     buffer.seek(0)
     return buffer
-#__________________________________________________________________
+
 def generar_pdf_reporte_produccion(reporte: dict) -> io.BytesIO:
     encabezado = reporte["encabezado"]
     movimientos = reporte["movimientos"]
@@ -995,6 +1008,109 @@ def generar_pdf_reporte_ventas_platos(venta_platos: list) -> io.BytesIO:
     elementos.append(tabla)
     elementos.append(Spacer(1, 18))
     elementos.append(Paragraph(f"Total de registros: {len(venta_platos)}", styles["Normal"]))
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+def generar_excel_reporte_maquina(reporte: dict) -> io.BytesIO:
+    encabezado, movimientos = _normalizar_reporte_maquina(reporte)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Encabezado"
+
+    ws.append(["Informe de maquina", encabezado["nombre_maq"]])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([])
+    ws.append(["Marca", str(encabezado["marca"])])
+    ws.append(["Modelo", str(encabezado["modelo"])])
+    ws.append(["Tipo maquina", str(encabezado["tipo_maq"])])
+    ws.append(["Fecha de compra", str(encabezado["fecha_compra"])])
+
+    for fila in ws.iter_rows(min_row=3, max_row=9, min_col=1, max_col=1):
+        for celda in fila:
+            celda.font = Font(bold=True)
+
+    ws_mov = wb.create_sheet("Historial de estados")
+    ws_mov.append(["Estado", "Fecha de registro", "Responsable", "Observaciones"])
+    for celda in ws_mov[1]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+    for m in movimientos:
+        ws_mov.append([
+            m.get("estado_actual", m.get("estado", "")),
+            str(m.get("fecha_cambio", m.get("fecha_registro", ""))),
+            m.get("nombre_user", m.get("responsable", "")),
+            m.get("observaciones"),
+        ])
+
+    for columna in ws_mov.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws_mov.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+def generar_pdf_reporte_maquina(reporte: dict) -> io.BytesIO:
+    encabezado, movimientos = _normalizar_reporte_maquina(reporte)
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    # Estilo centrado para el título de historial de estados
+    estilo_titulo_centrado = ParagraphStyle(
+        "TituloCentrado",
+        parent=styles["Heading2"],
+        alignment=TA_CENTER,
+    )
+
+    elementos = []
+
+    elementos.append(Paragraph(f"Informe de maquina: {encabezado['nombre_maq']}", styles["Title"]))
+    elementos.append(Spacer(1, 12))
+
+    datos_encabezado = [
+        ["Nombre de la maquina", str(encabezado["nombre_maq"])],
+        ["Marca", str(encabezado["marca"])],
+        ["Modelo", str(encabezado["modelo"])],
+        ["Tipo maquina", str(encabezado["tipo_maq"])],
+        ["Fecha de compra", str(encabezado["fecha_compra"])],
+    ]
+    tabla_encabezado = Table(datos_encabezado, colWidths=[6 * cm, 6 * cm])
+    tabla_encabezado.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+    ]))
+    elementos.append(tabla_encabezado)
+    elementos.append(Spacer(1, 20))
+
+    # Título "Historial de estados" centrado
+    elementos.append(Paragraph("Historial de estados", estilo_titulo_centrado))
+    elementos.append(Spacer(1, 6))
+
+    filas = [["Estado", "Fecha de registro", "Responsable", "Observaciones"]]
+    for m in movimientos:
+        filas.append([
+            m.get("estado_actual", m.get("estado", "")),
+            str(m.get("fecha_cambio", m.get("fecha_registro", ""))),
+            m.get("nombre_user", m.get("responsable", "")),
+            m.get("observaciones", ""),
+        ])
+
+    tabla_movs = Table(filas, repeatRows=1)
+    tabla_movs.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    elementos.append(tabla_movs)
 
     doc.build(elementos)
     buffer.seek(0)
