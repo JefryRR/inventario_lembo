@@ -269,11 +269,10 @@ export default function DetalleEdit() {
 										Cantidad <span className="text-error-500">*</span>
 									</label>
 									<input
-										type="number"
 										value={form.cantidad}
 										onChange={handleChange("cantidad")}
 										min={1}
-										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
+										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
 										required
 									/>
 								</div>
@@ -288,7 +287,7 @@ export default function DetalleEdit() {
 										min="0"
 										value={form.precio_venta}
 										onChange={handleChange("precio_venta")}
-										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
+										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
 										required
 									/>
 								</div>
@@ -300,7 +299,7 @@ export default function DetalleEdit() {
 									<select
 										value={form.inv_prod_id}
 										onChange={handleChange("inv_prod_id")}
-										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
 										required
 										disabled={loadingCatalogs || productos.length === 0}
 									>
@@ -325,7 +324,7 @@ export default function DetalleEdit() {
 									<select
 										value={form.unid_medida_id}
 										onChange={handleChange("unid_medida_id")}
-										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
 										required
 										disabled={loadingCatalogs || medidas.length === 0}
 									>
@@ -348,7 +347,7 @@ export default function DetalleEdit() {
 									<select
 										value={form.estado_venta}
 										onChange={handleChange("estado_venta")}
-										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
 									>
 										{ESTADO_OPTIONS.map((option) => (
 											<option key={option.value} value={option.value}>

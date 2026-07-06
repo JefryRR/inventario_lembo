@@ -106,7 +106,7 @@ export default function CategoriaEdit() {
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre de la categoría <span className="text-error-500">*</span></label>
-                                    <input value={form.nombre_categoria} onChange={handleChange("nombre_categoria")} placeholder="Nombre de la categoría" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800" required />
+                                    <input value={form.nombre_categoria} onChange={handleChange("nombre_categoria")} placeholder="Nombre de la categoría" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required />
                                 </div>
                             </div>
 

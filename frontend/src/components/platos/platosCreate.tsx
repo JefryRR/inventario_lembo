@@ -100,19 +100,6 @@ export default function PlatosCreate() {
                             />
                         </div>
 
-                        <div className="flex items-center gap-3 md:col-span-2">
-                            <input
-                                id="estado"
-                                type="checkbox"
-                                checked={form.estado}
-                                onChange={handleChange("estado")}
-                                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
-                            />
-                            <label htmlFor="estado" className="text-sm text-gray-700 dark:text-gray-300">
-                                Plato activo
-                            </label>
-                        </div>
-
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Fecha de registro <span className="text-error-500">*</span>
@@ -124,6 +111,19 @@ export default function PlatosCreate() {
                                 className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
+                        </div>
+
+                        <div className="flex items-center gap-3 md:col-span-2">
+                            <input
+                                id="estado"
+                                type="checkbox"
+                                checked={form.estado}
+                                onChange={handleChange("estado")}
+                                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                            />
+                            <label htmlFor="estado" className="text-sm text-gray-700 dark:text-gray-300">
+                                Plato activo
+                            </label>
                         </div>
                     </div>
 

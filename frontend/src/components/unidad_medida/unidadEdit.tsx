@@ -118,15 +118,15 @@ export default function UnidadEdit() {
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre de la unidad <span className="text-error-500">*</span></label>
-                                    <input value={form.unidad} onChange={handleChange("unidad")} placeholder="Nombre de la unidad" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input value={form.unidad} onChange={handleChange("unidad")} placeholder="Nombre de la unidad" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required />
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Símbolo <span className="text-error-500">*</span></label>
-                                    <input value={form.simbolo} onChange={handleChange("simbolo")} placeholder="Símbolo de la unidad" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input value={form.simbolo} onChange={handleChange("simbolo")} placeholder="Símbolo de la unidad" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required />
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Equivalencia a unidad base <span className="text-error-500">*</span></label>
-                                    <input type="number" value={form.conversion} onChange={handleChange("conversion")} placeholder="Equivalencia a unidad base" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required min={0.000001} step={0.000001} />
+                                    <input type="number" value={form.conversion} onChange={handleChange("conversion")} placeholder="Equivalencia a unidad base" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required min={0.000001} step={0.000001} />
                                 </div>
                             </div>
 

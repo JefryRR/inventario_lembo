@@ -323,7 +323,7 @@ export default function VentasPage() {
                                     (col) => (
                                         <th
                                             key={col}
-                                            className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                                            className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                                         >
                                             {col}
                                         </th>
@@ -359,7 +359,7 @@ export default function VentasPage() {
                                                 : ""
                                         }`}
                                     >
-                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                                        <td className="px-4 py-4 text-center text-sm text-gray-800 dark:text-white/90">
                                             {det.nombre_producto}
                                         </td>
                                         <td className="px-4 py-4 text-center text-sm text-gray-800 dark:text-gray-400">
@@ -368,10 +368,10 @@ export default function VentasPage() {
                                         <td className="px-4 py-4 text-center text-sm text-gray-800 dark:text-gray-400">
                                             {det.simbolo}
                                         </td>
-                                        <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             $ {det.precio_venta}
                                         </td>
-                                        <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             $ {det.precio_venta * det.cantidad}
                                         </td>
                                         <td className="px-4 py-4 text-center text-sm text-gray-600 dark:text-gray-300">

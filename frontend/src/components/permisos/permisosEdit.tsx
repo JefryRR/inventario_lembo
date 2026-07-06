@@ -161,7 +161,7 @@ export default function PermisosEdit() {
                                     <select
                                         value={form[field] ? "1" : "0"}
                                         onChange={handleBoolChange(field)}
-                                        className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                        className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                     >
                                         <option value="0">No</option>
                                         <option value="1">Sí</option>

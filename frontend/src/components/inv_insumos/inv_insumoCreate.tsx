@@ -199,7 +199,7 @@ export default function UsersCreate() {
                             value={form.nombre_producto}
                             onChange={handleChange("nombre_producto")}
                             placeholder="Harina de trigo"
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90"
+                            className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             required
                         />
                     </div>
@@ -212,8 +212,7 @@ export default function UsersCreate() {
                             type="number"
                             value={form.cantidad}
                             onChange={handleChange("cantidad")}
-                            placeholder="10"
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 dark:border-gray-700 dark:text-white/90"
+                            className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             required
                         />
                     </div>
@@ -225,7 +224,7 @@ export default function UsersCreate() {
                         <select
                             value={form.unid_medida_id || ""}
                             onChange={handleChange("unid_medida_id")}
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                            className="h-11 w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             required                            
                         >
                             <option value="" disabled>
@@ -248,7 +247,7 @@ export default function UsersCreate() {
                             value={form.precio_unitario}
                             onChange={handleChange("precio_unitario")}
                             placeholder="12250.42"
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 dark:border-gray-700 dark:text-white/90"
+                            className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             required
                         />
                     </div>
@@ -261,7 +260,7 @@ export default function UsersCreate() {
                             type="date"
                             value={form.fecha_vencimiento}
                             onChange={handleChange("fecha_vencimiento")}
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                            className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             required
                         />
                     </div>
@@ -272,7 +271,7 @@ export default function UsersCreate() {
                         <select
                             value={form.tipo_id || ""}
                             onChange={handleChange("tipo_id")}
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                            className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             required
                             disabled={loadingTipoIns || tipoIns.length === 0}
                         >
@@ -295,7 +294,7 @@ export default function UsersCreate() {
                             value={form.min_stock}
                             onChange={handleChange("min_stock")}
                             placeholder="18.24"
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 dark:border-gray-700 dark:text-white/90"
+                            className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             required
                         />
                     </div>
@@ -314,7 +313,7 @@ export default function UsersCreate() {
                                 type="date"
                                 value={facturaState.fecha_compra}
                                 onChange={handleFacturaDateChange}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             />
                         </div>
                         <div>
@@ -325,7 +324,7 @@ export default function UsersCreate() {
                                 type="file"
                                 accept=".jpg,.jpeg,.png,.pdf"
                                 onChange={handleArchivoChange}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             />
                             {facturaState.archivo && (
                                 <p className="mt-1 text-xs text-gray-500">

@@ -17,7 +17,7 @@ class TipoOrigen(str, Enum):
 
 class PerdidaBase(BaseModel):
     inv_prod_id: int
-    cantidad: int
+    cantidad: float
     origen: TipoOrigen
     motivo: TipoPerdida
     fecha_reporte: datetime

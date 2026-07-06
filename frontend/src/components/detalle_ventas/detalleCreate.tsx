@@ -238,7 +238,7 @@ export default function DetalleCreate() {
                             <select
                                 value={form.venta_id}
                                 onChange={handleChange("venta_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                                 disabled={loadingVentas || ventas.length === 0}
                             >
@@ -261,7 +261,7 @@ export default function DetalleCreate() {
                             <select
                                 value={form.inv_prod_id}
                                 onChange={handleChange("inv_prod_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                                 disabled={loadingProductos || productos.length === 0}
                             >
@@ -286,7 +286,7 @@ export default function DetalleCreate() {
                                 value={form.cantidad}
                                 onChange={handleChange("cantidad")}
                                 min={1}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
                                 required
                             />
                         </div>
@@ -302,7 +302,7 @@ export default function DetalleCreate() {
                                 value={form.precio_venta}
                                 onChange={handleChange("precio_venta")}
                                 placeholder="12500"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
                                 required
                             />
                         </div>
@@ -314,7 +314,7 @@ export default function DetalleCreate() {
                             <select
                                 value={form.unid_medida_id}
                                 onChange={handleChange("unid_medida_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                                 disabled={loadingMedidas || medidas.length === 0}
                             >
@@ -336,7 +336,7 @@ export default function DetalleCreate() {
                             <select
                                 value={form.estado_venta}
                                 onChange={handleChange("estado_venta")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             >
                                 {ESTADO_OPTIONS.map((option) => (
