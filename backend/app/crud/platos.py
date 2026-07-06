@@ -81,6 +81,7 @@ def all_platos(db: Session):
     try:
         query = text("""SELECT id_plato, nombre_plato, estado, fecha_registro
                         FROM platos
+                        ORDER BY fecha_registro DESC
                     """)
         result = db.execute(query).mappings().all()
         return result

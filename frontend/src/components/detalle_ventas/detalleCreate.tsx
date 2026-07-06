@@ -109,6 +109,7 @@ export default function DetalleCreate() {
                     p.fecha_vencimiento ? p.fecha_vencimiento.slice(0, 10) > fecha_actual : true
                 );
                 setProductos(productosVigentes);
+                
                 const hoy = new Date().toISOString().slice(0, 10);
                 const ventasHoy = ventaList.filter((v: VentaOption) => v.fecha_venta?.slice(0, 10) === hoy);
                 setVentas(ventasHoy);

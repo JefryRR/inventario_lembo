@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,6 +10,20 @@ logger = logging.getLogger(__name__)
 
 def create_alimento(db: Session, alimento: AlimentoCreate) -> Optional[bool]:
     try:
+        query_conversion = text("""
+            SELECT conversion
+            FROM unidades_medida
+            WHERE id_unidad = :unid_medida_id
+        """)
+        
+        result_conv = db.execute(
+            query_conversion, 
+            {"unid_medida_id": alimento.unid_medida_id}
+        ).mappings().first()
+
+        if not result_conv:
+            logger.error("Unidad de medida no encontrada")
+            raise Exception("Unidad de medida no encontrada")
         query = text("""
           INSERT INTO alimento_produccion (
               lote_id, insumo_id, fecha_alimento, cantidad, unid_medida_id
@@ -16,13 +31,35 @@ def create_alimento(db: Session, alimento: AlimentoCreate) -> Optional[bool]:
               :lote_id, :insumo_id, :fecha_alimento, :cantidad, :unid_medida_id
           )
       """)
-        db.execute(query, alimento.model_dump())
+        params = alimento.model_dump()
+        params["cant_convertida"] = params["cantidad"] * float(result_conv["conversion"])
+        db.execute(query, params)
         db.commit()
         return True
     except SQLAlchemyError as e:
-      db.rollback()
-      logger.error(f"Error al crear alimento: {e}")
-      raise Exception("Error de base de datos al crear el registro de alimento")
+        db.rollback()
+        orig = getattr(e, 'orig', None)
+        
+        # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+        if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+            trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+            if "no hay suficiente stock" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar esta producción")
+
+            if "incompatibles" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="La unidad del alimento y la del inventario son incompatibles")
+
+            if "no se encontró el insumo" in trigger_msg.lower():
+                raise HTTPException(status_code=404, detail="No se encontró el insumo o la unidad en el inventario")
+
+            if orig.args[0] == 1264 or "out of range" in trigger_msg.lower():
+                raise HTTPException(
+                    status_code=422,
+                    detail="La cantidad ingresada es demasiado grande. Verifique el valor y las unidades."
+                    )
+        logger.error(f"Error al crear alimento: {e}")
+        raise HTTPException(status_code=500, detail="Error de base de datos al crear el registro de alimento")
 
 def get_all_alimentos(db: Session):
     try:
@@ -67,11 +104,25 @@ def get_alimento_by_id(db: Session, id: int):
 
 def update_alimento_by_id(db: Session, id_alimento: int, alimento: AlimentoUpdate) -> Optional[bool]:
     try:
-    # Solo los campos enviados por el cliente
+        # Obtener el factor de conversión
+        conv = db.execute(text("""
+            SELECT conversion FROM unidades_medida
+            WHERE id_unidad = :unid_medida_id
+            """), {"unid_medida_id": alimento.unid_medida_id}).mappings().first()
+                
+        if not conv:
+            raise Exception("Unidad de medida no encontrada")
+        # Solo los campos enviados por el cliente
         alimento_data = alimento.model_dump(exclude_unset=True)
+
         if not alimento_data:
-             return False  # nada que actualizar
-         # Construir dinámicamente la sentencia UPDATE
+            return False  # nada que actualizar
+
+        # cant_convertida solo se calcula aquí si el cliente envió 'cantidad';
+        # de lo contrario el trigger BEFORE UPDATE la recalcula usando OLD.cantidad
+        if "cantidad" in alimento_data:
+            alimento_data["cant_convertida"] = alimento_data["cantidad"] * float(conv["conversion"])
+        # Construir dinámicamente la sentencia UPDATE
         set_clauses = ", ".join([f"{key} = :{key}" for key in alimento_data.keys()])
         sentencia = text(f"""
              UPDATE alimento_produccion
@@ -85,8 +136,28 @@ def update_alimento_by_id(db: Session, id_alimento: int, alimento: AlimentoUpdat
         return result.rowcount > 0
     except SQLAlchemyError as e:
             db.rollback()
-            logger.error(f"Error al actualizar lote {id_alimento}: {e}")
-            raise Exception("Error de base de datos al actualizar el registro de alimento")
+            orig = getattr(e, 'orig', None)
+        
+            # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+            if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+                trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+                if "no hay suficiente stock" in trigger_msg.lower():
+                    raise HTTPException(status_code=409, detail="No hay suficiente stock para actualizar esta producción")
+
+                if "incompatibles" in trigger_msg.lower():
+                    raise HTTPException(status_code=409, detail="La unidad del alimento y la del inventario son incompatibles")
+
+                if "no se encontró el insumo" in trigger_msg.lower():
+                    raise HTTPException(status_code=404, detail="No se encontró el insumo o la unidad en el inventario")
+
+                if orig.args[0] == 1264 or "out of range" in trigger_msg.lower():
+                    raise HTTPException(
+                        status_code=422,
+                        detail="La cantidad ingresada es demasiado grande. Verifique el valor y las unidades."
+                        )
+            logger.error(f"Error al actualizar alimento {id_alimento}: {e}")
+            raise HTTPException(status_code=500, detail="Error de base de datos al actualizar el registro de alimento")
 
 def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10):
     """
@@ -140,5 +211,3 @@ def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10):
         raise Exception(
             "Error de base de datos al obtener los registros de alimentos"
         )
-        
-        

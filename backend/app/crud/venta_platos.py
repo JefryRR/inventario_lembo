@@ -84,6 +84,7 @@ def all_ventas_platos(db: Session):
         query = text("""SELECT vp.id_venta_plato, vp.plato_id, vp.cantidad, vp.precio, vp.fecha_venta, p.nombre_plato
                         FROM venta_platos vp
                         LEFT JOIN platos p ON vp.plato_id = p.id_plato
+                        ORDER BY vp.fecha_venta DESC
                     """)
         result = db.execute(query).mappings().all()
         return result
@@ -112,6 +113,7 @@ def get_ventas_platos_paginated(db: Session, skip: int = 0, limit: int = 10):
                         SELECT vp.id_venta_plato, vp.plato_id, vp.cantidad, vp.precio, vp.fecha_venta, p.nombre_plato
                         FROM venta_platos vp
                         LEFT JOIN platos p ON vp.plato_id = p.id_plato
+                        ORDER BY vp.fecha_venta DESC
                         LIMIT :limit OFFSET :skip
                     """)
             

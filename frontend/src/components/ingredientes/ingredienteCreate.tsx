@@ -26,6 +26,7 @@ type ProductoOption = {
     nombre_producto: string;
     cantidad: number;
     simbolo: string;
+    fecha_vencimiento: string;
 };
 
 type InsumoOption = {
@@ -103,21 +104,33 @@ export default function IngredienteCreate() {
                         ? insumosData
                         : [];
 
-                const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
-                    const esAlimento = insumo.tipo_id === 2;
-                    const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
-                    return esAlimento && noVencido;
-                });
 
                 const medidaList = Array.isArray(medidasData?.medidas)
                     ? medidasData.medidas
                     : Array.isArray(medidasData)
                         ? medidasData
                         : [];
+                const fecha_actual = new Date().toISOString().slice(0, 10);
+                const productosVigentes = productoList.filter((p: ProductoOption) => {
+                    const noVencido = p.fecha_vencimiento
+                        ? p.fecha_vencimiento.slice(0, 10) > fecha_actual
+                        : true;
+                    const conStock = p.cantidad > 0;
+                    return noVencido && conStock;
+                });
 
-                setProductos(productoList);
+                const insumosVigentes = insumoList.filter((i: InsumoOption) => {
+                    const noVencido = i.fecha_vencimiento
+                        ? i.fecha_vencimiento.slice(0, 10) > fecha_actual
+                        : true;
+                    const conStock = i.cantidad > 0;
+                    const esTipoInsumo = i.tipo_id === 2; // Filtrar solo insumos (tipo_id === 1)
+                    return noVencido && conStock && esTipoInsumo;
+                });
+
+                setProductos(productosVigentes);
                 setPlatos(platoList);
-                setInsumos(alimentosVigentes);
+                setInsumos(insumosVigentes);
                 setMedidas(medidaList);
 
             } catch (requestError: any) {
