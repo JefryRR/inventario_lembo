@@ -71,11 +71,12 @@ export default function TypesCreate() {
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <div>
                             <label htmlFor="nombre_tipo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Nombre del tipo de insumo
+                                Nombre del tipo de insumo<span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 id="nombre_tipo"
+                                required
                                 value={form.nombre_tipo}
                                 onChange={(e) => setForm({ ...form, nombre_tipo: e.target.value })}
                                 className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"

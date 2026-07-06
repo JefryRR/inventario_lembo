@@ -215,7 +215,7 @@ export default function SolicitudCreate() {
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="flex flex-col gap-2 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Nueva solicitud</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Nueva solicitud de insumo</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Completa los datos obligatorios para registrar la solicitud.
             </p>
@@ -273,10 +273,8 @@ export default function SolicitudCreate() {
                 Cantidad <span className="text-error-500">*</span>
               </label>
               <input
-                type="number"
                 value={form.cantidad_in}
                 onChange={handleChange("cantidad_in")}
-                min={1}
                 className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                 required
               />

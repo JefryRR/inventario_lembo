@@ -6,7 +6,7 @@ import { apiFetch } from "@/services/api";
 type MortalidadFormState = {
 	lote_id: number;
 	fecha_reporte: string;
-	cantidad: number;
+	cantidad: string;
 	observacion: string | null;
 	user_id: number;
 };
@@ -22,7 +22,7 @@ type LoteOption = {
 const initialState: MortalidadFormState = {
 	lote_id: 0,
 	fecha_reporte: "",
-	cantidad: 0,
+	cantidad: "",
 	observacion: null,
 	user_id: 0,
 };
@@ -96,7 +96,7 @@ export default function MortalidadCreate() {
 		}
 
 
-		if (form.cantidad <= 0) {
+		if (form.cantidad <= "0") {
 			setError("La cantidad debe ser mayor a cero");
 			setLoading(false);
 			return;

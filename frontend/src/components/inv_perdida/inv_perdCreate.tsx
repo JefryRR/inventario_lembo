@@ -285,7 +285,6 @@ export default function InvPerdCreate() {
                                 Cantidad <span className="text-error-500">*</span>
                             </label>
                             <input
-                                type="number"
                                 value={form.cantidad}
                                 onChange={handleChange("cantidad")}
                                 placeholder="10"

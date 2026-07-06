@@ -9,7 +9,7 @@ type AlimentoFormState = {
     lote_id: number;
     insumo_id: number;
     fecha_alimento: string;
-    cantidad: number;
+    cantidad: string;
     unid_medida_id: number;
     nombre_producto: string;
     simbolo: string;
@@ -41,7 +41,7 @@ const initialState: AlimentoFormState = {
     lote_id: 0,
     insumo_id: 0,
     fecha_alimento: "",
-    cantidad: 0,
+    cantidad: "",
     unid_medida_id: 0,
     nombre_producto: "",
     simbolo: "",
@@ -270,6 +270,7 @@ export default function AlimentoCreate() {
                 value={form.cantidad}
                 onChange={handleChange("cantidad")}
                 min={1}
+                placeholder="0"
                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
                 required
               />

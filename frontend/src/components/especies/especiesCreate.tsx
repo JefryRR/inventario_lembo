@@ -74,11 +74,12 @@ export default function EspeciesCreate() {
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <div>
                             <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Nombre de especie
+                                Nombre de especie<span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 id="nombre"
+                                required
                                 value={form.nombre_especie}
                                 onChange={(e) => setForm({ ...form, nombre_especie: e.target.value })}
                                 className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
