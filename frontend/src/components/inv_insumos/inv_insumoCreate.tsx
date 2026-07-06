@@ -303,7 +303,7 @@ export default function UsersCreate() {
 
                 <div className="mt-6 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                     <h4 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Factura de compra <span className="font-normal text-gray-400">(opcional)</span>
+                        Factura de compra <span className="font-normal text-gray-400">(Obligatorio)</span>
                     </h4>
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <div>
