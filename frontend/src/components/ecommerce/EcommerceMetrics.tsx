@@ -33,20 +33,29 @@ export default function EcommerceMetrics() {
   const [totalMensual, setTotalMensual] = useState<number>(0);
   const [totalPerdidas, setTotalPerdidas] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const mesActual = new Date().toLocaleDateString("es-CO", {
+    month: "long",
+  });
 
   useEffect(() => {
     let mounted = true;
 
     const loadMetrics = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const [ventasData, detallesData, perdidasData] = await Promise.all([
+        const [ventasResult, detallesResult, perdidasResult] = await Promise.allSettled([
           apiFetch("ventas/all/ventas"),
           apiFetch("detalles-venta/all/detalles"),
           apiFetch("inv_perdida/all/perdidas"),
         ]);
 
         if (!mounted) return;
+
+        const ventasData = ventasResult.status === "fulfilled" ? ventasResult.value : [];
+        const detallesData = detallesResult.status === "fulfilled" ? detallesResult.value : [];
+        const perdidasData = perdidasResult.status === "fulfilled" ? perdidasResult.value : [];
 
         const ventas: VentaOut[] = Array.isArray(ventasData?.ventas)
           ? ventasData.ventas
@@ -100,6 +109,9 @@ export default function EcommerceMetrics() {
         }
       } catch (err) {
         console.error("Error al cargar métricas de ecommerce:", err);
+        if (mounted) {
+          setError("No se pudieron cargar las métricas.");
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -137,13 +149,18 @@ export default function EcommerceMetrics() {
         <div className="flex items-end justify-between mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Ventas Mensuales
+              Ventas Mensuales ({mesActual})
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
               {loading ? "Cargando..." : `$${totalFormateado}`}
             </h4>
           </div>
         </div>
+        {error && (
+          <p className="mt-3 text-xs text-error-500">
+            {error}
+          </p>
+        )}
       </div>
 
       {/* Pérdidas mensuales — funcionalidad nueva */}
@@ -154,7 +171,7 @@ export default function EcommerceMetrics() {
         <div className="flex items-end justify-between mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Pérdidas
+              Pérdidas ({mesActual})
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
               {loading ? "Cargando..." : `$${perdidasFormateado}`}

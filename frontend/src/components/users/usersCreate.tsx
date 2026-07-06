@@ -147,7 +147,7 @@ export default function UsersCreate() {
                                 value={form.nombre_user}
                                 onChange={handleChange("nombre_user")}
                                 placeholder="Juan Pérez"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -161,7 +161,7 @@ export default function UsersCreate() {
                                 value={form.documento}
                                 onChange={handleChange("documento")}
                                 placeholder="1001234567"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -173,7 +173,7 @@ export default function UsersCreate() {
                             <select
                                 value={form.tipo_documento}
                                 onChange={handleChange("tipo_documento")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             >
                                 <option value="CC">CC</option>
@@ -191,7 +191,7 @@ export default function UsersCreate() {
                                 value={form.telefono}
                                 onChange={handleChange("telefono")}
                                 placeholder="3001234567"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -205,7 +205,7 @@ export default function UsersCreate() {
                                 value={form.correo}
                                 onChange={handleChange("correo")}
                                 placeholder="usuario@correo.com"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -219,7 +219,7 @@ export default function UsersCreate() {
                                 value={form.pass_hash}
                                 onChange={handleChange("pass_hash")}
                                 placeholder="Mínimo 8 caracteres"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                                 minLength={8}
                             />
@@ -229,7 +229,7 @@ export default function UsersCreate() {
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Rol <span className="text-error-500">*</span>
                             </label>
-                            <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingRoles || roles.length === 0}>
+                            <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required disabled={loadingRoles || roles.length === 0}>
                                 <option value="" disabled>
                                     {loadingRoles ? "Cargando roles..." : "Selecciona un rol"}
                                 </option>

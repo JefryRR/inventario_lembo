@@ -123,7 +123,7 @@ export default function MaquinaCreate() {
                                 value={form.nombre_maq}
                                 onChange={handleChange("nombre_maq")}
                                 placeholder="Pernil de pollo"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -137,7 +137,7 @@ export default function MaquinaCreate() {
                                 value={form.tipo_maq}
                                 onChange={handleChange("tipo_maq")}
                                 placeholder="Tipo de máquina"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -151,7 +151,7 @@ export default function MaquinaCreate() {
                                 value={form.marca}
                                 onChange={handleChange("marca")}
                                 placeholder="Marca de la máquina"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -165,7 +165,7 @@ export default function MaquinaCreate() {
                                 value={form.modelo}
                                 onChange={handleChange("modelo")}
                                 placeholder="Modelo de la máquina"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -179,7 +179,7 @@ export default function MaquinaCreate() {
                                 value={form.num_serie}
                                 onChange={handleChange("num_serie")}
                                 placeholder="Número de serie de la máquina"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -192,7 +192,7 @@ export default function MaquinaCreate() {
                                 type="date"
                                 value={form.fecha_compra}
                                 onChange={handleChange("fecha_compra")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -203,7 +203,7 @@ export default function MaquinaCreate() {
                             <select
                                 value={form.estado}
                                 onChange={handleChange("estado")}
-                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required
                             >
                                 {estados.map((estado) => (
@@ -221,7 +221,7 @@ export default function MaquinaCreate() {
                                 value={form.ubicacion}
                                 onChange={handleChange("ubicacion")}
                                 placeholder="Bodega principal"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             />
                         </div>
@@ -234,7 +234,7 @@ export default function MaquinaCreate() {
                                 value={form.observaciones}
                                 onChange={handleChange("observaciones")}
                                 placeholder="Ingrese observaciones"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             />
                         </div>
                     </div>

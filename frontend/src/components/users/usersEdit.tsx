@@ -147,17 +147,17 @@ export default function UsersEdit() {
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre completo <span className="text-error-500">*</span></label>
-                                    <input value={form.nombre_user} onChange={handleChange("nombre_user")} placeholder="Juan Pérez" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input value={form.nombre_user} onChange={handleChange("nombre_user")} placeholder="Juan Pérez" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Documento <span className="text-error-500">*</span></label>
-                                    <input type="number" value={form.documento} onChange={handleChange("documento")} placeholder="1001234567" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input type="number" value={form.documento} onChange={handleChange("documento")} placeholder="1001234567" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de documento <span className="text-error-500">*</span></label>
-                                    <select value={form.tipo_documento} onChange={handleChange("tipo_documento")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.tipo_documento} onChange={handleChange("tipo_documento")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required>
                                         <option value="CC">CC</option>
                                         <option value="TI">TI</option>
                                         <option value="CE">CE</option>
@@ -167,22 +167,22 @@ export default function UsersEdit() {
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono <span className="text-error-500">*</span></label>
-                                    <input value={form.telefono} onChange={handleChange("telefono")} placeholder="3001234567" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input value={form.telefono} onChange={handleChange("telefono")} placeholder="3001234567" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Correo <span className="text-error-500">*</span></label>
-                                    <input type="email" value={form.correo} onChange={handleChange("correo")} placeholder="usuario@correo.com" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" required />
+                                    <input type="email" value={form.correo} onChange={handleChange("correo")} placeholder="usuario@correo.com" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña (dejar en blanco para no cambiar)</label>
-                                    <input type="password" value={form.pass_hash} onChange={handleChange("pass_hash")} placeholder="Mínimo 8 caracteres" className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800" minLength={8} />
+                                    <input type="password" value={form.pass_hash} onChange={handleChange("pass_hash")} placeholder="Mínimo 8 caracteres" className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" minLength={8} />
                                 </div>
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Rol <span className="text-error-500">*</span></label>
-                                    <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
+                                    <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required>
                                         {form.rol_id && !roles.some((role) => String(role.id_rol) === form.rol_id) && (
                                             <option value={form.rol_id}>{form.nombre_rol || "Rol asignado"}</option>
                                         )}

@@ -273,7 +273,6 @@ export default function SolicitudCreate() {
                 Cantidad <span className="text-error-500">*</span>
               </label>
               <input
-                type="number"
                 value={form.cantidad_in}
                 onChange={handleChange("cantidad_in")}
                 min={1}

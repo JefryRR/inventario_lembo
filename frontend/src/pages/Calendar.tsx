@@ -283,7 +283,7 @@ const CalendarProgramacion: React.FC = () => {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, plato_id: Number(e.target.value) }))
                   }
-                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-gray-300 focus:outline-none focus:ring focus:ring-gray-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                 >
                   <option value="">Selecciona un plato</option>
                   {platos.map((p) => (
@@ -307,7 +307,7 @@ const CalendarProgramacion: React.FC = () => {
                       tipo_comida: e.target.value as TipoComida,
                     }))
                   }
-                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-gray-300 focus:outline-none focus:ring focus:ring-gray-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                 >
                   <option value="">Selecciona el tipo</option>
                   <option value="desayuno">Desayuno</option>
@@ -322,8 +322,6 @@ const CalendarProgramacion: React.FC = () => {
                   Cantidad de personas <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="number"
-                  min={1}
                   value={form.cant_personas}
                   onChange={(e) =>
                     setForm((f) => ({
@@ -331,7 +329,7 @@ const CalendarProgramacion: React.FC = () => {
                       cant_personas: Math.max(1, Number(e.target.value)),
                     }))
                   }
-                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-gray-300 focus:outline-none focus:ring focus:ring-gray-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                 />
               </div>
 
@@ -343,10 +341,11 @@ const CalendarProgramacion: React.FC = () => {
                 <input
                   type="text"
                   value={form.horario_visita}
+                  placeholder="12:00 pm"
                   onChange={(e) =>
                     setForm((f) => ({ ...f, horario_visita: e.target.value }))
                   }
-                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-gray-300 focus:outline-none focus:ring focus:ring-gray-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                 />
               </div>
 
@@ -364,7 +363,7 @@ const CalendarProgramacion: React.FC = () => {
                       fecha_programacion: e.target.value,
                     }))
                   }
-                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-gray-300 focus:outline-none focus:ring focus:ring-gray-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                 />
               </div>
             </div>

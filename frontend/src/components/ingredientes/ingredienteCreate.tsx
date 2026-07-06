@@ -250,7 +250,7 @@ export default function IngredienteCreate() {
                             <select
                                 value={form.plato_id}
                                 onChange={handleChange("plato_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                                 disabled={loadingPlatos || platos.length === 0}
                             >
@@ -273,7 +273,7 @@ export default function IngredienteCreate() {
                             <select
                                 value={form.origen_inv}
                                 onChange={handleChange("origen_inv")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             >
                                 <option value={0} disabled>Selecciona el origen</option>
@@ -290,7 +290,7 @@ export default function IngredienteCreate() {
                             <select
                                 value={form.inventario_id}
                                 onChange={handleChange("inventario_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                                 disabled={form.origen_inv === 0 || (form.origen_inv === 1 ? productos.length === 0 : insumos.length === 0)}
                             >
@@ -329,7 +329,7 @@ export default function IngredienteCreate() {
                                 onChange={handleChange("cant_inv")}
                                 min={0.01}
                                 step="any"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-green-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
                                 required
                             />
                         </div>
@@ -342,7 +342,7 @@ export default function IngredienteCreate() {
                             <select
                                 value={form.unid_med_id}
                                 onChange={handleChange("unid_med_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                                 disabled={loadingMedidas || medidas.length === 0}
                             >

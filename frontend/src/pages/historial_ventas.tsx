@@ -246,7 +246,7 @@ export default function VentasPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Buscar ventas..."
-                        className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                        className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-500"
                     />
                     <button
                         onClick={() => handleExportarVentas("excel")}
@@ -272,7 +272,7 @@ export default function VentasPage() {
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(!isOpen)}
-                                className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm focus:ring-gray-500 text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:gray-brand-800"
                                 aria-label="Seleccionar rango de fechas"
                             >
                                 <span className="truncate">
@@ -383,7 +383,7 @@ export default function VentasPage() {
                                                         onClick={() => toggleExpanded(venta.id_venta)}
                                                         title="Ver detalles"
                                                         className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${expandedVenta === venta.id_venta
-                                                            ? "border-brand-300 bg-brand-50 text-green-600 dark:border-green-700 dark:bg-green-500/10 dark:text-green-400"
+                                                            ? "border-green-500 bg-brand-50 text-green-600 dark:border-green-700 dark:bg-green-500/10 dark:text-green-400"
                                                             : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:bg-transparent dark:text-gray-300 dark:hover:bg-white/[0.05]"
                                                             }`}
                                                     >

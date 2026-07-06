@@ -153,7 +153,7 @@ export default function VentasCreate() {
                                 value={form.nombre_comprador}
                                 onChange={handleChange("nombre_comprador")}
                                 placeholder="Juan Pérez"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                                 minLength={3}
                                 maxLength={25}
@@ -168,7 +168,7 @@ export default function VentasCreate() {
                                 value={form.id_comprador}
                                 onChange={handleChange("id_comprador")}
                                 placeholder="1001234567"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 minLength={3}
                                 maxLength={20}
                             />

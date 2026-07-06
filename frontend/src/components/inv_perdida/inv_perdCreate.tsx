@@ -24,6 +24,8 @@ type InvProdOption = {
     id_inventario: number;
     nombre_producto: string;
     nombre_lote: string;
+    cantidad: number;
+    unid_medida_id: number;
 };
 
 type Unid_medOption = {
@@ -240,7 +242,7 @@ export default function InvPerdCreate() {
                             <select
                                 value={form.origen}
                                 onChange={handleChange("origen")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             >
                                 <option value="" disabled>
@@ -258,7 +260,7 @@ export default function InvPerdCreate() {
                                 Nombre producto <span className="text-error-500">*</span>
                             </label>
                             <select value={form.inv_prod_id || ""} onChange={handleChange("inv_prod_id")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required disabled={(form.origen === "produccion" && (loadingInvprod || invProd.length === 0)) || (loadingInvinsumo && form.origen === "insumo" && invInsumo.length === 0)}>
                                 <option value="" disabled>
                                     {loadingInvprod ? "Cargando productos..." : "Selecciona un producto"}
@@ -273,7 +275,7 @@ export default function InvPerdCreate() {
                                 {form.origen === "produccion" && (
                                     invProd.map((prod) => (
                                         <option key={prod.id_inventario} value={String(prod.id_inventario)}>
-                                            {prod.nombre_producto} - Lote {prod.nombre_lote} - ID inventario {prod.id_inventario}
+                                            {prod.nombre_producto} - Lote {prod.nombre_lote} - ID {prod.id_inventario} - {prod.cantidad} {unidMedidas.find((um) => um.id_unidad === prod.unid_medida_id)?.simbolo || ""}
                                         </option>
                                     ))
                                 )}
@@ -285,11 +287,10 @@ export default function InvPerdCreate() {
                                 Cantidad <span className="text-error-500">*</span>
                             </label>
                             <input
-                                type="number"
                                 value={form.cantidad}
                                 onChange={handleChange("cantidad")}
                                 placeholder="10"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             />
                         </div>
@@ -301,7 +302,7 @@ export default function InvPerdCreate() {
                             <select
                                 value={form.motivo}
                                 onChange={handleChange("motivo")}
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             >
                                 <option value="" disabled>
@@ -320,7 +321,7 @@ export default function InvPerdCreate() {
                                 Unidad <span className="text-error-500">*</span>
                             </label>
                             <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")}
-                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required>
                                 <option value="" disabled>
                                     {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
@@ -340,7 +341,7 @@ export default function InvPerdCreate() {
                                 value={form.observaciones}
                                 onChange={handleChange("observaciones")}
                                 placeholder="Observaciones"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                             />
                         </div>
                     </div>

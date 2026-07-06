@@ -245,7 +245,7 @@ export default function VentaPlatos() {
 						<button
 							type="button"
 							onClick={() => setIsOpen(!isOpen)}
-							className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+							className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm focus:ring-gray-500 text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
 							aria-label="Seleccionar rango de fechas"
 						>
 							<span className="truncate">

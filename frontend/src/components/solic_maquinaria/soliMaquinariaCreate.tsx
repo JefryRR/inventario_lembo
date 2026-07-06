@@ -290,7 +290,7 @@ export default function SolicitudCreate() {
                 id="observaciones"
                 value={form.observaciones || ""}
                 onChange={(e) => setForm({ ...form, observaciones: e.target.value })}
-                className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                 placeholder="Observaciones"
               />
             </div>

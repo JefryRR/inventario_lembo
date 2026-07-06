@@ -206,7 +206,7 @@ export default function InvInsumo() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar inventario..."
-                            className="h-10 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 sm:w-50"
+                            className="h-11 rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-50"
                         />
                     </div>
                     <div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
@@ -219,7 +219,7 @@ export default function InvInsumo() {
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(!isOpen)}
-                                className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+                                className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 focus:ring-gray-500 text-left text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 aria-label="Seleccionar rango de fechas"
                             >
                                 <span className="truncate">
