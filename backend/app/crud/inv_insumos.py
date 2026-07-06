@@ -54,7 +54,7 @@ def create_insumo(db: Session, insumo: InsumoCreate, factura_url: str | None = N
                 "usuario_id": usuario_id
             })
 
-        db.commit()  # 👈 un solo commit para ambas tablas
+        db.commit()
         return id_insumo
 
     except ValueError:
