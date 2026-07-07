@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from datetime import date
+from fastapi import HTTPException
 from app.schemas.ingredientes import IngredienteCreate, IngredienteUpdate
 import logging
 
@@ -41,6 +41,26 @@ def create_ingrediente(db: Session, ingredientes: IngredienteCreate):
         return True
     except SQLAlchemyError as e:
         db.rollback()
+        orig = getattr(e, 'orig', None)
+        
+        # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+        if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+            trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+            if "no hay suficiente stock" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar esta producción")
+
+            if "incompatible" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="La unidad de medida del ingrediente es incompatible con la del inventario")
+
+            if "no se encontró el inventario" in trigger_msg.lower():
+                raise HTTPException(status_code=404, detail="No se encontró el inventario")
+
+            if orig.args[0] == 1644 or "out of range" in trigger_msg.lower():
+                raise HTTPException(
+                    status_code=422,
+                    detail="La cantidad ingresada es demasiado grande. Verifique el valor y las unidades."
+                    )
         logger.error(f"Error al crear el ingrediente: {e}")
         raise Exception("Error de base de datos al crear el ingrediente")
 
@@ -128,6 +148,26 @@ def update_ingrediente_by_id(db: Session, ingrediente_id: int, ingrediente: Ingr
         return result.rowcount > 0
     except SQLAlchemyError as e:
         db.rollback()
+        orig = getattr(e, 'orig', None)
+        
+        # Errores del trigger (SIGNAL SQLSTATE) vienen en orig como (1644, 'mensaje')
+        if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
+            trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
+
+            if "no hay suficiente stock" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar esta producción")
+
+            if "incompatible" in trigger_msg.lower():
+                raise HTTPException(status_code=409, detail="La unidad de medida del ingrediente es incompatible con la del inventario")
+
+            if "no se encontró el inventario" in trigger_msg.lower():
+                raise HTTPException(status_code=404, detail="No se encontró el inventario")
+
+            if orig.args[0] == 1644 or "out of range" in trigger_msg.lower():
+                raise HTTPException(
+                    status_code=422,
+                    detail="La cantidad ingresada es demasiado grande. Verifique el valor y las unidades."
+                    )
         logger.error(f"Error al actualizar el ingrediente {ingrediente_id}: {e}")
         raise Exception("Error de base de datos al actualizar el ingrediente")
     
@@ -253,6 +293,7 @@ def all_ingredientes(db: Session):
                     LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
                     LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
                     LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
+                    ORDER BY ip.fecha_registro DESC
                     """)
         result = db.execute(query).mappings().all()
         return result
@@ -296,7 +337,9 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
                             LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
                             LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
                             LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
+                            ORDER BY ip.fecha_registro DESC
                             LIMIT :limit OFFSET :skip
+                          
                         """)
             
         ingredientes_list = db.execute(

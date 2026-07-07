@@ -22,6 +22,7 @@ class AlimentoUpdate(BaseModel):
 class AlimentoOut(AlimentoBase):
     id_alimento: int
     nombre_producto: str
+    cant_convertida: Optional[float] = None
     simbolo: str
     nombre_lote: str
 

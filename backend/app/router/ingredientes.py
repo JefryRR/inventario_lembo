@@ -27,8 +27,6 @@ def create_ingrediente(
         
         crud_ingredientes.create_ingrediente(db, ingrediente)
         return {"message": "Ingrediente registrado correctamente"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except HTTPException:
         raise
     except Exception as e:

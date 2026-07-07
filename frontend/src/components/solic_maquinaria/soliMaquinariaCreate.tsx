@@ -22,6 +22,7 @@ type MaquinariaOption = {
   id_maquina: number;
   nombre_maq: string;
   tipo_maq: string;
+  num_serie: string;
 };
 
 type UserOption = {
@@ -244,7 +245,7 @@ export default function SolicitudCreate() {
                 </option>
                 {maquinaria.map((maq) => (
                   <option className="dark:text-black/90" key={maq.id_maquina} value={maq.id_maquina}>
-                    {maq.nombre_maq}
+                    {maq.nombre_maq} - N. serie: ({maq.num_serie})
                   </option>
                 ))}
               </select>
