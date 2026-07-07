@@ -155,11 +155,11 @@ export default function MortalidadCreate() {
 								required
 								disabled={loadingLotes || lotes.length === 0}
 							>
-								<option value={0} disabled>
+								<option className="dark:text-black" value={0} disabled>
 									{loadingLotes ? "Cargando lotes..." : "Selecciona un lote"}
 								</option>
 								{lotes.map((lote) => (
-									<option key={lote.id_lote} value={lote.id_lote}>
+									<option className="dark:text-black" key={lote.id_lote} value={lote.id_lote}>
 										{lote.nombre_lote} {lote.nombre_especie ? `- ${lote.nombre_especie}` : ""}
 									</option>
 								))}

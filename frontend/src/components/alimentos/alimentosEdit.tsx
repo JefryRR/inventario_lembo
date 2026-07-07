@@ -243,11 +243,11 @@ export default function AlimentoEdit() {
                                         required
                                         disabled={lotes.length === 0}
                                     >
-                                        <option value={0} disabled>
+                                        <option className="dark:text-black" value={0} disabled>
                                             Selecciona un lote
                                         </option>
                                         {lotes.map((lote) => (
-                                            <option key={lote.id_lote} value={lote.id_lote}>
+                                            <option className="dark:text-black" key={lote.id_lote} value={lote.id_lote}>
                                                 {lote.nombre_lote}
                                             </option>
                                         ))}
@@ -265,11 +265,11 @@ export default function AlimentoEdit() {
                                         required
                                         disabled={insumos.length === 0}
                                     >
-                                        <option value={0} disabled>
+                                        <option className="dark:text-black" value={0} disabled>
                                             Selecciona un producto
                                         </option>
                                         {insumos.map((insumo) => (
-                                            <option key={insumo.id_insumo} value={insumo.id_insumo}>
+                                            <option className="dark:text-black" key={insumo.id_insumo} value={insumo.id_insumo}>
                                                 {insumo.nombre_producto} cantidad: {insumo.cantidad} {insumo.simbolo}
                                             </option>
                                         ))}
@@ -301,11 +301,11 @@ export default function AlimentoEdit() {
                                         required
                                         disabled={unidades.length === 0}
                                     >
-                                        <option value={0} disabled>
+                                        <option className="dark:text-black" value={0} disabled>
                                             Selecciona una unidad de medida
                                         </option>
                                         {unidades.map((unidad) => (
-                                            <option key={unidad.id_unidad} value={unidad.id_unidad}>
+                                            <option className="dark:text-black" key={unidad.id_unidad} value={unidad.id_unidad}>
                                                 {unidad.simbolo}
                                             </option>
                                         ))}

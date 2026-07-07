@@ -249,11 +249,11 @@ export default function VentasPage() {
                             }
                             className="h-11 w-80 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-700"
                         >
-                            <option value={0} disabled>
+                            <option className="dark:text-black" value={0} disabled>
                                 {loading ? "Cargando ventas..." : "Selecciona una venta"}
                             </option>
                             {ventasHoy.map((venta) => (
-                                <option key={venta.id_venta} value={venta.id_venta}>
+                                <option className="dark:text-black" key={venta.id_venta} value={venta.id_venta}>
                                     {venta.nombre_comprador}
                                     {venta.fecha_venta? ` - ${new Date(venta.fecha_venta).toLocaleDateString()}`: ""}
                                 </option>

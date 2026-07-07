@@ -217,11 +217,11 @@ export default function SolicitudCreate() {
                 required
                 disabled={loadingUsers || users.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black/90" value={0} disabled>
                   {loadingUsers ? "Cargando usuarios..." : "Selecciona un usuario"}
                 </option>
                 {users.map((user) => (
-                  <option key={user.id_user} value={user.id_user}>
+                  <option className="dark:text-black/90" key={user.id_user} value={user.id_user}>
                     {user.nombre_user}
                   </option>
                 ))}
@@ -239,11 +239,11 @@ export default function SolicitudCreate() {
                 required
                 disabled={loadingMaquinaria || maquinaria.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black/90" value={0} disabled>
                   {loadingMaquinaria ? "Cargando maquinaria..." : "Selecciona una maquinaria"}
                 </option>
                 {maquinaria.map((maq) => (
-                  <option key={maq.id_maquina} value={maq.id_maquina}>
+                  <option className="dark:text-black/90" key={maq.id_maquina} value={maq.id_maquina}>
                     {maq.nombre_maq}
                   </option>
                 ))}
@@ -274,7 +274,7 @@ export default function SolicitudCreate() {
                 required
               >
                 {ESTADO_OPTIONS.map((estado) => (
-                  <option key={estado.value} value={estado.value}>
+                  <option className="dark:text-black/90" key={estado.value} value={estado.value}>
                     {estado.label}
                   </option>
                 ))}

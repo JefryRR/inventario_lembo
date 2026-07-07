@@ -157,10 +157,10 @@ export default function Inv_perdEdit() {
                                     <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")}
                                         className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {form.unid_medida_id && !unidMedidas.some((unidMed) => String(unidMed.id_unidad) === form.unid_medida_id) && (
-                                            <option value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
+                                            <option className="dark:text-black" value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
                                         )}
                                         {unidMedidas.map((unidMed) => (
-                                            <option key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
+                                            <option className="dark:text-black" key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
                                                 {unidMed.simbolo}
                                             </option>
                                         ))}
@@ -169,9 +169,11 @@ export default function Inv_perdEdit() {
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Motivo <span className="text-error-500">*</span></label>
                                     <select value={form.motivo} onChange={handleChange("motivo")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        <option value="">Seleccione un motivo</option>
+                                        <option className="dark:text-black" value="">
+                                            Seleccione un motivo
+                                        </option>
                                         {motivoOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
+                                            <option className="dark:text-black" key={option.value} value={option.value}>
                                                 {option.label}
                                             </option>
                                         ))}

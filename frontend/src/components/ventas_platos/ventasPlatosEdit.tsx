@@ -190,9 +190,11 @@ export default function VentasPlatosEdit() {
                                         required
                                         disabled={platos.length === 0}
                                     >
-                                        <option value={0} disabled>Selecciona un plato</option>
+                                        <option className="dark:text-black" value={0} disabled>
+                                            Selecciona un plato
+                                        </option>
                                         {platos.map((plato) => (
-                                            <option key={plato.id_plato} value={plato.id_plato}>
+                                            <option className="dark:text-black" key={plato.id_plato} value={plato.id_plato}>
                                                 {plato.nombre_plato}
                                             </option>
                                         ))}

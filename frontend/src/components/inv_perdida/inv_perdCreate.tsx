@@ -245,11 +245,11 @@ export default function InvPerdCreate() {
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             >
-                                <option value="" disabled>
+                                <option className="dark:text-black" value="" disabled>
                                     Selecciona el origen
                                 </option>
                                 {origenOptions.map((origen) => (
-                                    <option key={origen.value} value={origen.value}>
+                                    <option className="dark:text-black" key={origen.value} value={origen.value}>
                                         {origen.label}
                                     </option>
                                 ))}
@@ -262,19 +262,19 @@ export default function InvPerdCreate() {
                             <select value={form.inv_prod_id || ""} onChange={handleChange("inv_prod_id")}
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required disabled={(form.origen === "produccion" && (loadingInvprod || invProd.length === 0)) || (loadingInvinsumo && form.origen === "insumo" && invInsumo.length === 0)}>
-                                <option value="" disabled>
+                                <option className="dark:text-black/90" value="" disabled>
                                     {loadingInvprod ? "Cargando productos..." : "Selecciona un producto"}
                                 </option>
                                 {form.origen === "insumo" && (
                                     invInsumo.map((insumo) => (
-                                        <option key={insumo.id_insumo} value={String(insumo.id_insumo)}>
+                                        <option className="dark:text-black/90" key={insumo.id_insumo} value={String(insumo.id_insumo)}>
                                             {insumo.nombre_producto} - ID insumo {insumo.id_insumo}
                                         </option>
                                     ))
                                 )}
                                 {form.origen === "produccion" && (
                                     invProd.map((prod) => (
-                                        <option key={prod.id_inventario} value={String(prod.id_inventario)}>
+                                        <option className="dark:text-black/90" key={prod.id_inventario} value={String(prod.id_inventario)}>
                                             {prod.nombre_producto} - Lote {prod.nombre_lote} - ID {prod.id_inventario} - {prod.cantidad} {unidMedidas.find((um) => um.id_unidad === prod.unid_medida_id)?.simbolo || ""}
                                         </option>
                                     ))
@@ -305,11 +305,11 @@ export default function InvPerdCreate() {
                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             >
-                                <option value="" disabled>
+                                <option className="dark:text-black/90" value="" disabled>
                                     Selecciona un motivo
                                 </option>
                                 {motivoOptions.map((motivo) => (
-                                    <option key={motivo.value} value={motivo.value}>
+                                    <option className="dark:text-black/90" key={motivo.value} value={motivo.value}>
                                         {motivo.label}
                                     </option>
                                 ))}
@@ -323,11 +323,11 @@ export default function InvPerdCreate() {
                             <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")}
                                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required>
-                                <option value="" disabled>
+                                <option className="dark:text-black/90" value="" disabled>
                                     {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
                                 </option>
                                 {unidMedidas.map((unidMed) => (
-                                    <option key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
+                                    <option className="dark:text-black/90" key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
                                         {unidMed.simbolo}
                                     </option>
                                 ))}

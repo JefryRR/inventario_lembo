@@ -227,11 +227,11 @@ export default function UsersCreate() {
                             className="h-11 w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                             required                            
                         >
-                            <option value="" disabled>
+                            <option className="dark:text-black" value="" disabled>
                                 {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
                             </option>
                             {unidMedidas.map((unidMed) => (
-                                <option key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
+                                <option className="dark:text-black" key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
                                     {unidMed.simbolo}
                                 </option>
                             ))}
@@ -275,11 +275,11 @@ export default function UsersCreate() {
                             required
                             disabled={loadingTipoIns || tipoIns.length === 0}
                         >
-                            <option value="" disabled>
+                            <option className="dark:text-black" value="" disabled>
                                 {loadingTipoIns ? "Cargando tipos..." : "Selecciona un tipo de insumo"}
                             </option>
                             {tipoIns.map((tipo) => (
-                                <option key={tipo.id_tipo_insumo} value={String(tipo.id_tipo_insumo)}>
+                                <option className="dark:text-black" key={tipo.id_tipo_insumo} value={String(tipo.id_tipo_insumo)}>
                                     {tipo.nombre_tipo}
                                 </option>
                             ))}

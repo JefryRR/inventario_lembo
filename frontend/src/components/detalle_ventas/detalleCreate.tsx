@@ -241,11 +241,11 @@ export default function DetalleCreate() {
                                 required
                                 disabled={loadingVentas || ventas.length === 0}
                             >
-                                <option value={0} disabled>
+                                <option className="dark:text-black" value={0} disabled>
                                     {loadingVentas ? "Cargando ventas..." : "Selecciona una venta"}
                                 </option>
                                 {ventas.map((venta) => (
-                                    <option key={venta.id_venta} value={venta.id_venta}>
+                                    <option className="dark:text-black" key={venta.id_venta} value={venta.id_venta}>
                                         {venta.nombre_comprador}
                                         {venta.fecha_venta ? ` - ${new Date(venta.fecha_venta).toLocaleDateString()}` : ""}
                                     </option>
@@ -264,11 +264,11 @@ export default function DetalleCreate() {
                                 required
                                 disabled={loadingProductos || productos.length === 0}
                             >
-                                <option value={0} disabled>
+                                <option className="dark:text-black" value={0} disabled>
                                     {loadingProductos ? "Cargando productos..." : "Selecciona un producto"}
                                 </option>
                                 {productos.map((producto) => (
-                                    <option key={producto.id_inventario} value={producto.id_inventario}>
+                                    <option className="dark:text-black" key={producto.id_inventario} value={producto.id_inventario}>
                                         {producto.nombre_producto}
                                         {producto.nombre_lote ? ` - ${producto.nombre_lote}` : ""} - cantidad: {producto.cantidad ?? "N/A"} {producto.simbolo ?? ""}
                                     </option>
@@ -317,11 +317,11 @@ export default function DetalleCreate() {
                                 required
                                 disabled={loadingMedidas || medidas.length === 0}
                             >
-                                <option value={0} disabled>
+                                <option className="dark:text-black" value={0} disabled>
                                     {loadingMedidas ? "Cargando unidades..." : "Selecciona una unidad de medida"}
                                 </option>
                                 {medidas.map((medida) => (
-                                    <option key={medida.id_unidad} value={medida.id_unidad}>
+                                    <option className="dark:text-black" key={medida.id_unidad} value={medida.id_unidad}>
                                         {medida.simbolo}
                                     </option>
                                 ))}
@@ -339,7 +339,7 @@ export default function DetalleCreate() {
                                 required
                             >
                                 {ESTADO_OPTIONS.map((option) => (
-                                    <option key={option.value} value={option.value}>
+                                    <option className="dark:text-black" key={option.value} value={option.value}>
                                         {option.label}
                                     </option>
                                 ))}

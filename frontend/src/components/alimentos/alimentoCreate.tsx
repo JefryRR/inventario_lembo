@@ -215,11 +215,11 @@ export default function AlimentoCreate() {
                 required
                 disabled={loadingLotes || lotes.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black" value={0} disabled>
                   {loadingLotes ? "Cargando lotes..." : "Selecciona un lote"}
                 </option>
                 {lotes.map((lote) => (
-                  <option key={lote.id_lote} value={lote.id_lote}>
+                  <option className="dark:text-black" key={lote.id_lote} value={lote.id_lote}>
                     {lote.nombre_lote}
                   </option>
                 ))}
@@ -237,11 +237,11 @@ export default function AlimentoCreate() {
                 required
                 disabled={loadingInsumos || insumos.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black" value={0} disabled>
                   {loadingInsumos ? "Cargando insumos..." : "Selecciona un alimento"}
                 </option>
                 {insumos.map((inv_insumos) => (
-                  <option key={inv_insumos.id_insumo} value={inv_insumos.id_insumo}>
+                  <option className="dark:text-black" key={inv_insumos.id_insumo} value={inv_insumos.id_insumo}>
                     {inv_insumos.nombre_producto} cantidad: {inv_insumos.cantidad} {inv_insumos.simbolo}
                   </option>
                 ))}
@@ -287,11 +287,11 @@ export default function AlimentoCreate() {
                 required
                 disabled={loadingUnidad || unidades.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black" value={0} disabled>
                   {loadingUnidad ? "Cargando unidades..." : "Selecciona una unidad de medida"}
                 </option>
                 {unidades.map((unidad) => (
-                  <option key={unidad.id_unidad} value={unidad.id_unidad}>
+                  <option className="dark:text-black" key={unidad.id_unidad} value={unidad.id_unidad}>
                     {unidad.simbolo}
                   </option>
                 ))}

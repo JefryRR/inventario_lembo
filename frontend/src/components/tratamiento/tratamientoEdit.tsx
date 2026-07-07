@@ -261,11 +261,11 @@ export default function TratamientoEdit() {
                                         required
                                         disabled={lotes.length === 0}
                                     >
-                                        <option value={0} disabled>
+                                        <option className="dark:text-black" value={0} disabled>
                                             Selecciona un lote
                                         </option>
                                         {lotes.map((lote) => (
-                                            <option key={lote.id_lote_g} value={lote.id_lote_g}>
+                                            <option className="dark:text-black" key={lote.id_lote_g} value={lote.id_lote_g}>
                                                 {lote.nombre_lote}
                                             </option>
                                         ))}
@@ -283,11 +283,11 @@ export default function TratamientoEdit() {
                                         required
                                         disabled={medicinas.length === 0}
                                     >
-                                        <option value={0} disabled>
+                                        <option className="dark:text-black" value={0} disabled>
                                             Selecciona un producto
                                         </option>
                                         {medicinas.map((medicina) => (
-                                            <option key={medicina.id_insumo} value={medicina.id_insumo}>
+                                            <option className="dark:text-black" key={medicina.id_insumo} value={medicina.id_insumo}>
                                                 {medicina.nombre_producto}, cantidad: {medicina.cantidad} {medicina.simbolo} 
                                             </option>
                                         ))}
@@ -317,11 +317,11 @@ export default function TratamientoEdit() {
                                         required
                                         disabled={medidas.length === 0}
                                     >
-                                        <option value={0} disabled>
+                                        <option className="dark:text-black" value={0} disabled>
                                             Selecciona una unidad de medida
                                         </option>
                                         {medidas.map((unidad) => (
-                                            <option key={unidad.id_unidad} value={unidad.id_unidad}>
+                                            <option className="dark:text-black" key={unidad.id_unidad} value={unidad.id_unidad}>
                                                 {unidad.simbolo}
                                             </option>
                                         ))}

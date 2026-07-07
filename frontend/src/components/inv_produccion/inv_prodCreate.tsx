@@ -273,11 +273,11 @@ export default function Inv_prodCreate() {
                             <select value={form.unid_medida_id || ""} onChange={handleChange("unid_medida_id")}
                                 className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required>
-                                <option value="" disabled>
+                                <option className="dark:text-black/90" value="" disabled>
                                     {loadingUnidMedidas ? "Cargando unidades..." : "Selecciona una unidad"}
                                 </option>
                                 {unidMedidas.map((unidMed) => (
-                                    <option key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
+                                    <option className="dark:text-black/90" key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
                                         {unidMed.simbolo}
                                     </option>
                                 ))}
@@ -308,11 +308,11 @@ export default function Inv_prodCreate() {
                                 required
                                 disabled={loadingLotes}
                             >
-                                <option value="" disabled>
+                                <option className="dark:text-black/90" value="" disabled>
                                     {loadingLotes ? "Cargando lotes..." : "Selecciona un lote"}
                                 </option>
                                 {lotes.map((lote) => (
-                                    <option key={lote.id_lote} value={String(lote.id_lote)}>
+                                    <option className="dark:text-black/90" key={lote.id_lote} value={String(lote.id_lote)}>
                                         {lote.nombre_lote}
                                     </option>
                                 ))}
@@ -337,11 +337,11 @@ export default function Inv_prodCreate() {
                                 Categoría producto <span className="text-error-500">*</span>
                             </label>
                             <select value={form.categoria_id || ""} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingCategorias || categorias.length === 0}>
-                                <option value="" disabled>
+                                <option className="dark:text-black/90" value="" disabled>
                                     {loadingCategorias ? "Cargando categorías..." : "Selecciona una categoría"}
                                 </option>
                                 {categorias.map((categoria) => (
-                                    <option key={categoria.id_categoria} value={String(categoria.id_categoria)}>
+                                    <option className="dark:text-black/90" key={categoria.id_categoria} value={String(categoria.id_categoria)}>
                                         {categoria.nombre_categoria}
                                     </option>
                                 ))}
@@ -353,11 +353,11 @@ export default function Inv_prodCreate() {
                                 Especie producto <span className="text-error-500">*</span>
                             </label>
                             <select value={form.especie_id || ""} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingEspecies || especies.length === 0}>
-                                <option value="" disabled>
+                                <option className="dark:text-black/90" value="" disabled>
                                     {loadingEspecies ? "Cargando especies..." : "Selecciona una especie"}
                                 </option>
                                 {especies.map((especie) => (
-                                    <option key={especie.id_especie} value={String(especie.id_especie)}>
+                                    <option className="dark:text-black/90" key={especie.id_especie} value={String(especie.id_especie)}>
                                         {especie.nombre_especie}
                                     </option>
                                 ))}

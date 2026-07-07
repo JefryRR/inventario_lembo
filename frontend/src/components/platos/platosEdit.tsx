@@ -118,8 +118,8 @@ export default function PlatosEdit() {
                                         className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                         required
                                     >
-                                        <option value="true">Activo</option>
-                                        <option value="false">Inactivo</option>
+                                        <option className="dark:text-black" value="true">Activo</option>
+                                        <option className="dark:text-black" value="false">Inactivo</option>
                                     </select>
                                 </div>
                             </div>

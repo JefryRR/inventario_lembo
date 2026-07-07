@@ -163,11 +163,11 @@ export default function VentasPlatosCreate() {
                                 required
                                 disabled={loadingPlatos || platos.length === 0}
                             >
-                                <option value={0} disabled>
+                                <option className="dark:text-black" value={0} disabled>
                                     {loadingPlatos ? "Cargando platos..." : "Selecciona un plato"}
                                 </option>
                                 {platos.map((plato) => (
-                                    <option key={plato.id_plato} value={plato.id_plato}>
+                                    <option className="dark:text-black" key={plato.id_plato} value={plato.id_plato}>
                                         {plato.nombre_plato}
                                     </option>
                                 ))}

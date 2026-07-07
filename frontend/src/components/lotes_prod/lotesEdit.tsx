@@ -315,11 +315,11 @@ export default function LotesEdit() {
                     required
                     disabled={especies.length === 0}
                   >
-                    <option value={0} disabled>
+                    <option className="dark:text-black" value={0} disabled>
                       Selecciona una especie
                     </option>
                     {especies.map((especie) => (
-                      <option key={especie.id_especie} value={especie.id_especie}>
+                      <option className="dark:text-black" key={especie.id_especie} value={especie.id_especie}>
                         {especie.nombre_especie}
                       </option>
                     ))}
@@ -337,11 +337,11 @@ export default function LotesEdit() {
                     required
                     disabled={categorias.length === 0}
                   >
-                    <option value={0} disabled>
+                    <option className="dark:text-black" value={0} disabled>
                       Selecciona una categoría
                     </option>
                     {categorias.map((categoria) => (
-                      <option key={categoria.id_categoria} value={categoria.id_categoria}>
+                      <option className="dark:text-black" key={categoria.id_categoria} value={categoria.id_categoria}>
                         {categoria.nombre_categoria}
                       </option>
                     ))}
@@ -359,7 +359,7 @@ export default function LotesEdit() {
                     required
                   >
                     {ESTADO_OPTIONS.map((estado) => (
-                      <option key={estado.value} value={estado.value}>
+                      <option className="dark:text-black" key={estado.value} value={estado.value}>
                         {estado.label}
                       </option>
                     ))}
@@ -377,11 +377,11 @@ export default function LotesEdit() {
                     required
                     disabled={users.length === 0}
                   >
-                    <option value={0} disabled>
+                    <option className="dark:text-black" value={0} disabled>
                       Selecciona un usuario
                     </option>
                     {users.map((user) => (
-                      <option key={user.id_user} value={user.id_user}>
+                      <option className="dark:text-black" key={user.id_user} value={user.id_user}>
                         {user.nombre_user}
                       </option>
                     ))}

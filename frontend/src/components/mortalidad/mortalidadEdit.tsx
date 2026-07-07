@@ -205,11 +205,11 @@ export default function MortalidadEdit() {
                     required
                     disabled={lotes.length === 0}
                   >
-                    <option value={0} disabled>
+                    <option className="dark:text-black" value={0} disabled>
                       Selecciona un lote
                     </option>
                     {lotes.map((lote) => (
-                      <option key={lote.id_lote} value={lote.id_lote}>
+                      <option className="dark:text-black" key={lote.id_lote} value={lote.id_lote}>
                         {lote.nombre_lote}
                       </option>
                     ))}
@@ -222,7 +222,7 @@ export default function MortalidadEdit() {
                     type="datetime-local"
                     value={form.fecha_reporte}
                     readOnly
-                    className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-gray-50 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:bg-gray-800"
                   />
                 </div>
 
@@ -251,11 +251,11 @@ export default function MortalidadEdit() {
                     required
                     disabled={users.length === 0}
                   >
-                    <option value={0} disabled>
+                    <option className="dark:text-black" value={0} disabled>
                       Selecciona un usuario
                     </option>
                     {users.map((user) => (
-                      <option key={user.id_user} value={user.id_user}>
+                      <option className="dark:text-black" key={user.id_user} value={user.id_user}>
                         {user.nombre_user}
                       </option>
                     ))}

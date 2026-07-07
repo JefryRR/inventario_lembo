@@ -84,17 +84,6 @@ export default function Platos() {
         });
     }, [search, plato]);
 
-    const handleStatusChange = async (id_plato: number, newState: boolean) => {
-        // optimista: actualizar UI inmediatamente
-        setPlato((prev) => prev.map(u => u.id_plato === id_plato ? { ...u, estado: newState } : u));
-        try {
-            await apiFetch(`cambiar-estado/${id_plato}?nuevo_estado=${newState}`, { method: "PUT" });
-        } catch (err) {
-            // rollback si falla
-            setPlato((prev) => prev.map(u => u.id_plato === id_plato ? { ...u, estado: !newState } : u));
-            console.error(err);
-        }
-    };
         return (
             <>
                 <PageBreadcrumb pageTitle="Platos" />
@@ -172,7 +161,6 @@ export default function Platos() {
                                             <td className="px-5 py-4">
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleStatusChange(plato.id_plato, !plato.estado)}
                                                     className="inline-flex ...">
                                                     {plato.estado ? <span className="text-success-700">Activo</span> : <span className="text-error-700">Inactivo</span>}
                                                 </button>

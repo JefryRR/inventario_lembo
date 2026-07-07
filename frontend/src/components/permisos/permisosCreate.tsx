@@ -178,11 +178,11 @@ export default function UsersCreate() {
                             </label>
                             <select value={form.id_modulo} onChange={handleChange("id_modulo")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" 
                             required disabled={loadingModulos || modulos.length === 0}>
-                                <option value={0} disabled>
+                                <option className="dark:text-black" value={0} disabled>
                                     {loadingModulos ? "Cargando módulos..." : "Selecciona un módulo"}
                                 </option>
                                 {modulos.map((modulo) => (
-                                    <option key={modulo.id_modulo} value={modulo.id_modulo}>
+                                    <option className="dark:text-black" key={modulo.id_modulo} value={modulo.id_modulo}>
                                         {modulo.nombre}
                                     </option>
                                 ))}
@@ -195,11 +195,11 @@ export default function UsersCreate() {
                             </label>
                             <select value={form.id_rol} onChange={handleChange("id_rol")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" 
                             required disabled={loadingRoles || roles.length === 0}>
-                                <option value={0} disabled>
+                                <option className="dark:text-black" value={0} disabled>
                                     {loadingRoles ? "Cargando roles..." : "Selecciona un rol"}
                                 </option>
                                 {roles.map((role) => (
-                                    <option key={role.id_rol} value={role.id_rol}>
+                                    <option className="dark:text-black" key={role.id_rol} value={role.id_rol}>
                                         {role.nombre_rol}
                                     </option>
                                 ))}
@@ -216,8 +216,8 @@ export default function UsersCreate() {
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             >
-                                <option value="Si">Si</option>
-                                <option value="No">No</option>
+                                <option className="dark:text-black" value="Si">Si</option>
+                                <option className="dark:text-black" value="No">No</option>
                             </select>
                         </div>
 
@@ -231,8 +231,8 @@ export default function UsersCreate() {
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             >
-                                <option value="Si">Si</option>
-                                <option value="No">No</option>
+                                <option className="dark:text-black" value="Si">Si</option>
+                                <option className="dark:text-black" value="No">No</option>
                             </select>
                         </div>
 
@@ -246,8 +246,8 @@ export default function UsersCreate() {
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             >
-                                <option value="Si">Si</option>
-                                <option value="No">No</option>
+                                <option className="dark:text-black" value="Si">Si</option>
+                                <option className="dark:text-black" value="No">No</option>
                             </select>
                         </div>
 
@@ -261,8 +261,8 @@ export default function UsersCreate() {
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             >
-                                <option value="Si">Si</option>
-                                <option value="No">No</option>
+                                <option className="dark:text-black" value="Si">Si</option>
+                                <option className="dark:text-black" value="No">No</option>
                             </select>
                         </div>
                     </div>

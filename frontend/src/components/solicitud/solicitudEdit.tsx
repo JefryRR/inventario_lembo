@@ -279,11 +279,11 @@ export default function SolicitudEdit() {
                     required
                     disabled={inventarios.length === 0}
                   >
-                    <option value={0} disabled>
+                    <option className="dark:text-black/90" value={0} disabled>
                       Selecciona un insumo
                     </option>
                     {inventarios.map((insumo) => (
-                      <option key={insumo.id_insumo} value={insumo.id_insumo}>
+                      <option className="dark:text-black/90" key={insumo.id_insumo} value={insumo.id_insumo}>
                         {insumo.nombre_producto} - cant disponible: {insumo.cantidad} {insumo.simbolo}
                       </option>
                     ))}
@@ -315,11 +315,11 @@ export default function SolicitudEdit() {
                     required
                     disabled={medidas.length === 0}
                   >
-                    <option value={0} disabled>
+                    <option className="dark:text-black/90" value={0} disabled>
                       Selecciona una unidad de medida
                     </option>
                     {medidas.map((medida) => (
-                      <option key={medida.id_unidad} value={medida.id_unidad}>
+                      <option className="dark:text-black/90" key={medida.id_unidad} value={medida.id_unidad}>
                         {medida.simbolo}
                       </option>
                     ))}
@@ -347,7 +347,7 @@ export default function SolicitudEdit() {
                     required
                   >
                     {ESTADO_OPTIONS.map((estado) => (
-                      <option key={estado.value} value={estado.value}>
+                      <option className="dark:text-black" key={estado.value} value={estado.value}>
                         {estado.label}
                       </option>
                     ))}

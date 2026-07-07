@@ -84,7 +84,6 @@ export default function EspeciesCreate() {
                                 onChange={(e) => setForm({ ...form, nombre_especie: e.target.value })}
                                 className="mt-1 h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 placeholder="Nombre de la especie"
-                                required
                             />
                         </div>
 

@@ -207,7 +207,7 @@ export default function MaquinaEdit() {
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Estado <span className="text-error-500">*</span></label>
                                     <select value={form.estado} onChange={handleChange("estado")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
                                         {estados.map((estado) => (
-                                            <option key={estado.value} value={estado.value}>
+                                            <option className="dark:text-black" key={estado.value} value={estado.value}>
                                                 {estado.label}
                                             </option>
                                         ))}

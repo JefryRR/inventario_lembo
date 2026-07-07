@@ -223,11 +223,11 @@ export default function TratamientoCreate() {
                 required
                 disabled={loadingLotes || lotes.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black" value={0} disabled>
                   {loadingLotes ? "Cargando lotes..." : "Selecciona un lote"}
                 </option>
                 {lotes.map((lote) => (
-                  <option key={lote.id_lote_g} value={lote.id_lote_g}>
+                  <option className="dark:text-black" key={lote.id_lote_g} value={lote.id_lote_g}>
                     {lote.nombre_lote}
                   </option>
                 ))}
@@ -245,11 +245,11 @@ export default function TratamientoCreate() {
                 required
                 disabled={loadingMedicinas || medicinas.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black" value={0} disabled>
                   {loadingMedicinas ? "Cargando medicinas..." : "Selecciona una medicina"}
                 </option>
                 {medicinas.map((inv_insumos) => (
-                  <option key={inv_insumos.id_insumo} value={inv_insumos.id_insumo}>
+                  <option className="dark:text-black" key={inv_insumos.id_insumo} value={inv_insumos.id_insumo}>
                     {inv_insumos.nombre_producto} cantidad: {inv_insumos.cantidad} {inv_insumos.simbolo}
                   </option>
                 ))}
@@ -305,11 +305,11 @@ export default function TratamientoCreate() {
                 required
                 disabled={loadingMedidas || medidas.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black" value={0} disabled>
                   {loadingMedidas ? "Cargando unidades..." : "Selecciona una unidad de medida"}
                 </option>
                 {medidas.map((medida) => (
-                  <option key={medida.id_unidad} value={medida.id_unidad}>
+                  <option className="dark:text-black" key={medida.id_unidad} value={medida.id_unidad}>
                     {medida.simbolo}
                   </option>
                 ))}

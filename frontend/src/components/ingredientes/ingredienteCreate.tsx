@@ -254,11 +254,11 @@ export default function IngredienteCreate() {
                                 required
                                 disabled={loadingPlatos || platos.length === 0}
                             >
-                                <option value={0} disabled>
+                                <option className="dark:text-black" value={0} disabled>
                                     {loadingPlatos ? "Cargando platos..." : "Selecciona un plato"}
                                 </option>
                                 {platos.map((plato) => (
-                                    <option key={plato.id_plato} value={plato.id_plato}>
+                                    <option className="dark:text-black/90" key={plato.id_plato} value={plato.id_plato}>
                                         {plato.nombre_plato}
                                     </option>
                                 ))}
@@ -276,9 +276,9 @@ export default function IngredienteCreate() {
                                 className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                             >
-                                <option value={0} disabled>Selecciona el origen</option>
-                                <option value={1}>Inventario de Producción</option>
-                                <option value={2}>Inventario de Insumos</option>
+                                <option className="dark:text-black/90" value={0} disabled>Selecciona el origen</option>
+                                <option className="dark:text-black/90" value={1}>Inventario de Producción</option>
+                                <option className="dark:text-black/90" value={2}>Inventario de Insumos</option>
                             </select>
                         </div>
 
@@ -294,7 +294,7 @@ export default function IngredienteCreate() {
                                 required
                                 disabled={form.origen_inv === 0 || (form.origen_inv === 1 ? productos.length === 0 : insumos.length === 0)}
                             >
-                                <option value={0} disabled>
+                                <option className="dark:text-black/90" value={0} disabled>
                                     {form.origen_inv === 0
                                         ? "Primero selecciona el origen"
                                         : form.origen_inv === 1 && loadingProductos
@@ -305,13 +305,13 @@ export default function IngredienteCreate() {
                                 </option>
 
                                 {form.origen_inv === 1 && productos.map((producto) => (
-                                    <option key={producto.id_inventario} value={producto.id_inventario}>
+                                    <option className="dark:text-black/90" key={producto.id_inventario} value={producto.id_inventario}>
                                         {producto.nombre_producto} cantidad: {producto.cantidad} {producto.simbolo}
                                     </option>
                                 ))}
 
                                 {form.origen_inv === 2 && insumos.map((insumo) => (
-                                    <option key={insumo.id_insumo} value={insumo.id_insumo}>
+                                    <option className="dark:text-black/90" key={insumo.id_insumo} value={insumo.id_insumo}>
                                         {insumo.nombre_producto} cantidad: {insumo.cantidad} {insumo.simbolo}
                                     </option>
                                 ))}
@@ -346,11 +346,11 @@ export default function IngredienteCreate() {
                                 required
                                 disabled={loadingMedidas || medidas.length === 0}
                             >
-                                <option value={0} disabled>
+                                <option className="dark:text-black/90" value={0} disabled>
                                     {loadingMedidas ? "Cargando unidades..." : "Selecciona una unidad de medida"}
                                 </option>
                                 {medidas.map((medida) => (
-                                    <option key={medida.id_unidad} value={medida.id_unidad}>
+                                    <option className="dark:text-black/90" key={medida.id_unidad} value={medida.id_unidad}>
                                         {medida.simbolo}
                                     </option>
                                 ))}

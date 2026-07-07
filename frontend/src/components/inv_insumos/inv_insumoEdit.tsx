@@ -178,10 +178,10 @@ export default function Inv_insumoEdit() {
                                     <select value={form.unid_medida_id} onChange={handleChange("unid_medida_id")} 
                                         className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required>
                                         {form.unid_medida_id && !unidMedidas.some((unidMed) => String(unidMed.id_unidad) === form.unid_medida_id) && (
-                                            <option value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
+                                            <option className="dark:text-black" value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
                                         )}
                                         {unidMedidas.map((unidMed) => (
-                                            <option key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
+                                            <option className="dark:text-black" key={unidMed.id_unidad} value={String(unidMed.id_unidad)}>
                                                 {unidMed.simbolo}
                                             </option>
                                         ))}
@@ -195,10 +195,10 @@ export default function Inv_insumoEdit() {
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo insumo <span className="text-error-500">*</span></label>
                                     <select value={form.tipo_id} onChange={handleChange("tipo_id")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required>
                                         {tipoIns.length === 0 && form.tipo_id && (
-                                            <option value={form.tipo_id}>{form.nombre_tipo || "Tipo insumo asignado"}</option>
+                                            <option className="dark:text-black" value={form.tipo_id}>{form.nombre_tipo || "Tipo insumo asignado"}</option>
                                         )}
                                         {tipoIns.map((tipo_insumo) => (
-                                            <option key={tipo_insumo.id_tipo_insumo} value={String(tipo_insumo.id_tipo_insumo)}>
+                                            <option className="dark:text-black" key={tipo_insumo.id_tipo_insumo} value={String(tipo_insumo.id_tipo_insumo)}>
                                                 {tipo_insumo.nombre_tipo}
                                             </option>
                                         ))}

@@ -303,14 +303,16 @@ export default function DetalleEdit() {
 										required
 										disabled={loadingCatalogs || productos.length === 0}
 									>
-										<option value={0} disabled>
+										<option className="dark:text-black" value={0} disabled>
 											{loadingCatalogs ? "Cargando productos..." : "Selecciona un producto"}
 										</option>
 										{form.inv_prod_id && !productos.some((producto) => producto.id_inventario === form.inv_prod_id) && (
-											<option value={form.inv_prod_id}>{form.nombre_producto || "Producto asignado"}</option>
+											<option className="dark:text-black" value={form.inv_prod_id}>
+												{form.nombre_producto || "Producto asignado"}
+											</option>
 										)}
 										{productos.map((producto) => (
-											<option key={producto.id_inventario} value={producto.id_inventario}>
+											<option className="dark:text-black" key={producto.id_inventario} value={producto.id_inventario}>
 												{producto.nombre_producto}{producto.nombre_lote ? ` - ${producto.nombre_lote}` : ""} - cantidad: {producto.cantidad ?? "N/A"} {producto.simbolo ?? ""}
 											</option>
 										))}
@@ -328,14 +330,16 @@ export default function DetalleEdit() {
 										required
 										disabled={loadingCatalogs || medidas.length === 0}
 									>
-										<option value={0} disabled>
+										<option className="dark:text-black" value={0} disabled>
 											{loadingCatalogs ? "Cargando unidades..." : "Selecciona una unidad de medida"}
 										</option>
 										{form.unid_medida_id && !medidas.some((medida) => medida.id_unidad === form.unid_medida_id) && (
-											<option value={form.unid_medida_id}>{form.simbolo || "Unidad asignada"}</option>
+											<option className="dark:text-black" value={form.unid_medida_id}>
+												{form.simbolo || "Unidad asignada"}
+											</option>
 										)}
 										{medidas.map((medida) => (
-											<option key={medida.id_unidad} value={medida.id_unidad}>
+											<option className="dark:text-black" key={medida.id_unidad} value={medida.id_unidad}>
 												{medida.simbolo}
 											</option>
 										))}
@@ -350,7 +354,7 @@ export default function DetalleEdit() {
 										className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
 									>
 										{ESTADO_OPTIONS.map((option) => (
-											<option key={option.value} value={option.value}>
+											<option className="dark:text-black" key={option.value} value={option.value}>
 												{option.label}
 											</option>
 										))}

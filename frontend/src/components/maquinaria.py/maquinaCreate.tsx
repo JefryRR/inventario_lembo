@@ -203,11 +203,11 @@ export default function MaquinaCreate() {
                             <select
                                 value={form.estado}
                                 onChange={handleChange("estado")}
-                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
+                                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:bg-black/20"
                                 required
                             >
                                 {estados.map((estado) => (
-                                    <option key={estado.value} value={estado.value}>
+                                    <option className="dark:text-black" key={estado.value} value={estado.value}>
                                         {estado.label}
                                     </option>
                                 ))}

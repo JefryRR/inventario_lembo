@@ -176,10 +176,10 @@ export default function UsersCreate() {
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                                 required
                             >
-                                <option value="CC">CC</option>
-                                <option value="TI">TI</option>
-                                <option value="CE">CE</option>
-                                <option value="PP">PP</option>
+                                <option className="dark:text-black" value="CC">CC</option>
+                                <option className="dark:text-black" value="TI">TI</option>
+                                <option className="dark:text-black" value="CE">CE</option>
+                                <option className="dark:text-black" value="PP">PP</option>
                             </select>
                         </div>
 
@@ -230,11 +230,11 @@ export default function UsersCreate() {
                                 Rol <span className="text-error-500">*</span>
                             </label>
                             <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required disabled={loadingRoles || roles.length === 0}>
-                                <option value="" disabled>
+                                <option className="dark:text-black" value="" disabled>
                                     {loadingRoles ? "Cargando roles..." : "Selecciona un rol"}
                                 </option>
                                 {roles.map((role) => (
-                                    <option key={role.id_rol} value={String(role.id_rol)}>
+                                    <option className="dark:text-black" key={role.id_rol} value={String(role.id_rol)}>
                                         {role.nombre_rol}
                                     </option>
                                 ))}

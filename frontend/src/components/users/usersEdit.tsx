@@ -158,10 +158,10 @@ export default function UsersEdit() {
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de documento <span className="text-error-500">*</span></label>
                                     <select value={form.tipo_documento} onChange={handleChange("tipo_documento")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required>
-                                        <option value="CC">CC</option>
-                                        <option value="TI">TI</option>
-                                        <option value="CE">CE</option>
-                                        <option value="PP">PP</option>
+                                        <option className="dark:text-black" value="CC">CC</option>
+                                        <option className="dark:text-black" value="TI">TI</option>
+                                        <option className="dark:text-black" value="CE">CE</option>
+                                        <option className="dark:text-black" value="PP">PP</option>
                                     </select>
                                 </div>
 
@@ -184,10 +184,10 @@ export default function UsersEdit() {
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Rol <span className="text-error-500">*</span></label>
                                     <select value={form.rol_id} onChange={handleChange("rol_id")} className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300" required>
                                         {form.rol_id && !roles.some((role) => String(role.id_rol) === form.rol_id) && (
-                                            <option value={form.rol_id}>{form.nombre_rol || "Rol asignado"}</option>
+                                            <option className="dark:text-black" value={form.rol_id}>{form.nombre_rol || "Rol asignado"}</option>
                                         )}
                                         {roles.map((role) => (
-                                            <option key={role.id_rol} value={String(role.id_rol)}>
+                                            <option className="dark:text-black" key={role.id_rol} value={String(role.id_rol)}>
                                                 {role.nombre_rol}
                                             </option>
                                         ))}

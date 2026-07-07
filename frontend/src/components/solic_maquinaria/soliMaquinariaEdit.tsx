@@ -222,11 +222,11 @@ export default function SolicitudEdit() {
                     required
                     disabled={maquina.length === 0}
                   >
-                    <option value={0} disabled>
+                    <option className="dark:text-black/90" value={0} disabled>
                       Selecciona una máquina
                     </option>
                     {maquina.map((m) => (
-                      <option key={m.id_maquina} value={m.id_maquina}>
+                      <option className="dark:text-black/90" key={m.id_maquina} value={m.id_maquina}>
                         {m.nombre_maq} ({m.tipo_maq})
                       </option>
                     ))}
@@ -245,7 +245,7 @@ export default function SolicitudEdit() {
                     required
                   >
                     {ESTADO_OPTIONS.map((estado) => (
-                      <option key={estado.value} value={estado.value}>
+                      <option className="dark:text-black/90" key={estado.value} value={estado.value}>
                         {estado.label}
                       </option>
                     ))}

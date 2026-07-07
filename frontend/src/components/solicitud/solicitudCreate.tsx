@@ -253,7 +253,7 @@ export default function SolicitudCreate() {
               <select
                 value={form.insumo_id}
                 onChange={handleChange("insumo_id")}
-                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white dark:focus:border-gray-800"
                 required
                 disabled={loadingInventarios || inventarios.length === 0}
               >
@@ -261,7 +261,7 @@ export default function SolicitudCreate() {
                   {loadingInventarios ? "Cargando insumos..." : "Selecciona un insumo"}
                 </option>
                 {inventarios.map((inv_insumos) => (
-                  <option key={inv_insumos.id_insumo} value={inv_insumos.id_insumo}>
+                  <option className="dark:text-black/90" key={inv_insumos.id_insumo} value={inv_insumos.id_insumo}>
                     {inv_insumos.nombre_producto} - cant disponible: {inv_insumos.cantidad} {inv_insumos.simbolo}
                   </option>
                 ))}
@@ -291,11 +291,11 @@ export default function SolicitudCreate() {
                 required
                 disabled={loadingMedidas || medidas.length === 0}
               >
-                <option value={0} disabled>
+                <option className="dark:text-black/90" value={0} disabled>
                   {loadingMedidas ? "Cargando unidades..." : "Selecciona una unidad de medida"}
                 </option>
                 {medidas.map((medida) => (
-                  <option key={medida.id_unidad} value={medida.id_unidad}>
+                  <option className="dark:text-black/90" key={medida.id_unidad} value={medida.id_unidad}>
                     {medida.simbolo}
                   </option>
                 ))}
@@ -336,7 +336,7 @@ export default function SolicitudCreate() {
                 required
               >
                 {ESTADO_OPTIONS.map((estado) => (
-                  <option key={estado.value} value={estado.value}>
+                  <option className="dark:text-black/90" key={estado.value} value={estado.value}>
                     {estado.label}
                   </option>
                 ))}
