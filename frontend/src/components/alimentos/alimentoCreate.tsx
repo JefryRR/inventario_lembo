@@ -96,7 +96,7 @@ export default function AlimentoCreate() {
             : [];
 
         const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
-          const esAlimento = insumo.tipo_id === 1;
+          const esAlimento = insumo.tipo_id === 7;
           const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
           return esAlimento && noVencido;
         });
