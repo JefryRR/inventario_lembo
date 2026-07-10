@@ -23,9 +23,9 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
 
         query = text("""
                     INSERT INTO solicitud_insumo(
-                    solicitante, insumo_id, tipo_insumo_id, cantidad_in, unid_med_id, 
+                    solicitante, ficha, insumo_id, tipo_insumo_id, cantidad_in, unid_med_id, 
                     fecha_solicitud, cant_convertida, estado_solicitud, user_id)
-                    VALUES (:solicitante, :insumo_id, :tipo_insumo_id, :cantidad_in, :unid_med_id, 
+                    VALUES (:solicitante, :ficha, :insumo_id, :tipo_insumo_id, :cantidad_in, :unid_med_id, 
                     :fecha_solicitud, :cant_convertida, :estado_solicitud, :user_id)
                     """)
         params = solicitud.model_dump()
@@ -62,7 +62,7 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
 
 def get_solicitud_by_id(db: Session, solicitud_id: int):
     try:
-        query = text("""SELECT sol.id_solicitud, sol.solicitante, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
+        query = text("""SELECT sol.id_solicitud, sol.solicitante, sol.ficha, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
                      sol.fecha_solicitud, sol.fecha_entrega, sol.fecha_devolucion, sol.cant_devolver, sol.estado_solicitud, t_i.nombre_tipo, sol.user_id,
                      u_m.simbolo, ii.nombre_producto, us.nombre_user
                      FROM solicitud_insumo AS sol
@@ -79,7 +79,7 @@ def get_solicitud_by_id(db: Session, solicitud_id: int):
 
 def get_all_solicitudes(db: Session):
     try:
-        query = text("""SELECT sol.id_solicitud, sol.solicitante, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
+        query = text("""SELECT sol.id_solicitud, sol.solicitante, sol.ficha, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
                      sol.fecha_solicitud, sol.fecha_entrega, sol.fecha_devolucion, sol.cant_devolver, sol.estado_solicitud, t_i.nombre_tipo, 
                      u_m.simbolo, ii.nombre_producto, us.nombre_user, sol.user_id
                      FROM solicitud_insumo AS sol
@@ -269,7 +269,7 @@ def get_solicitud_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     try:
         query = text("""
-                SELECT sol.id_solicitud, sol.solicitante, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
+                SELECT sol.id_solicitud, sol.solicitante, sol.ficha, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
                     sol.fecha_solicitud, sol.fecha_entrega, sol.fecha_devolucion, sol.cant_devolver, sol.estado_solicitud, 
                     t_i.nombre_tipo, u_m.simbolo, ii.nombre_producto, us.nombre_user
                     FROM solicitud_insumo AS sol
@@ -306,7 +306,7 @@ def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
         # Insumos paginados
         data_query = text(""" 
-                        SELECT sol.id_solicitud, sol.solicitante, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
+                        SELECT sol.id_solicitud, sol.solicitante, sol.ficha, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
                         sol.fecha_solicitud, sol.fecha_entrega, sol.fecha_devolucion, sol.cant_devolver, sol.estado_solicitud, 
                         t_i.nombre_tipo, u_m.simbolo, ii.nombre_producto, us.nombre_user
                         FROM solicitud_insumo AS sol

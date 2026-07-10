@@ -11,6 +11,7 @@ type SolicitudEstado =
 
 type SolicitudFormState = {
   solicitante: string
+  ficha: string
   insumo_id: number
   cantidad_in: number
   unid_med_id: number
@@ -45,6 +46,7 @@ type MedidaOption = {
 
 const initialState: SolicitudFormState = {
   solicitante: "",
+  ficha: "",
   insumo_id: 0,
   cantidad_in: 0,
   unid_med_id: 0,
@@ -185,6 +187,7 @@ export default function SolicitudCreate() {
     try {
       const payload = {
         solicitante: form.solicitante.trim(),
+        ficha: form.ficha.trim(),
         insumo_id: Number(form.insumo_id),
         cantidad_in: Number(form.cantidad_in),
         unid_med_id: Number(form.unid_med_id),
@@ -243,6 +246,21 @@ export default function SolicitudCreate() {
                 onChange={(e) => setForm({ ...form, solicitante: e.target.value })}
                 className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
                 placeholder="Pepe Pérez"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="ficha" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Ficha<span className="text-error-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="ficha"
+                required
+                value={form.ficha || ""}
+                onChange={(e) => setForm({ ...form, ficha: e.target.value })}
+                className="mt-1 block w-full rounded-md focus:border-gray-300 border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                placeholder="2925889"
               />
             </div>
 

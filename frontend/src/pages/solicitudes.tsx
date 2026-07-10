@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 
 type SolicitudRow = {
 	id_solicitud: number;
     solicitante: string;
+	ficha: string;
 	fecha_solicitud: string;
 	fecha_entrega: string;
 	fecha_devolucion: string;
@@ -115,6 +116,8 @@ export default function Solicitudes() {
 		return solicitudes.filter((solicitud) => {
 			return [
 				solicitud.nombre_producto,
+				solicitud.ficha,
+				solicitud.solicitante,
 				solicitud.nombre_tipo,
 				solicitud.nombre_user,
 				solicitud.estado_solicitud,
@@ -127,6 +130,23 @@ export default function Solicitudes() {
 	}, [search, solicitudes]);
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+	const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
+
+	const handleExportarSolicitudes = async (formato: "pdf" | "excel") => {
+		setDescargando(formato);
+		try {
+		const extension = formato === "pdf" ? "pdf" : "xlsx";
+		await apiDownload(
+			`solicitud/exportar/${formato}`,
+			`reporte_solicitudes.${extension}`,
+		);
+		} catch (err: any) {
+		alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+		} finally {
+		setDescargando(null);
+		}
+	};
 
 	return (
 		<>
@@ -147,6 +167,21 @@ export default function Solicitudes() {
 							placeholder="Buscar solicitudes..."
 							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-72"
 						/>
+
+						<button
+							onClick={() => handleExportarSolicitudes("excel")}
+							disabled={descargando !== null}
+							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+							>
+							{descargando === "excel" ? "Descargando..." : "Exportar Excel"}
+							</button>
+							<button
+							onClick={() => handleExportarSolicitudes("pdf")}
+							disabled={descargando !== null}
+							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+							>
+							{descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
+						</button>
 					</div>
 				</div>
 
@@ -156,6 +191,9 @@ export default function Solicitudes() {
 							<tr>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Solicitante
+								</th>
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Ficha
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Fechas
@@ -202,6 +240,9 @@ export default function Solicitudes() {
 									<tr key={solicitud.id_solicitud} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 										<td className="px-5 py-4">
 											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{solicitud.solicitante}</div>
+										</td>
+										<td className="px-5 py-4">
+											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{solicitud.ficha}</div>
 										</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">

@@ -32,7 +32,7 @@ def get_all_mortalidad(db: Session):
     try:
         query = text("""
                      SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                     e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, 
+                     e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
                      u.nombre_user
                      FROM mortalidad_produccion AS m_p
                      LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
@@ -53,7 +53,7 @@ def get_mortalidad_by_id(db: Session, id: int):
         query = text("""
                      SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
                      e.nombre_especie, c.nombre_categoria, m_p.user_id, 
-                     l_g.nombre_lote, u.nombre_user
+                     l_g.nombre_lote, l_p.sublote, u.nombre_user
                      FROM mortalidad_produccion AS m_p
                      LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
                      LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
@@ -74,7 +74,7 @@ def get_mortalidad_by_lote(db: Session, lote_id: int):
         query = text("""
             SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion,
                    e.nombre_especie, c.nombre_categoria, m_p.user_id,
-                   l_g.nombre_lote, u.nombre_user
+                   l_g.nombre_lote, l_p.sublote, u.nombre_user
             FROM mortalidad_produccion AS m_p
             LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
             LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
@@ -124,7 +124,7 @@ def get_mortalidad_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
     try:
         query = text("""
             SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                        e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, 
+                        e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
                         u.nombre_user
                         FROM mortalidad_produccion AS m_p
                         INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
@@ -167,7 +167,7 @@ def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10):
         # Registros paginados
         data_query = text(""" 
                         SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                        e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, 
+                        e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
                         u.nombre_user
                         FROM mortalidad_produccion AS m_p
                         INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote

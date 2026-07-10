@@ -111,7 +111,7 @@ export default function Solicitudes() {
                     page_size: String(pageSize),
                 });
 
-                 const endpoint = activeDateRange
+                const endpoint = activeDateRange
                     ? (() => {
                         queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
                         queryParams.set("fecha_fin", activeDateRange.fecha_fin);
@@ -226,7 +226,7 @@ export default function Solicitudes() {
 						<button
 							type="button"
 							onClick={() => setIsOpen(!isOpen)}
-							className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-brand-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800"
+							className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
 							aria-label="Seleccionar rango de fechas"
 						>
 							<span className="truncate">

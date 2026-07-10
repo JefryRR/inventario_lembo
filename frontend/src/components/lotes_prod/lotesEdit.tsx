@@ -11,6 +11,7 @@ type LoteEstado =
 
 type LoteFormState = {
   nombre_lote: string;
+  sublote: string;
   fecha_siembra: string;
   fecha_cosecha: string;
   cantidad: number;
@@ -37,6 +38,7 @@ type UserOption = {
 
 const emptyState: LoteFormState = {
   nombre_lote: "",
+  sublote: "",
   fecha_siembra: "",
   fecha_cosecha: "",
   cantidad: 0,
@@ -125,6 +127,7 @@ export default function LotesEdit() {
 
         setForm({
           nombre_lote: loteData?.nombre_lote || "",
+          sublote: loteData?.sublote || "",
           fecha_siembra: toDatetimeLocal(loteData?.fecha_siembra),
           fecha_cosecha: toDatetimeLocal(loteData?.fecha_cosecha),
           cantidad: Number(loteData?.cantidad ?? 0),
@@ -193,6 +196,7 @@ export default function LotesEdit() {
       try {
         const payload = {
           nombre_lote: form.nombre_lote.trim(),
+          sublote: form.sublote.trim(),
           fecha_siembra: form.fecha_siembra,
           fecha_cosecha: form.fecha_cosecha,
           cantidad: Number(form.cantidad),
@@ -261,6 +265,20 @@ export default function LotesEdit() {
                     className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                     maxLength={25}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Nombre sublote <span className="text-error-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.sublote}
+                    onChange={handleChange("sublote")}
+                    placeholder="Levante"
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                    required
                   />
                 </div>
 

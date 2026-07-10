@@ -12,6 +12,7 @@ class LoteEstado(str, Enum):
 
 class LoteBase(BaseModel):
     lote_granj_id: int
+    sublote: Optional[str] = None
     fecha_siembra: datetime
     fecha_cosecha: datetime
     cantidad: int
@@ -24,6 +25,7 @@ class LoteCreate(LoteBase):
    pass
 
 class LoteUpdate(BaseModel):
+   sublote: Optional[str] = None
    fecha_siembra: Optional[datetime] = None
    fecha_cosecha: Optional[datetime] = None
    cantidad: Optional[int] = None

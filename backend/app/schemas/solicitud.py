@@ -12,6 +12,7 @@ class SolicitudStatus(str, Enum):
 
 class SolicitudBase(BaseModel):
     solicitante: str = Field(min_length=1, max_length=100)
+    ficha: str = Field(min_length=1, max_length=10)
     insumo_id: int = Field(ge=0)
     cantidad_in: int = Field(gt=0)
     unid_med_id: int
@@ -24,6 +25,7 @@ class SolicitudCreate(SolicitudBase):
 
 class SolicitudUpdate(BaseModel):
     solicitante: Optional[str] = None
+    ficha: Optional[str] = None
     insumo_id: Optional[int] = None
     cantidad_in: Optional[int] = None
     unid_med_id: Optional[int] = None

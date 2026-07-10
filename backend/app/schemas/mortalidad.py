@@ -25,6 +25,7 @@ class MortalidadOut(MortalidadBase):
    nombre_especie: Optional[str] = None
    nombre_categoria: Optional[str] = None
    nombre_lote: str
+   sublote: str
    nombre_user: Optional[str] = None
 
 class PaginatedMortalidad(BaseModel):
