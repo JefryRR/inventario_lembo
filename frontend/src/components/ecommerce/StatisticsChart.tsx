@@ -96,7 +96,7 @@ export default function StatisticsChart() {
             throw err;
           }),
           fetchTodasLasPaginas<PerdidaItem>(
-            `inv_perdida/rango-fechas?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`,
+            `inv_perdida/rango-fechas?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&origen=produccion`,
             "perdidas"
           ).catch((err: any) => {
             if (err?.status === 404) return [];

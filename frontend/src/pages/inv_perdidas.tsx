@@ -173,22 +173,6 @@ export default function InvPerd() {
     return `${cantidad ?? 0} ${unidad}`;
   };
 
-  const applyDateFilter = () => {
-    if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
-      setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
-      return;
-    }
-
-    if (dateRange.fecha_inicio > dateRange.fecha_fin) {
-      setError("La fecha inicial no puede ser mayor que la fecha final.");
-      return;
-    }
-
-    setError(null);
-    setPage(1);
-    setActiveDateRange({ ...dateRange });
-  };
-
   const clearDateFilter = () => {
     setDateRange({ fecha_inicio: "", fecha_fin: "" });
     setActiveDateRange(null);
@@ -323,7 +307,7 @@ export default function InvPerd() {
                   Fecha reporte
                 </th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Valor unitario
+                  Valor unitario / Total
                 </th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Motivo
@@ -398,7 +382,8 @@ export default function InvPerd() {
                       <div> {formatearFecha(inv_perd.fecha_reporte)} </div>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div>$ {inv_perd.valor_unitario}</div>
+                      <div>$ {inv_perd.valor_unitario} /</div>
+                      <div>$ {inv_perd.valor_unitario * inv_perd.cantidad}</div>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                       <div>{inv_perd.motivo}</div>

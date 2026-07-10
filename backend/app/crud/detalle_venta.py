@@ -87,7 +87,30 @@ def get_detalle_venta_by_id(db: Session, id: int) -> Optional[DetalleVentaOut]:
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener detalle de venta por id: {e}")
         raise Exception("Error de base de datos al obtener el detalle de venta")
-    
+
+def get_det_venta_by_id_venta(db: Session, id_venta: int):
+    try:
+        query = text("""
+            SELECT d_v.id_detalle_venta, d_v.cantidad, d_v.unid_medida_id,
+                   d_v.precio_venta, d_v.inv_prod_id, d_v.venta_id, d_v.estado_venta, 
+                    d_v.cant_convertida, v.nombre_comprador, u_m.simbolo, pr.nombre_producto
+            FROM detalle_ventas d_v
+            LEFT JOIN ventas AS v ON d_v.venta_id = v.id_venta
+            LEFT JOIN unidades_medida AS u_m ON d_v.unid_medida_id = u_m.id_unidad
+            LEFT JOIN inv_produccion AS pr ON d_v.inv_prod_id = pr.id_inventario
+            WHERE d_v.venta_id = :id_venta and v.fecha_venta = current_date
+        """)
+        result = db.execute(query, {"id_venta": id_venta}).mappings().all()
+
+        if not result:
+            return None
+
+        # Convert mapping to DetalleVentaOut model instance
+        return [DetalleVentaOut.model_validate(dict(row)) for row in result ]
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener detalle de venta por id: {e}")
+        raise Exception("Error de base de datos al obtener el detalle de venta")
+
 def get_all_detalles_venta(db: Session) -> list[DetalleVentaOut]:
     try:
         query = text("""
@@ -260,3 +283,16 @@ def get_detalles_venta_paginated(db: Session, skip: int = 0, limit: int = 10):
     except SQLAlchemyError as e:
         logger.error( f"Error al obtener los detalles de venta: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener los detalles de venta")
+
+def delete_detalle_venta_by_id(db: Session, id: int):
+    try:
+        result = db.execute(
+            text("DELETE FROM detalle_ventas WHERE id_detalle_venta = :id"),
+            {"id": id}
+        )
+        db.commit()
+        return result.rowcount > 0
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Error al eliminar detalle de venta {id}: {e}")
+        raise Exception("Error de base de datos al eliminar el detalle de venta")

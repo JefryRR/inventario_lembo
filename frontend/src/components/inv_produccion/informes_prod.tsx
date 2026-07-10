@@ -12,6 +12,7 @@ type MovimientoReporte = {
     referencia: string;
     fecha: string;
     motivo: string;
+    simbolo: string;
 };
 
 type ReporteProduccion = {
@@ -26,6 +27,7 @@ type ReporteProduccion = {
         stock_actual: number;
         total_vendido: number;
         total_perdido: number;
+        total_solicitado: number;
         simbolo: string;
     };
     movimientos: MovimientoReporte[];
@@ -207,6 +209,7 @@ export default function InformesProd() {
             ) : (
                 <>
                     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        {/* Aquí muestra el la introducción del informe */}
                         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                             <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Producto
@@ -266,7 +269,7 @@ export default function InformesProd() {
                             </p>
                         </div>
                     </div>
-
+                    {/* Aquí muestra el resumen financiero y los datos generales */}
                     <div className="grid gap-4 lg:grid-cols-2">
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                             <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">Datos generales</h2>
@@ -290,6 +293,11 @@ export default function InformesProd() {
                                 <div>
                                     <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Lote</dt>
                                     <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{encabezado.nombre_lote}</dd>
+                                </div>
+                                <div>
+                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Cant. solicitada</dt>
+                                    <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{formatearCantidad(encabezado.total_solicitado, encabezado.simbolo)}</dd>
+                                    <dd className="mt-1 text-sm font-medium text-yellow-500 dark:text-white/90">{((encabezado.total_solicitado/encabezado.cantidad_inicial)*100).toFixed(2)}% del inventario</dd>
                                 </div>
                             </dl>
                         </div>
@@ -355,7 +363,7 @@ export default function InformesProd() {
                                                 <td className="px-5 py-4 text-sm font-medium text-gray-800 dark:text-white/90">{movimiento.tipo}</td>
                                                 <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{movimiento.referencia}</td>
                                                 <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">{movimiento.cantidad}</td>
-                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{encabezado.simbolo || "-"}</td>
+                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{movimiento.simbolo || "-"}</td>
                                                 <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
                                                     {movimiento.valor === "-" ? "-" : formatearMoneda(movimiento.valor)}
                                                 </td>

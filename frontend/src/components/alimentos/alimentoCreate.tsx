@@ -97,7 +97,7 @@ export default function AlimentoCreate() {
 
         const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
           const esAlimento = insumo.tipo_id === 7;
-          const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
+          const noVencido = insumo.fecha_vencimiento && new Date(insumo.fecha_vencimiento) >= new Date(); //Aquí hice un cambio por si no funciona
           return esAlimento && noVencido;
         });
 

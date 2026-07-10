@@ -68,7 +68,6 @@ export default function SolicitudEdit() {
   const id = params.id || params.id_solicitud || params.solicitud_id;
 
   const [form, setForm] = useState<SolicitudFormState>(emptyState);
-  const [originalEstado, setOriginalEstado] = useState<SolicitudEstado | null>(null);
   const [tipos, setTipos] = useState<TipoOption[]>([]);
   const [inventarios, setInventarios] = useState<InventarioOption[]>([]);
   const [medidas, setMedidas] = useState<MedidaOption[]>([]);
@@ -132,7 +131,6 @@ export default function SolicitudEdit() {
         });
         console.log(solicitudData?.fecha_entrega);
         console.log(new Date(solicitudData?.fecha_entrega));
-        setOriginalEstado((solicitudData?.estado_solicitud as SolicitudEstado) || null);
       } catch (requestError: any) {
         if (!mounted) return;
         setError(requestError?.detail || requestError?.message || "No se pudo cargar la solicitud");
@@ -216,14 +214,6 @@ export default function SolicitudEdit() {
         method: "PUT",
         body: payload,
       });
-
-      // Si el estado cambió, llamar al endpoint específico de estado
-      if (originalEstado && originalEstado !== form.estado_solicitud) {
-        // El router espera 'estado' (query) y toma 'id_solicitud' desde query también
-        await apiFetch(`solicitud/estado/${id}?estado=${id}&estado=${form.estado_solicitud}`, {
-          method: "PUT",
-        });
-      }
 
       setSuccess("Solicitud actualizada correctamente");
       setTimeout(() => navigate("/solicitud"), 800);
@@ -312,7 +302,6 @@ export default function SolicitudEdit() {
                     Cantidad a solicitar <span className="text-error-500">*</span>
                   </label>
                   <input
-                    type="number"
                     value={form.cantidad_in}
                     onChange={handleChange("cantidad_in")}
                     min={1}

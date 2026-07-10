@@ -16,21 +16,27 @@ type InsumoAlert = {
   id_insumo: number;
   nombre_producto: string;
   fecha_vencimiento: string;
+  cantidad: number;
+  minima: number;
 };
 
+type TipoAlerta = "vencimiento" | "provisionar" | "agotado";
+
 type AlertCard = {
-  id: number;
+  id: string;
   title: string;
   subtitle: string;
   daysLeft: number;
   dateLabel: string;
   origen: "produccion" | "insumo";
+  tipo: TipoAlerta;
+  message: string;
 };
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(false);// El estado acepta ambos tipos
-  const [alerts, setAlerts] = useState<((ProduccionAlert & { origen: "produccion" }) | (InsumoAlert & { origen: "insumo" }))[]>([]);
+  const [alerts, setAlerts] = useState<((ProduccionAlert & { origen: "produccion", tipo: "vencimiento" }) | (InsumoAlert & { origen: "insumo"; tipo: TipoAlerta }))[]>([]);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
   const [alertsError, setAlertsError] = useState<string | null>(null);
 
@@ -74,17 +80,41 @@ export default function NotificationDropdown() {
             return expiryDate >= today && expiryDate <= limit;
           });
 
+        const filtrarPorAlerta = (items: any[]) =>
+          items
+            .map((item) => {
+              const nivelAlerta =
+                item.cantidad > 0 && item.cantidad <= 20
+                  ? "Agotado"
+                  : item.cantidad <= item.minima
+                    ? "Provisionar"
+                    : "Disponible";
+              return { ...item, nivelAlerta };
+            })
+            .filter(
+              (item) => item.nivelAlerta === "Provisionar" || item.nivelAlerta === "Agotado"
+            );
+
+
         const produccionFiltrada = filtrarPorVencimiento(list).map((item: ProduccionAlert) => ({
           ...item,
           origen: "produccion" as const,
+          tipo: "vencimiento" as const,
         }));
 
         const insumosFiltrados = filtrarPorVencimiento(insumosList).map((item: InsumoAlert) => ({
           ...item,
           origen: "insumo" as const,
+          tipo: "vencimiento" as const,
         }));
 
-        const filteredAlerts = [...produccionFiltrada, ...insumosFiltrados].sort(
+        const insumosAlerta = filtrarPorAlerta(insumosList).map((item: any) => ({
+          ...item,
+          origen: "insumo" as const,
+          tipo: (item.nivelAlerta === "Agotado" ? "agotado" : "provisionar") as TipoAlerta,
+        }));
+
+        const filteredAlerts = [...produccionFiltrada, ...insumosFiltrados, ...insumosAlerta].sort(
           (a, b) => new Date(a.fecha_vencimiento).getTime() - new Date(b.fecha_vencimiento).getTime()
         );
 
@@ -107,30 +137,39 @@ export default function NotificationDropdown() {
   }, []);
 
   const notificationItems: AlertCard[] = alerts.map((item) => {
+    const rawId = item.origen === "produccion" ? item.id_inventario : item.id_insumo;
+    const id = `${item.origen}-${item.tipo}-${rawId}`;
+
+    if (item.tipo !== "vencimiento") {
+      // Alerta de stock: solo aplica a insumos
+      const insumo = item as InsumoAlert & { origen: "insumo" };
+      return {
+        id,
+        title: insumo.nombre_producto,
+        subtitle: typeof insumo.cantidad === "number" ? `Cantidad disponible: ${insumo.cantidad}` : "Inventario de insumos",
+        daysLeft: 0,
+        dateLabel: "",
+        origen: "insumo" as const,
+        tipo: item.tipo,
+        message: item.tipo === "agotado" ? "está agotado" : "necesita ser provisionado",
+      };
+    }
+
     const expiryDate = new Date(item.fecha_vencimiento);
     expiryDate.setHours(0, 0, 0, 0);
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    const daysLeft = Math.max(
-      0,
-      Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-    );
+    const daysLeft = Math.max(0, Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
 
     return {
-      id: item.origen === "produccion" ? item.id_inventario : item.id_insumo,
+      id,
       title: item.nombre_producto,
-      subtitle: item.origen === "produccion"
-        ? (item as ProduccionAlert).nombre_lote || "Inventario de producción"
-        : "Inventario de insumos",
+      subtitle: item.origen === "produccion" ? (item as ProduccionAlert).nombre_lote || "Inventario de producción" : "Inventario de insumos",
       daysLeft,
-      dateLabel: expiryDate.toLocaleDateString("es-CO", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
+      dateLabel: expiryDate.toLocaleDateString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric" }),
       origen: item.origen,
+      tipo: item.tipo,
+      message: `vence en ${daysLeft} día${daysLeft === 1 ? "" : "s"}`,
     };
   });
 
@@ -228,16 +267,17 @@ export default function NotificationDropdown() {
                   <span className="block">
                     <span className="mb-1.5 block space-x-1 text-theme-sm text-gray-500 dark:text-gray-400">
                       <span className="font-medium text-gray-800 dark:text-white/90">{item.title}</span>
-                      <span>vence en</span>
-                      <span className="font-medium text-gray-800 dark:text-white/90">
-                        {item.daysLeft} día{item.daysLeft === 1 ? "" : "s"}
-                      </span>
+                      <span>{item.message}</span>
                     </span>
 
                     <span className="flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400">
                       <span>{item.subtitle}</span>
-                      <span className="h-1 w-1 rounded-full bg-gray-400"></span>
+                      {item.dateLabel && (
+                        <>
+                        <span className="h-1 w-1 rounded-full bg-gray-400"></span>
                       <span>Vence {item.dateLabel}</span>
+                      </>
+                      )}
                     </span>
                   </span>
                 </DropdownItem>
