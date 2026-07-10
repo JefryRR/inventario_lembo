@@ -14,6 +14,7 @@ type TratamientoFormState = {
   user_id: number;
   cant_convertida: number;
   nombre_lote: string;
+  sublote: string;
   nombre_producto: string;
   nombre_user: string;
   simbolo: string;
@@ -22,6 +23,7 @@ type TratamientoFormState = {
 type LoteOption = {
   id_lote_g: number;
   nombre_lote: string;
+  sublote: string;
 };
 
 type MedicinaOption = {
@@ -40,6 +42,7 @@ type MedidaOption = {
 
 const initialState: TratamientoFormState = {
   lote_id: 0,
+  sublote: "",
   medicina_id: 0,
   fecha_inicio: "",
   fecha_fin: "",
@@ -164,6 +167,7 @@ export default function TratamientoCreate() {
     try {
       const payload = {
         nombre_lote: form.nombre_lote.trim(),
+        sublote: form.sublote.trim(),
         nombre_producto: form.nombre_producto.trim(),
         fecha_inicio: form.fecha_inicio,
         fecha_fin: form.fecha_fin,

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 
 type estadoMaquina = "operativa" | "dañada" | "mantenimiento" | "de_baja";
 
@@ -129,6 +129,23 @@ export default function Maquinas() {
 		});
 	}, [search, maquinas]);
 
+	const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
+
+	const handleExportarMaquinas = async (formato: "pdf" | "excel") => {
+		setDescargando(formato);
+		try {
+		const extension = formato === "pdf" ? "pdf" : "xlsx";
+		await apiDownload(
+			`maquinas/exportar/${formato}`,
+			`reporte_maquinas.${extension}`,
+		);
+		} catch (err: any) {
+		alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+		} finally {
+		setDescargando(null);
+		}
+	};
+
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
 	return (
@@ -150,6 +167,20 @@ export default function Maquinas() {
 							placeholder="Buscar máquina..."
 							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-72"
 						/>
+						<button
+							onClick={() => handleExportarMaquinas("excel")}
+							disabled={descargando !== null}
+							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+							>
+							{descargando === "excel" ? "Descargando..." : "Exportar Excel"}
+							</button>
+							<button
+							onClick={() => handleExportarMaquinas("pdf")}
+							disabled={descargando !== null}
+							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+							>
+							{descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
+						</button>
 					</div>
 				</div>
 

@@ -14,6 +14,7 @@ type MortalidadFormState = {
 type LoteOption = {
 	id_lote: number;
 	nombre_lote: string;
+	sublote: string;
 	nombre_especie?: string;
 	nombre_categoria?: string;
 };
@@ -160,7 +161,7 @@ export default function MortalidadCreate() {
 								</option>
 								{lotes.map((lote) => (
 									<option className="dark:text-black" key={lote.id_lote} value={lote.id_lote}>
-										{lote.nombre_lote} {lote.nombre_especie ? `- ${lote.nombre_especie}` : ""}
+										{lote.nombre_lote} {lote.sublote ? `- ${lote.sublote}` : ""} {lote.nombre_especie ? `- ${lote.nombre_especie}` : ""}
 									</option>
 								))}
 							</select>

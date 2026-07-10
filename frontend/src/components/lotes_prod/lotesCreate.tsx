@@ -12,6 +12,7 @@ type LoteEstado =
 type LoteFormState = {
   lote_granj_id: number;
   nombre_lote: string;
+  sublote: string;
   fecha_siembra: string;
   fecha_cosecha: string;
   cantidad: string | number;
@@ -44,6 +45,7 @@ type UserOption = {
 const initialState: LoteFormState = {
   lote_granj_id: 0,
   nombre_lote: "",
+  sublote: "",
   fecha_siembra: "",
   fecha_cosecha: "",
   cantidad: "" as string | number,
@@ -204,6 +206,7 @@ export default function LotesCreate() {
       const payload = {
         lote_granj_id: Number(form.lote_granj_id),
         nombre_lote: form.nombre_lote.trim(),
+        sublote: form.sublote.trim(),
         fecha_siembra: form.fecha_siembra,
         fecha_cosecha: form.fecha_cosecha,
         cantidad: cantidadValue,
@@ -268,7 +271,21 @@ export default function LotesCreate() {
                       </option>
                   ))}
               </select>
-          </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Nombre sublote <span className="text-error-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.sublote}
+                onChange={(e) => setForm({ ...form, sublote: e.target.value })}
+                className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                placeholder="Levante"
+                required
+              />
+            </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">

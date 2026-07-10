@@ -241,4 +241,3 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
             "Error de base de datos al obtener los registros de tratamientos"
         )
         
-        

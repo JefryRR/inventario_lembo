@@ -86,6 +86,13 @@ def generar_pdf_reporte_insumo(reporte: dict) -> io.BytesIO:
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
+
+    # Estilo centrado para el título de historial de estados
+    estilo_titulo_centrado = ParagraphStyle(
+        "TituloCentrado",
+        parent=styles["Heading2"],
+        alignment=TA_CENTER,
+    )
     elementos = []
 
     elementos.append(Paragraph(f"Informe de Insumo: {encabezado['nombre_producto']}", styles["Title"]))
@@ -110,7 +117,7 @@ def generar_pdf_reporte_insumo(reporte: dict) -> io.BytesIO:
     elementos.append(tabla_encabezado)
     elementos.append(Spacer(1, 20))
 
-    elementos.append(Paragraph("Movimientos", styles["Heading2"]))
+    elementos.append(Paragraph("Movimientos", estilo_titulo_centrado))
     filas = [["Tipo", "Observaciones", "Cantidad", "Valor", "Motivo", "Fecha"]]
     for m in movimientos:
         valor = m.get("valor")
@@ -472,7 +479,7 @@ def generar_excel_reporte_mortalidad(perdidas: list) -> io.BytesIO:
     ws.append([])
 
     headers = [
-        "Lote", "Categoría", "especie", "Cantidad", "Fecha reporte", "Observación", "usuario"
+        "Lote", "Sublote", "Categoría", "especie", "Cantidad", "Fecha reporte", "Observación", "usuario"
     ]
     ws.append(headers)
     fila_encabezado = ws.max_row
@@ -485,6 +492,7 @@ def generar_excel_reporte_mortalidad(perdidas: list) -> io.BytesIO:
        
         ws.append([ # type: ignore
             p.get("nombre_lote") if p.get("nombre_lote") else "-",
+            p.get("sublote") if p.get("sublote") else "-",
             p.get("nombre_categoria") if p.get("nombre_categoria") else "-",
             p.get("nombre_especie") if p.get("nombre_especie") else "-",
             p.get("cantidad"),
@@ -524,12 +532,13 @@ def generar_pdf_reporte_mortalidad(mortalidad: list) -> io.BytesIO:
     elementos.append(Spacer(1, 12))
 
     total_mortalidad = 0.0
-    filas = [["Lote", "Categoría", "especie", "Cantidad", "Fecha reporte", "Observación", "usuario"]]
+    filas = [["Lote", "Sublote", "Categoría", "especie", "Cantidad", "Fecha reporte", "Observación", "usuario"]]
     for p in mortalidad:
         total_mortalidad += p.get("cantidad", 0)
 
         filas.append([
             p.get("nombre_lote") or "",
+            p.get("sublote") or "",
             p.get("nombre_categoria") or "",
             p.get("nombre_especie") or "",
             p.get("cantidad", 0),
@@ -893,7 +902,7 @@ def generar_pdf_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
         bottomMargin=1.5 * cm,
     )
     styles = getSampleStyleSheet()
-    estilo_observaciones = styles["BodyText"].clone("ObservacionesTratamiento")
+    estilo_observaciones = styles["BodyText"].clone("Observaciones Tratamiento")
     estilo_observaciones.fontSize = 6
     estilo_observaciones.leading = 7
 
@@ -1111,6 +1120,282 @@ def generar_pdf_reporte_maquina(reporte: dict) -> io.BytesIO:
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
     elementos.append(tabla_movs)
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+def generar_excel_reporte_general_maquina(maquinaria: list) -> io.BytesIO:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Maquinaria"
+
+    ws.append(["Informe de Maquinaria"])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([f"Total de registros: {len(maquinaria)}"])
+    ws.append([])
+
+    headers = [
+        "Nombre máquina", "Tipo", "Marca/Modelo", "N° Serie",
+        "Fecha de compra", "Estado", "Ubicación", "Observación", "Fecha de retiro",
+    ]
+    ws.append(headers)
+    fila_encabezado = ws.max_row
+    for celda in ws[fila_encabezado]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+    for t in maquinaria:
+        ws.append([
+            t.get("nombre_maq") or "-",
+            t.get("tipo_maq") or "-",
+            t.get("marca") + "/" + t.get("modelo") or "-",
+            t.get("num_serie") or "-",
+            str(t.get("fecha_compra") or "-"),
+            t.get("estado") or "-",
+            t.get("ubicacion") or "-",
+            t.get("observaciones") or "-",
+            str(t.get("fecha_de_baja") or "-"),
+        ])
+
+    for columna in ws.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+def generar_pdf_reporte_general_maquina(maquinaria: list) -> io.BytesIO:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+    estilo_observaciones = styles["BodyText"].clone("Observaciones maquinaria")
+    estilo_observaciones.fontSize = 6
+    estilo_observaciones.leading = 7
+
+    elementos = [Paragraph("Informe de maquinaria", styles["Title"]), Spacer(1, 12)]
+
+    filas = [["Nombre máquina", "Tipo", "Marca/Modelo", "N° Serie", "Fecha de compra", "Estado", "Ubicación", "Observación", "Fecha de retiro"]]
+    for t in maquinaria:
+
+        filas.append([
+            t.get("nombre_maq") or "-",
+            t.get("tipo_maq") or "-",
+            t.get("marca") + "/" + t.get("modelo") or "-",
+            t.get("num_serie") or "-",
+            str(t.get("fecha_compra") or "-"),
+            t.get("estado") or "-",
+            t.get("ubicacion") or "-",
+            Paragraph(t.get("observaciones") or "-", estilo_observaciones),
+            str(t.get("fecha_de_baja") or "-"),
+        ])
+
+    tabla = Table(
+        filas,
+        repeatRows=1,
+        colWidths=[3.5 * cm, 2.5 * cm, 3 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm, 3 * cm,],
+    )
+    tabla.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 18))
+    elementos.append(Paragraph(f"Total de registros: {len(maquinaria)}", styles["Normal"]))
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+def generar_excel_reporte_soli_insumo(solicitud: list) -> io.BytesIO:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Solicitudes insumos"
+
+    ws.append(["Informe de Solicitudes de Insumos"])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([f"Total de registros: {len(solicitud)}"])
+    ws.append([])
+
+    headers = [
+        "Solicitante", "Ficha", "Fecha solicitud", "Fecha entrega", "Fecha devolución", 
+        "Cant. solicitada", "Cant. a devolver", "Producto", 
+        "Categoria", "Estado",
+    ]
+    ws.append(headers)
+    fila_encabezado = ws.max_row
+    for celda in ws[fila_encabezado]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+    for t in solicitud:
+        ws.append([
+            t.get("solicitante") or "-",
+            t.get("ficha") or "-",
+            str(t.get("fecha_solicitud")or "-"),
+            str(t.get("fecha_entrega")or "-"),
+            str(t.get("fecha_devolucion")or "-"),
+            str(t.get("cantidad_in") or "-"),
+            str(t.get("cant_devolver") or "-"),
+            t.get("nombre_producto") or "-",
+            t.get("nombre_tipo") or "-",
+            t.get("estado_solicitud") or "-",
+        ])
+
+    for columna in ws.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+def generar_pdf_reporte_soli_insumo(solicitud: list) -> io.BytesIO:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+    estilo_observaciones.fontSize = 6
+    estilo_observaciones.leading = 7
+
+    elementos = [Paragraph("Informe de solicitudes de insumos", styles["Title"]), Spacer(1, 12)]
+
+    filas = [["Solicitante", "Ficha", "Fecha solicitud", "Fecha entrega", "Fecha devolución", 
+            "Cant. solicitada", "Cant. a devolver", "Producto", 
+            "Categoria", "Estado"]]
+    
+    for t in solicitud:
+        filas.append([
+            t.get("solicitante") or "-",
+            t.get("ficha") or "-",
+            str(t.get("fecha_solicitud")or "-"),
+            str(t.get("fecha_entrega")or "-"),
+            str(t.get("fecha_devolucion")or "-"),
+            str(t.get("cantidad_in") or "-"),
+            str(t.get("cant_devolver") or "-"),
+            t.get("nombre_producto") or "-",
+            t.get("nombre_tipo") or "-",
+            t.get("estado_solicitud") or "-",
+        ])
+
+    tabla = Table(
+        filas,
+        repeatRows=1,
+        colWidths=[3.5 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm, 2 * cm, 2 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm],
+    )
+    tabla.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 18))
+    elementos.append(Paragraph(f"Total de registros: {len(solicitud)}", styles["Normal"]))
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+def generar_excel_reporte_comercializacion(comercializacion: list) -> io.BytesIO:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Comercialización de productos"
+
+    ws.append(["Informe de Comercializaciones"])
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.append([f"Total de registros: {len(comercializacion)}"])
+    ws.append([])
+
+    headers = [
+        "Producto", "Fecha", "Cantidad", "Lugar", "Estado de vendido", 
+        "Cant. no vendida",
+    ]
+    ws.append(headers)
+    fila_encabezado = ws.max_row
+    for celda in ws[fila_encabezado]:
+        celda.font = Font(bold=True, color="FFFFFF")
+        celda.fill = PatternFill(start_color="007832", end_color="007832", fill_type="solid")
+
+    for t in comercializacion:
+        ws.append([
+            t.get("nombre_producto") or "-",
+            t.get("fecha_comercializacion") or "-",
+            str(t.get("cantidad") or "-") + "/" + str(t.get("simbolo") or "-"),
+            t.get("lugar_comercializacion") or "-",
+            "Vendió todo" if t.get("vendio_todo") else "No vendió todo",
+            str(t.get("cant_no_vendida") or "-"),
+        ])
+
+    for columna in ws.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        ws.column_dimensions[columna[0].column_letter].width = max_len + 2
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+def generar_pdf_reporte_comercializacion(comercializacion: list) -> io.BytesIO:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+    estilo_observaciones.fontSize = 6
+    estilo_observaciones.leading = 7
+
+    elementos = [Paragraph("Informe de comercializaciones", styles["Title"]), Spacer(1, 12)]
+
+    filas = [["Producto", "Fecha", "Cantidad", "Lugar", "Estado de vendido", "Cant. no vendida"]]
+    
+    for t in comercializacion:
+        filas.append([
+            t.get("nombre_producto") or "-",
+            t.get("fecha_comercializacion") or "-",
+            str(t.get("cantidad") or "-") + "/" + str(t.get("simbolo") or "-"),
+            t.get("lugar_comercializacion") or "-",
+            "Vendió todo" if t.get("vendio_todo") else "No vendió todo",
+            str(t.get("cant_no_vendida") or "-"),
+        ])
+
+    tabla = Table(
+        filas,
+        repeatRows=1,
+        colWidths=[3.5 * cm, 2.5 * cm, 2 * cm, 4 * cm, 2.5 * cm, 2.5 * cm],
+    )
+    tabla.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 18))
+    elementos.append(Paragraph(f"Total de registros: {len(comercializacion)}", styles["Normal"]))
 
     doc.build(elementos)
     buffer.seek(0)

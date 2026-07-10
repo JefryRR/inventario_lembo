@@ -19,6 +19,7 @@ type MortalidadRow = {
 	nombre_especie?: string;
 	nombre_categoria?: string;
 	nombre_lote: string;
+	sublote: string;
 	nombre_user?: string;
 };
 
@@ -146,6 +147,7 @@ export default function Mortalidad() {
 		return rows.filter((r) => {
 			return [
 				r.nombre_lote,
+				r.sublote,
 				r.nombre_especie,
 				r.nombre_categoria,
 				r.nombre_user,
@@ -347,7 +349,7 @@ export default function Mortalidad() {
 								<tr key={mortalidad.id_mortalidad} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 									<td className="px-5 py-4">
 										<div className="text-sm font-medium text-gray-800 dark:text-white/90">{mortalidad.nombre_lote}</div>
-										<div className="text-xs text-gray-500 dark:text-gray-400">ID: {mortalidad.id_mortalidad}</div>
+										<div className="text-xs text-gray-500 dark:text-gray-400">Sublote: {mortalidad.sublote}</div>
 									</td>
 
 									<td className="px-5 py-4">

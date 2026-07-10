@@ -93,6 +93,9 @@ import Maquinaria from "./pages/maquinaria";
 import MaquinariaCreate from "./components/maquinaria.py/maquinaCreate";
 import MaquinariaEdit from "./components/maquinaria.py/maquinaEdit";
 import InformeMaquina from "./components/maquinaria.py/informes_maq";
+import Comercio from "./pages/comercio";
+import ComercioCreate from "./components/comercializacion/comercioCreate";
+import ComercioEdit from "./components/comercializacion/comercioEdit";
 import Home from "./pages/Dashboard/Home";
 
 export default function App() {
@@ -188,6 +191,9 @@ export default function App() {
             <Route path="/solicitud-maq" element={<SolicitudMaquinaria />} />
             <Route path="/solicitud-maq/crear" element={<SoliMaquinariaCreate />} />
             <Route path="/solicitud-maq/edit/:id" element={<SoliMaquinariaEdit />} />
+            <Route path="/comercializaciones" element={<Comercio />} />
+            <Route path="/comercializaciones/crear" element={<ComercioCreate />} />
+            <Route path="/comercializaciones/edit/:id_comercializacion" element={<ComercioEdit />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

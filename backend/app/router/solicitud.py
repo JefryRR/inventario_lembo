@@ -9,6 +9,8 @@ from app.crud import solicitud as crud_solicitud
 from app.crud import inv_insumos as crud_insumos
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from fastapi.responses import StreamingResponse  #type: ignore
+from app.utils.exportar_reportes import generar_excel_reporte_soli_insumo, generar_pdf_reporte_soli_insumo
 
 router = APIRouter()
 modulo = 19
@@ -88,6 +90,56 @@ def update_solicitud(
         if not success:
             raise HTTPException(status_code=400, detail="No se pudo actualizar la solicitud")
         return {"message": "Solicitud actualizada correctamente"}
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/exportar/excel")
+def exportar_soli_insumos_excel(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        solicitudes = crud_solicitud.get_all_solicitudes(db)
+        if not solicitudes:
+            raise HTTPException(status_code=404, detail="No hay solicitudes registradas")
+
+        buffer = generar_excel_reporte_soli_insumo(solicitudes)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="reporte_solicitudes.xlsx"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar/pdf")
+def exportar_soli_insumos_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        solicitudes = crud_solicitud.get_all_solicitudes(db)
+        if not solicitudes:
+            raise HTTPException(status_code=404, detail="No hay solicitudes registradas")
+
+        buffer = generar_pdf_reporte_soli_insumo(solicitudes)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_solicitudes.pdf"'}
+        )
     except HTTPException:
         raise
     except SQLAlchemyError as e:

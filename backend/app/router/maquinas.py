@@ -10,7 +10,7 @@ from app.crud import maquinas as crud_maquinas
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from fastapi.responses import StreamingResponse  #type: ignore
-from app.utils.exportar_reportes import generar_excel_reporte_maquina, generar_pdf_reporte_maquina
+from app.utils.exportar_reportes import generar_excel_reporte_maquina, generar_pdf_reporte_maquina, generar_excel_reporte_general_maquina, generar_pdf_reporte_general_maquina
 
 router = APIRouter()
 modulo = 24
@@ -64,6 +64,56 @@ def get_all_maquina(
         
         maquinas = crud_maquinas.all_maquina(db)
         return maquinas
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/exportar/excel")
+def exportar_maquinas_excel(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        maquinas = crud_maquinas.all_maquina(db)
+        if not maquinas:
+            raise HTTPException(status_code=404, detail="No hay maquinas registradas")
+
+        buffer = generar_excel_reporte_general_maquina(maquinas)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="reporte_maquinas.xlsx"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar/pdf")
+def exportar_maquinas_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        maquinas = crud_maquinas.all_maquina(db)
+        if not maquinas:
+            raise HTTPException(status_code=404, detail="No hay maquinas registradas")
+
+        buffer = generar_pdf_reporte_general_maquina(maquinas)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_maquinas.pdf"'}
+        )
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -122,7 +122,10 @@ const modulosItems: NavItem[] = [
         name: "Inventario de producción",
         path: "/invProd",
       },
-     
+      {
+        name: "Comercialización de productos",
+        path: "/comercializaciones",
+      },
     ],
   },
   {

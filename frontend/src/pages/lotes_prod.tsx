@@ -8,6 +8,7 @@ type LoteRow = {
 	id_lote: number;
 	lote_granj_id: number;
 	nombre_lote: string;
+	sublote: string;
 	fecha_siembra: string;
 	fecha_cosecha: string;
 	cantidad: number;
@@ -119,6 +120,7 @@ export default function Lotes() {
 		return lotes.filter((lote) => {
 			return [
 				lote.nombre_lote,
+				lote.sublote,
 				lote.nombre_especie,
 				lote.nombre_categoria,
 				lote.nombre_user,
@@ -161,6 +163,9 @@ export default function Lotes() {
 							<tr>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Lote
+								</th>
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Sublote
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Fechas
@@ -208,6 +213,8 @@ export default function Lotes() {
 											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{lote.nombre_lote}</div>
 											<div className="text-xs text-gray-500 dark:text-gray-400">ID: {lote.id_lote}</div>
 										</td>
+
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{lote.sublote}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											<div>Siembra: {formatDate(lote.fecha_siembra)}</div>

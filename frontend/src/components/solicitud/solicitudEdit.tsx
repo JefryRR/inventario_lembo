@@ -11,6 +11,7 @@ type SolicitudEstado =
 
 type SolicitudFormState = {
   solicitante: string
+  ficha: string
   insumo_id: number
   cantidad_in: number
   cant_devolver: number
@@ -42,6 +43,7 @@ type MedidaOption = {
 
 const emptyState: SolicitudFormState = {
   solicitante: "",
+  ficha: "",
   insumo_id: 0,
   cantidad_in: 0,
   cant_devolver: 0,
@@ -117,6 +119,7 @@ export default function SolicitudEdit() {
 
         setForm({
           solicitante: solicitudData?.solicitante || "",
+          ficha: solicitudData?.ficha || "",
           cantidad_in: Number(solicitudData?.cantidad_in ?? 0),
           cant_devolver: Number(solicitudData?.cant_devolver ?? 0),
           insumo_id: Number(solicitudData?.insumo_id ?? 0),
@@ -199,6 +202,7 @@ export default function SolicitudEdit() {
     try {
       const payload = {
         solicitante: form.solicitante.trim(),
+        ficha: form.ficha.trim(),
         cantidad: Number(form.cantidad_in),
         cant_devolver: Number(form.cant_devolver),
         insumo_id: Number(form.insumo_id),
@@ -263,6 +267,19 @@ export default function SolicitudEdit() {
                     type="text"
                     value={form.solicitante}
                     onChange={handleChange("solicitante")}
+                    className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Ficha <span className="text-error-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.ficha}
+                    onChange={handleChange("ficha")}
                     className="h-11 w-full rounded-lg focus:ring-gray-500 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                   />

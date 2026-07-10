@@ -14,6 +14,7 @@ type MortalidadFormState = {
 type LoteOption = {
   id_lote: number;
   nombre_lote: string;
+  sublote: string;
 };
 
 type UserOption = {
@@ -210,7 +211,7 @@ export default function MortalidadEdit() {
                     </option>
                     {lotes.map((lote) => (
                       <option className="dark:text-black" key={lote.id_lote} value={lote.id_lote}>
-                        {lote.nombre_lote}
+                        {lote.nombre_lote} {lote.sublote ? `- ${lote.sublote}` : ""}
                       </option>
                     ))}
                   </select>
