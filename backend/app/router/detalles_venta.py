@@ -57,7 +57,27 @@ def get_detalle_venta_by_id(
         return detalle
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@router.get("/by-id_venta",  response_model=List[DetalleVentaOut])
+def get_det_venta_by_id_venta(
+            id_venta: int, 
+            db: Session = Depends(get_db),
+            user_token: UserOut = Depends(get_current_user)
+            ):
+    try:
+        id_rol=user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        
+        detalle = crud_detalles.get_det_venta_by_id_venta(db, id_venta)
+        if not detalle:
+            raise HTTPException(status_code=404, detail="Detalle de venta no encontrado")
+        
+        return detalle
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+ 
+
 @router.get("/all/detalles", response_model=List[DetalleVentaOut])
 def get_all_detalles_venta(
     db: Session = Depends(get_db),
@@ -159,3 +179,33 @@ def get_detalles_venta_paginated(
         }
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
+    
+@router.delete("/delete_by_id/{id}", status_code=status.HTTP_200_OK)
+def delete_detalle_venta_by_id(
+    id: int,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, "borrar"):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+        
+        detalle = crud_detalles.get_detalle_venta_by_id(db, id)
+        if not detalle:
+            raise HTTPException(status_code=404, detail="Detalle de venta no encontrado")
+        
+        estados_bloqueados = ["Vendido", "Anulado"]
+        if detalle.estado_venta in estados_bloqueados:
+            raise HTTPException(
+                status_code=400,
+                detail=f"No se puede eliminar el registro porque la venta se encuentra en estado '{(detalle.estado_venta).value}'"
+            )
+        
+        success = crud_detalles.delete_detalle_venta_by_id(db, id)
+        if not success:
+            raise HTTPException(status_code=400, detail="No se pudo eliminar el detalle de venta")
+        
+        return {"message": "Detalle de venta eliminado correctamente"}
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))

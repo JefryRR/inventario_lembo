@@ -1,4 +1,5 @@
 from datetime import date
+from unittest import result
 from sqlalchemy.orm import Session
 from sqlalchemy import text 
 from typing import Optional
@@ -29,9 +30,10 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
                     """)
         params = solicitud.model_dump()
         params["cant_convertida"] = float(solicitud.cantidad_in) * float(conv) 
-        params["user_id"] = user_id                                                 
+        params["user_id"] = user_id
         db.execute(query, params)
         db.commit()
+
         return True
     except SQLAlchemyError as e:
         db.rollback()
@@ -93,7 +95,7 @@ def get_all_solicitudes(db: Session):
         logger.error(f"Error al obtener todas las solicitudses: {e}")
         raise
 
-def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudUpdate):
+def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudUpdate, user_id: int):
     try:
         solicitud_data = solicitud.model_dump(exclude_unset=True)
 
@@ -158,10 +160,6 @@ def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudU
         ):
             solicitud_data["fecha_devolucion"] = date.today()
 
-        if (solicitud_data.get("estado_solicitud") == "cancelado" 
-            and estado_actual != "cancelado"):
-            solicitud_data["fecha_devolucion"] = date.today()
-
         set_clauses = ", ".join(
             [f"{key} = :{key}" for key in solicitud_data.keys()]
         )
@@ -171,10 +169,33 @@ def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudU
             SET {set_clauses}
             WHERE id_solicitud = :id_solicitud
         """)
-
         solicitud_data["id_solicitud"] = solicitud_id
-
         result = db.execute(sentencia, solicitud_data)
+
+        nuevo_estado = solicitud_data.get("estado_solicitud")
+        
+        if nuevo_estado and nuevo_estado != estado_actual:
+            historial_query = text("""
+                INSERT INTO h_solicitud_insumo(
+                    solicitud_ins_id, estado_solicitud_act, cantidad_actual, user_id
+                ) VALUES (
+                    :solicitud_id, :estado_nuevo, :cantidad_actual, :user_id
+                )
+            """)
+
+            cantidad_actual = None
+            if nuevo_estado == "entregado":
+                cantidad_actual = solicitud_data.get("cant_convertida")
+            elif nuevo_estado == "devuelto":
+                cantidad_actual = solicitud_data.get("cant_devolver")
+
+            db.execute(historial_query, {
+                "solicitud_id": solicitud_id,
+                "estado_nuevo": nuevo_estado,
+                "cantidad_actual": cantidad_actual,
+                "user_id": user_id,
+            })
+
         db.commit()
 
         return result.rowcount > 0
@@ -198,6 +219,48 @@ def change_status_solicitud(db: Session, solicitud_id: int, estado: SolicitudSta
         db.rollback()
         logger.error(f"Error al cambiar estado de la solicitud {solicitud_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado de la solicitud")
+
+def get_historial_solicitud(db: Session, id_solicitud: int | None = None, skip: int = 0, limit: int = 10):
+    try:
+        where_clause = "WHERE h.solicitud_ins_id = :id_solicitud" if id_solicitud is not None else ""
+        params: dict = {"limit": limit, "skip": skip}
+        if id_solicitud is not None:
+            params["id_solicitud"] = id_solicitud
+
+        count_query = text(f"""
+            SELECT COUNT(*) AS total
+            FROM h_solicitud_insumo h
+            {where_clause}
+        """)
+        total_result = db.execute(count_query, params).scalar()
+
+        data_query = text(f"""
+            SELECT * FROM (
+                SELECT
+                    h.id_hist_solic,
+                    h.solicitud_ins_id,
+                    h.estado_solicitud_act,
+                    h.cantidad_actual,
+                    si.solicitante,
+                    si.fecha_solicitud,
+                    si.fecha_entrega,
+                    si.fecha_devolucion,
+                    h.user_id,
+                    u.nombre_user
+                FROM h_solicitud_insumo h
+                INNER JOIN solicitud_insumo si ON h.solicitud_ins_id = si.id_solicitud
+                INNER JOIN users u ON h.user_id = u.id_user
+            ) sub
+            {where_clause.replace('h.', 'sub.')}
+            ORDER BY sub.fecha_solicitud DESC
+            LIMIT :limit OFFSET :skip
+        """)
+        historial_list = db.execute(data_query, params).mappings().all()
+
+        return {"total": total_result or 0, "historial": historial_list}
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener el historial de las solicitudes de insumo: {e}", exc_info=True)
+        raise Exception("Error de base de datos al obtener el historial de las solicitudes de insumo")
 
 def get_solicitud_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """

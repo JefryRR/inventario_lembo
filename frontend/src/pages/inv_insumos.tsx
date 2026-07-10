@@ -157,20 +157,6 @@ export default function InvInsumo() {
         );
     }, [search, invInsumo, activeDateRange]);
 
-    const applyDateFilter = () => {
-        if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
-            setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
-            return;
-        }
-        if (dateRange.fecha_inicio > dateRange.fecha_fin) {
-            setError("La fecha inicial no puede ser mayor que la fecha final.");
-            return;
-        }
-        setError(null);
-        setPage(1);
-        setActiveDateRange({ ...dateRange });
-    };
-
     const clearDateFilter = () => {
         setDateRange({ fecha_inicio: "", fecha_fin: "" });
         setActiveDateRange(null);
@@ -184,7 +170,7 @@ export default function InvInsumo() {
     type EstadoInsumo = { label: string; color: string };
 
     const Estadoinsumo = (cantidad: number, minima: number): EstadoInsumo => {
-        if (cantidad === 0) return { label: "Agotado", color: "text-red-600" };
+        if (cantidad <= 20) return { label: "Agotado", color: "text-red-600" };
         if (cantidad <= minima) return { label: "Provisionar", color: "text-yellow-500" };
         return { label: "Disponible", color: "text-green-600" };
     };
@@ -284,7 +270,7 @@ export default function InvInsumo() {
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha registro</th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha vencimiento</th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado stock</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Precio unitario</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Precio unitario / Total</th>
                                 <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Detalles</th>
                                 <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Factura</th>
                                 <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Acciones</th>
@@ -333,7 +319,8 @@ export default function InvInsumo() {
                                                 <span className={estado.color}>{estado.label}</span>
                                             </td>
                                             <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
-                                                <div>$ {inv_insumo.precio_unitario}</div>
+                                                <div>$ {inv_insumo.precio_unitario} /</div>
+                                                <div>$ {inv_insumo.precio_unitario * inv_insumo.cantidad} </div>
                                             </td>
                                             <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                                 <div>{inv_insumo.nivel_alerta}</div>

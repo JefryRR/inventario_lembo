@@ -84,7 +84,7 @@ def update_solicitud(
         if not verify_permissions(db, id_rol, modulo, 'actualizar'):
             raise HTTPException(status_code=401, detail='Usuario no autorizado')
         
-        success = crud_solicitud.update_solicitud_by_id(db, solicitud_id, solicitud)
+        success = crud_solicitud.update_solicitud_by_id(db, solicitud_id, solicitud, user_token.id_user)
         if not success:
             raise HTTPException(status_code=400, detail="No se pudo actualizar la solicitud")
         return {"message": "Solicitud actualizada correctamente"}
@@ -108,6 +108,21 @@ def change_status_solicitud(solicitud_id: int, estado: SolicitudStatus, db: Sess
       return {"message": "Estado de la solicitud actualizado correctamente"}
   except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/historial_insumo")
+def get_historial_endpoint(
+    id_solicitud: int | None = None,
+    page: int = 1,
+    page_size: int = 10,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    id_rol = user_token.rol_id
+    if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+        raise HTTPException(status_code=401, detail='Usuario no autorizado')
+    skip = (page - 1) * page_size
+    return crud_solicitud.get_historial_solicitud(db, id_solicitud=id_solicitud, skip=skip, limit=page_size)
+
 
 @router.get("/rango_fechas", response_model=PaginatedSolicitudes)
 def obtener_solicitud_por_rango_fechas(

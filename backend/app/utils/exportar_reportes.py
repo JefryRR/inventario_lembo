@@ -47,9 +47,12 @@ def generar_excel_reporte_insumo(reporte: dict) -> io.BytesIO:
     ws.append(["Precio unitario", float(encabezado["precio_unitario"])])
     ws.append(["Cantidad inicial", encabezado["cantidad_inicial"]])
     ws.append(["Stock actual", encabezado["stock_actual"]])
+    ws.append(["Cantidad solicitada", encabezado["total_solicitado"]])
+    ws.append(["Cantidad devuelta", encabezado["total_devuelto"]])
     ws.append(["Total perdido", encabezado["total_perdido"]])
+    ws.append(["Valor total del insumo", f"${encabezado['cantidad_inicial']* encabezado['precio_unitario']:,.0f}"])
 
-    for fila in ws.iter_rows(min_row=3, max_row=9, min_col=1, max_col=1):
+    for fila in ws.iter_rows(min_row=3, max_row=12, min_col=1, max_col=1):
         for celda in fila:
             celda.font = Font(bold=True)
 
@@ -100,6 +103,10 @@ def generar_pdf_reporte_insumo(reporte: dict) -> io.BytesIO:
         ["Cantidad inicial", f"{encabezado['cantidad_inicial']} {encabezado['simbolo']}"],
         ["Stock actual", f"{encabezado['stock_actual']} {encabezado['simbolo']}"],
         ["Total perdido", f"{encabezado['total_perdido']} {encabezado['simbolo']}"],
+        ["Total solicitado", f"{encabezado['total_solicitado']} {encabezado['simbolo']}"],
+        ["Total devuelto", f"{encabezado['total_devuelto']} {encabezado['simbolo']}"],
+        ["Valor total del insumo", f"${encabezado['cantidad_inicial']* encabezado['precio_unitario']:,.0f}"],
+
     ]
     tabla_encabezado = Table(datos_encabezado, colWidths=[6 * cm, 6 * cm])
     tabla_encabezado.setStyle(TableStyle([

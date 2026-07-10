@@ -36,6 +36,18 @@ type MedidaOption = {
     simbolo: string;
 };
 
+type ItemCarrito = {
+    cantidad: number;
+    unid_medida_id: number;
+    precio_venta: number;
+    inv_prod_id: number;
+    venta_id: number;
+    estado_venta: EstadoVenta;
+    nombre_producto: string;
+    simbolo: string;
+};
+
+
 const ESTADO_OPTIONS: Array<{ value: EstadoVenta; label: string }> = [
     { value: "Vendido", label: "Vendido" },
     { value: "Separado", label: "Separado" },
@@ -51,10 +63,7 @@ const initialState: DetalleFormState = {
     estado_venta: "Separado",
 };
 
-function toCurrencyValue(value: string): number {
-    const parsed = Number(value);
-    return Number.isNaN(parsed) ? 0 : parsed;
-}
+
 
 export default function DetalleCreate() {
     const navigate = useNavigate();
@@ -66,6 +75,7 @@ export default function DetalleCreate() {
     const [productos, setProductos] = useState<ProductoOption[]>([]);
     const [ventas, setVentas] = useState<VentaOption[]>([]);
     const [medidas, setMedidas] = useState<MedidaOption[]>([]);
+    const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -109,7 +119,7 @@ export default function DetalleCreate() {
                     p.fecha_vencimiento ? p.fecha_vencimiento.slice(0, 10) > fecha_actual : true
                 );
                 setProductos(productosVigentes);
-                
+
                 const hoy = new Date().toISOString().slice(0, 10);
                 const ventasHoy = ventaList.filter((v: VentaOption) => v.fecha_venta?.slice(0, 10) === hoy);
                 setVentas(ventasHoy);
@@ -145,63 +155,151 @@ export default function DetalleCreate() {
 
     const handleChange =
         (field: keyof DetalleFormState) =>
-        (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-            const value = event.target.value;
+            (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+                const value = event.target.value;
 
-            if (field === "cantidad" || field === "unid_medida_id" || field === "inv_prod_id" || field === "venta_id") {
+                if (field === "cantidad" || field === "unid_medida_id" || field === "inv_prod_id" || field === "venta_id") {
+                    setForm((current) => ({
+                        ...current,
+                        [field]: Number(value),
+                    }));
+                    return;
+                }
+
                 setForm((current) => ({
                     ...current,
-                    [field]: Number(value),
+                    [field]: value as EstadoVenta,
                 }));
-                return;
-            }
+            };
 
-            setForm((current) => ({
-                ...current,
-                [field]: value as EstadoVenta,
-            }));
-        };
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setLoading(true);
+    const guardarYAgregarOtro = () => {
         setError(null);
         setSuccess(null);
 
-        const cantidadValue = parseFloat(String(form.cantidad));
-
-        if (isNaN(cantidadValue) || cantidadValue <= 0) {
-            setError("La cantidad debe ser un número mayor a 0");
-            setLoading(false);
+        if (!form.venta_id) {
+            setError("Selecciona una venta.");
+            return;
+        }
+        if (!form.inv_prod_id) {
+            setError("Selecciona un producto.");
+            return;
+        }
+        if (!form.cantidad || Number(form.cantidad) <= 0) {
+            setError("Ingresa una cantidad válida.");
+            return;
+        }
+        if (!form.unid_medida_id) {
+            setError("Selecciona una unidad de medida.");
+            return;
+        }
+        if (!form.precio_venta || Number(form.precio_venta) <= 0) {
+            setError("Ingresa un precio de venta válido.");
             return;
         }
 
-        if (toCurrencyValue(form.precio_venta) <= 0) {
-            setError("El precio de venta debe ser mayor a cero");
-            setLoading(false);
+        const producto = productos.find(
+            p => p.id_inventario === Number(form.inv_prod_id)
+        );
+
+        const unidad = medidas.find(
+            u => u.id_unidad === Number(form.unid_medida_id)
+        );
+
+        const nuevoProducto: ItemCarrito = {
+            cantidad: Number(form.cantidad),
+            unid_medida_id: Number(form.unid_medida_id),
+            precio_venta: Number(form.precio_venta),
+            inv_prod_id: Number(form.inv_prod_id),
+            venta_id: Number(form.venta_id),
+            estado_venta: form.estado_venta,
+            nombre_producto: producto?.nombre_producto || "",
+            simbolo: unidad?.simbolo || "",
+        };
+
+        setCarrito(prev => [...prev, nuevoProducto]);
+
+        setForm(current => ({
+            ...current,
+            cantidad: "",
+            precio_venta: "",
+            inv_prod_id: 0,
+            unid_medida_id: 0,
+            estado_venta: "Separado",
+        }));
+
+        setSuccess(`${nuevoProducto.nombre_producto || "Producto"} agregado al carrito.`);
+    };
+
+    // Solo quita el producto del carrito en memoria (state de React).
+    // Nunca llama a la API: mientras el producto está en el carrito, todavía
+    // NO existe en la base de datos. Solo confirmarVenta() lo envía a la BD.
+    const quitarDelCarrito = (index: number) => {
+        setCarrito(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const totalCarrito = carrito.reduce(
+        (acumulado, item) => acumulado + item.cantidad * item.precio_venta,
+        0
+    );
+
+    // FastAPI devuelve los errores 422 como { detail: [{ loc, msg, type }, ...] }.
+    // Sin esto, requestError.detail es un array y se mostraba como texto ilegible.
+    const extraerMensajeError = (requestError: any): string => {
+        const detail = requestError?.detail ?? requestError?.body?.detail;
+
+        if (Array.isArray(detail)) {
+            return detail
+                .map((d: any) => {
+                    const campo = Array.isArray(d?.loc) ? d.loc[d.loc.length - 1] : "campo";
+                    return `${campo}: ${d?.msg ?? "valor inválido"}`;
+                })
+                .join(" | ");
+        }
+
+        if (typeof detail === "string") return detail;
+
+        return requestError?.message || "No se pudo confirmar la venta.";
+    };
+
+    const confirmarVenta = async () => {
+        setError(null);
+        setSuccess(null);
+
+        if (carrito.length === 0) {
+            setError("Agrega al menos un producto al carrito antes de confirmar.");
             return;
         }
+
+        setLoading(true);
 
         try {
-            const payload = {
-                cantidad: cantidadValue,
-                unid_medida_id: Number(form.unid_medida_id),
-                precio_venta: Number(form.precio_venta),
-                inv_prod_id: Number(form.inv_prod_id),
-                venta_id: Number(form.venta_id),
-                estado_venta: form.estado_venta,
-            };
+            // Se envían de a uno, en secuencia (no en paralelo), para:
+            // 1) descartar que apiFetch agrupe llamadas simultáneas al mismo endpoint
+            // 2) evitar condiciones de carrera si el backend descuenta stock por producto
+            for (const item of carrito) {
+                const payload = {
+                    cantidad: item.cantidad,
+                    unid_medida_id: item.unid_medida_id,
+                    precio_venta: item.precio_venta,
+                    inv_prod_id: item.inv_prod_id,
+                    venta_id: item.venta_id,
+                    estado_venta: item.estado_venta,
+                };
 
-            const data = await apiFetch("detalles-venta/crear", {
-                method: "POST",
-                body: payload,
-            });
+                console.log("Enviando a detalles-venta/crear:", payload);
 
-            setSuccess(data?.message || "Detalle de venta registrado correctamente");
-            setForm(initialState);
-            navigate("/ventas", { state: { selectVentaId: form.venta_id, newDetalleId: data?.id_detalle_venta } });
+                await apiFetch("detalles-venta/crear", {
+                    method: "POST",
+                    body: payload,
+                });
+            }
+
+            setSuccess("Venta confirmada correctamente.");
+            setCarrito([]);
+            navigate("/ventas");
         } catch (requestError: any) {
-            setError(requestError?.detail || requestError?.message || "Ocurrió un error al registrar el detalle de venta");
+            console.error("Error al confirmar venta:", requestError);
+            setError(extraerMensajeError(requestError));
         } finally {
             setLoading(false);
         }
@@ -228,8 +326,7 @@ export default function DetalleCreate() {
                         Volver a ventas
                     </Link>
                 </div>
-
-                <form onSubmit={handleSubmit} className="p-5 lg:p-6">
+                <form className="p-5 lg:p-6">
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -240,7 +337,7 @@ export default function DetalleCreate() {
                                 onChange={handleChange("venta_id")}
                                 className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
-                                disabled={loadingVentas || ventas.length === 0}
+                                disabled={loadingVentas || ventas.length === 0 || carrito.length > 0}
                             >
                                 <option className="dark:text-black" value={0} disabled>
                                     {loadingVentas ? "Cargando ventas..." : "Selecciona una venta"}
@@ -252,6 +349,11 @@ export default function DetalleCreate() {
                                     </option>
                                 ))}
                             </select>
+                            {carrito.length > 0 && (
+                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    La venta queda bloqueada mientras haya productos en el carrito.
+                                </p>
+                            )}
                         </div>
 
                         <div>
@@ -359,14 +461,82 @@ export default function DetalleCreate() {
                             {success}
                         </div>
                     )}
+                    <div className="p-5 lg:p-6">
+                        <table className="w-full table-auto border-collapse border border-gray-300 dark:border-gray-700">
+                            <thead className="bg-gray-100 dark:bg-gray-800">
+                                <tr>
+                                    <th className="border px-3 py-2">Producto</th>
+                                    <th className="border px-3 py-2">Cantidad</th>
+                                    <th className="border px-3 py-2">Unidad</th>
+                                    <th className="border px-3 py-2">Precio</th>
+                                    <th className="border px-3 py-2">Estado</th>
+                                    <th className="border px-3 py-2">Opciones</th>
+                                </tr>
+                            </thead>
 
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 text-center">
+                                {carrito.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="py-5 text-gray-500">
+                                            No hay productos agregados.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    carrito.map((detalle, index) => (
+                                        <tr key={index}>
+                                            <td className="border px-3 py-2">{detalle.nombre_producto}</td>
+                                            <td className="border px-3 py-2">{detalle.cantidad}</td>
+                                            <td className="border px-3 py-2">{detalle.simbolo}</td>
+                                            <td className="border px-3 py-2">{detalle.precio_venta}</td>
+                                            <td className="border px-3 py-2">{detalle.estado_venta}</td>
+                                            <td className="border px-3 py-2">
+                                                <button
+                                                    type="button"
+                                                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+                                                    onClick={() => quitarDelCarrito(index)}
+                                                >
+                                                    Quitar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+
+                            {carrito.length > 0 && (
+                                <tfoot>
+                                    <tr className="bg-gray-50 font-semibold dark:bg-gray-800">
+                                        <td className="border px-3 py-2 text-right" colSpan={3}>
+                                            Total
+                                        </td>
+                                        <td className="border px-3 py-2 text-center" colSpan={3}>
+                                            {totalCarrito.toLocaleString("es-CO", {
+                                                style: "currency",
+                                                currency: "COP",
+                                                maximumFractionDigits: 0,
+                                            })}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            )}
+                        </table>
+                    </div>
                     <div className="mt-6 flex flex-wrap gap-3">
                         <button
-                            type="submit"
+                            type="button"
+                            onClick={guardarYAgregarOtro}
                             disabled={loading}
+                            className="inline-flex items-center justify-center rounded-lg bg-yellow-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-yellow-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            Agregar al carrito
+                        </button>
+                        <button
+                            type="button"
+                            onClick={confirmarVenta}
+                            disabled={loading || carrito.length === 0}
                             className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {loading ? "Guardando..." : "Guardar detalle"}
+                            {loading ? "Guardando..." : "Confirmar venta"}
                         </button>
                         <Link
                             to="/ventas"
@@ -376,6 +546,7 @@ export default function DetalleCreate() {
                         </Link>
                     </div>
                 </form>
+
             </div>
         </>
     );

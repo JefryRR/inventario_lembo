@@ -9,7 +9,7 @@ class InsumoBase(BaseModel):
     unid_medida_id: int
     precio_unitario: float
     fecha_ingreso: datetime
-    fecha_vencimiento: datetime
+    fecha_vencimiento: Optional[datetime] = None
     tipo_id: int
 
 class InsumoCreate(InsumoBase):

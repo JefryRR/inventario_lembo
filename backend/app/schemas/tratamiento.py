@@ -24,7 +24,7 @@ class TratamientoUpdate(BaseModel):
 
 class TratamientoOut(TratamientoBase):
     id_tratamiento: int
-    nombre_lote: str
+    nombre_lote: Optional[str]
     user_id: Optional[int]
     cant_convertida: Optional[float] = None
     nombre_producto: str

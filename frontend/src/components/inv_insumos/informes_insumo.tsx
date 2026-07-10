@@ -12,7 +12,10 @@ type MovimientoReporte = {
     observaciones: string;
     fecha: string;
     motivo: string;
+    simbolo: string;
 };
+
+
 
 type ReporteProduccion = {
     encabezado: {
@@ -25,6 +28,8 @@ type ReporteProduccion = {
         cantidad_inicial: number;
         stock_actual: number;
         total_perdido: number;
+        total_solicitado: number;
+        total_devuelto: number;
     };
     movimientos: MovimientoReporte[];
 };
@@ -119,6 +124,7 @@ export default function InformesInsumo() {
 
         return mapaMotivos[motivo] ?? motivo;
     };
+
 
     const encabezado = reporte?.encabezado;
 
@@ -258,8 +264,7 @@ export default function InformesInsumo() {
                         </div>
                     </div>
 
-                    <div className="grid gap-2">
-
+                    <div className="grid gap-4 lg:grid-cols-2">
                         {/* Datos generales */}
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                             <h2 className="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Datos generales</h2>
@@ -273,10 +278,21 @@ export default function InformesInsumo() {
                                     <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha de vencimiento</dt>
                                     <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{formatearFecha(encabezado.fecha_vencimiento)}</dd>
                                 </div>
+                                <div>
+                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Cantidad solicitada</dt>
+                                    <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{encabezado.total_solicitado} {encabezado.simbolo}</dd>
+                                    
+                                    <dd className="mt-1 text-sm font-medium text-yellow-500 dark:text-white/90">
+                                    {((encabezado.total_solicitado/encabezado.cantidad_inicial)*100).toFixed(2)}% del inventario</dd>
+                                </div>
+                                <div>
+                                    <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Cantidad devuelta</dt>
+                                    <dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{encabezado.total_devuelto} {encabezado.simbolo}</dd>
+                                </div>
                             </dl>
-
-                            <hr className="my-4 border-gray-100 dark:border-gray-800" />
-
+                        </div>
+                        {/*Resumen financiero*/}
+                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                             <dl className="grid grid-cols-1 gap-4">
                                 <h2 className="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Resumen financiero</h2>
                                 <div className="grid grid-cols-3 gap-4">
@@ -333,12 +349,12 @@ export default function InformesInsumo() {
                                                 <td className="px-5 py-4 text-sm font-medium text-gray-800 dark:text-white/90">{movimiento.tipo}</td>
                                                 <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{movimiento.observaciones}</td>
                                                 <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">{movimiento.cantidad}</td>
-                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{encabezado.simbolo || "-"}</td>
+                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{movimiento.simbolo || "-"}</td>
                                                 <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
                                                     {movimiento.valor === "-" ? "-" : formatearMoneda(movimiento.valor)}
                                                 </td>
                                                 <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                                    {movimiento.estado} {movimiento.motivo !== " " ? `${formatearMotivo(movimiento.motivo)}` : ""}
+                                                    {movimiento.motivo !== " " ? `${formatearMotivo(movimiento.motivo)}` : ""}
                                                 </td>
                                                 <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatearFecha(movimiento.fecha)}</td>
                                             </tr>

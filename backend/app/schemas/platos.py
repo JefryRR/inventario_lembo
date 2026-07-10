@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 class PlatoBase(BaseModel):
-    nombre_plato: str = Field(max_length=25)
+    nombre_plato: str = Field(max_length=100)
     estado: bool = Field(default=True)
     fecha_registro: datetime.date
 

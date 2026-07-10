@@ -240,11 +240,19 @@ def get_reporte_encabezado_insumo(db: Session, id_insumo: int):
                 ii.precio_unitario,
                 um.simbolo,
 
-                -- Cantidad inicial: stock actual + todo lo que se perdió
-                ii.cantidad 
-                + COALESCE(pe.total_perdido, 0)
-                AS cantidad_inicial,
-                
+                -- Cantidad inicial:
+                CASE 
+                    WHEN ii.fecha_vencimiento IS NOT NULL 
+                         AND ii.fecha_vencimiento < CURRENT_DATE 
+                    THEN COALESCE(pe.total_perdido, ii.cantidad)
+                    ELSE ii.cantidad
+                        + COALESCE(sol.total_entregado, 0)
+                        - COALESCE(sol.total_devuelto, 0)
+                        + COALESCE(pe.total_perdido, 0)
+                        + COALESCE(ipl.total_entregado_plato, 0)
+                END AS cantidad_inicial,
+                               
+                -- Cantidad actual: si está vencido, es 0; si no, es lo que haya en inv_insumos.
                 CASE 
                     WHEN ii.fecha_vencimiento IS NOT NULL 
                          AND ii.fecha_vencimiento < CURRENT_DATE 
@@ -252,16 +260,19 @@ def get_reporte_encabezado_insumo(db: Session, id_insumo: int):
                     ELSE ii.cantidad
                 END AS stock_actual,
 
-                -- Total perdido: pérdidas registradas + stock restante si venció
-                COALESCE(pe.total_perdido, 0) + 
+                -- Total perdido: si está vencido, es lo ya registrado
+                -- (o el remanente como fallback si aún no se registró la pérdida).
+                -- Si no está vencido, es simplemente lo que haya en inv_perdidas.
                 CASE 
                     WHEN ii.fecha_vencimiento IS NOT NULL 
                          AND ii.fecha_vencimiento < CURRENT_DATE 
-                         AND pe.total_perdido IS NULL
-                    THEN ii.cantidad
-                    ELSE 0
-                END AS total_perdido
+                    THEN COALESCE(pe.total_perdido, ii.cantidad)
+                    ELSE COALESCE(pe.total_perdido, 0)
+                END AS total_perdido,
 
+                COALESCE(sol.total_entregado, 0)+COALESCE(ipl.total_entregado_plato, 0) AS total_solicitado,
+                COALESCE(sol.total_devuelto, 0) AS total_devuelto
+                               
             FROM inv_insumos ii
             LEFT JOIN unidades_medida um ON ii.unid_medida_id = um.id_unidad
             LEFT JOIN (
@@ -270,31 +281,95 @@ def get_reporte_encabezado_insumo(db: Session, id_insumo: int):
                 WHERE origen = 'insumo'
                 GROUP BY inv_prod_id
             ) pe ON pe.inv_prod_id = ii.id_insumo
-
+            LEFT JOIN (
+                SELECT 
+                    si.insumo_id,
+                    SUM(CASE WHEN hsi.estado_solicitud_act = 'entregado' THEN hsi.cantidad_actual ELSE 0 END) AS total_entregado,
+                    SUM(CASE WHEN hsi.estado_solicitud_act = 'devuelto' THEN hsi.cantidad_actual ELSE 0 END) AS total_devuelto
+                FROM h_solicitud_insumo hsi
+                INNER JOIN solicitud_insumo si ON hsi.solicitud_ins_id = si.id_solicitud
+                WHERE hsi.estado_solicitud_act IN ('entregado', 'devuelto')
+                GROUP BY si.insumo_id
+            ) sol ON sol.insumo_id = ii.id_insumo
+            LEFT JOIN (
+                SELECT inp.inventario_id, SUM(inp.cant_conv_inv) AS total_entregado_plato, inp.origen_inv
+                    FROM ingredientes_plato inp
+                WHERE inp.origen_inv = 2
+                GROUP BY inp.inventario_id
+            )ipl ON ipl.inventario_id = ii.id_insumo
             WHERE ii.id_insumo = :id_insumo
         """), {"id_insumo": id_insumo}).mappings().first()
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener encabezado del reporte de insumo: {e}")
         raise Exception("Error al obtener encabezado del reporte de insumo")
-
+    
 def get_reporte_movimientos_insumo(db: Session, id_insumo: int):
     try:
         return db.execute(text("""
-            SELECT 
-                'perdida'               AS tipo,
-                p.id_perdida            AS id_registro,
-                p.cantidad              AS cantidad,
-                ii.precio_unitario       AS valor,
-                p.motivo                AS motivo,
-                p.observaciones         AS observaciones,
-                p.fecha_reporte         AS fecha,
-                u.nombre_user           AS registrado_por
-            FROM inv_perdidas p
-            LEFT JOIN inv_insumos ii ON p.inv_prod_id = ii.id_insumo
-            LEFT JOIN users u ON p.user_id = u.id_user
-            WHERE p.inv_prod_id = :id_insumo
-            AND p.origen = 'insumo'
-            ORDER BY p.fecha_reporte ASC
+            SELECT *
+            FROM (
+                SELECT 
+                    'perdida' AS tipo,
+                    p.id_perdida AS id_registro,
+                    p.cantidad AS cantidad,
+                    ii.precio_unitario AS valor,
+                    p.motivo AS motivo,
+                    p.observaciones AS observaciones,
+                    p.unid_medida_id AS unidad_medida,
+                    p.fecha_reporte AS fecha,
+                    u.nombre_user AS registrado_por,
+                    um_.simbolo AS simbolo
+                FROM inv_perdidas p
+                LEFT JOIN inv_insumos ii ON p.inv_prod_id = ii.id_insumo
+                LEFT JOIN users u ON p.user_id = u.id_user
+                LEFT JOIN unidades_medida um_ ON p.unid_medida_id = um_.id_unidad
+                WHERE p.inv_prod_id = :id_insumo
+                  AND p.origen = 'insumo'
+
+                UNION ALL
+
+                SELECT
+                    'solicitud' AS tipo,
+                    hsi.id_hist_solic AS id_registro,
+                    hsi.cantidad_actual AS cantidad,
+                    ii.precio_unitario AS valor,
+                    hsi.estado_solicitud_act AS motivo,
+                    CONCAT('solicitante: ', COALESCE(si.solicitante, '')) AS observaciones,
+                    CASE
+                        WHEN hsi.estado_solicitud_act = 'entregado' THEN si.fecha_entrega
+                        WHEN hsi.estado_solicitud_act = 'devuelto' THEN si.fecha_devolucion
+                        ELSE si.fecha_solicitud
+                    END AS fecha,
+                    si.unid_med_id AS unidad_medida,
+                    u.nombre_user AS registrado_por,
+                    um.simbolo AS simbolo
+                FROM h_solicitud_insumo hsi
+                LEFT JOIN solicitud_insumo si ON hsi.solicitud_ins_id = si.id_solicitud
+                LEFT JOIN inv_insumos ii ON si.insumo_id = ii.id_insumo
+                LEFT JOIN users u ON hsi.user_id = u.id_user
+                LEFT JOIN unidades_medida um ON si.unid_med_id = um.id_unidad
+                WHERE si.insumo_id = :id_insumo
+                
+                UNION ALL
+                               
+                SELECT
+                    'Plato' AS tipo,
+                    inp.id_ingrediente AS id_registro,
+                    inp.cant_conv_inv AS cantidad,
+                    ii.precio_unitario AS valor,
+                    'Entregado' AS motivo,
+                    CONCAT('Destinado para el plato: ', COALESCE(pl.nombre_plato, '')) AS observaciones,
+                    inp.fecha_registro AS fecha,
+                    'Área de Cocina' AS registrado_por,
+                    inp.unid_med_id AS unidad_medida,
+                    um_.simbolo AS simbolo
+                FROM ingredientes_plato inp
+                LEFT JOIN platos pl ON inp.plato_id = pl.id_plato
+                LEFT JOIN inv_insumos ii ON inp.inventario_id = ii.id_insumo
+                LEFT JOIN unidades_medida um_ ON inp.unid_med_id = um_.id_unidad
+                WHERE inp.inventario_id = :id_insumo AND inp.origen_inv = 2
+            ) movimientos
+            ORDER BY movimientos.fecha ASC, movimientos.id_registro ASC
         """), {"id_insumo": id_insumo}).mappings().all()
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener movimientos del reporte de insumo: {e}")

@@ -5,6 +5,7 @@ from datetime import date
 
 class EstadoSolicitud(str, Enum):
     pendiente = 'pendiente'
+    autorizada = 'autorizada'
     entregada = 'entregada'
     devuelta = 'devuelta'
     cancelada = 'cancelada'

@@ -150,9 +150,11 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
                      AND pr.fecha_vencimiento < CURRENT_DATE
                 THEN COALESCE(ventas_netas.total_vendido_neto, 0)
                      + COALESCE(pe.total_perdido, 0)
+                     + COALESCE(ipl.total_entregado_plato, 0)
                 ELSE pr.cantidad
                     + COALESCE(ventas_netas.total_vendido_neto, 0)
                     + COALESCE(pe.total_perdido, 0)
+                    + COALESCE(ipl.total_entregado_plato, 0)
             END AS cantidad_inicial,
     
             -- Stock actual: pr.cantidad ya tiene descontado ventas y pérdidas
@@ -164,7 +166,8 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
             END AS stock_actual,
     
             COALESCE(ventas_netas.total_vendido_neto, 0) AS total_vendido,
-            COALESCE(pe.total_perdido, 0)                AS total_perdido
+            COALESCE(pe.total_perdido, 0)                AS total_perdido,
+            COALESCE(ipl.total_entregado_plato, 0)       AS total_solicitado
     
             FROM inv_produccion pr
             LEFT JOIN lote_produccion l ON pr.lote_id = l.id_lote
@@ -186,7 +189,12 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
             ) pe ON pe.inv_prod_id = pr.id_inventario
                      
             LEFT JOIN unidades_medida um ON pr.unid_medida_id = um.id_unidad
-        
+            LEFT JOIN (
+                SELECT inp.inventario_id, SUM(inp.cant_conv_inv) AS total_entregado_plato, inp.origen_inv
+                FROM ingredientes_plato inp
+                WHERE inp.origen_inv = 1
+                GROUP BY inp.inventario_id
+            )ipl ON ipl.inventario_id = pr.id_inventario
             WHERE pr.id_inventario = :inv_prod_id   
         """)
         return db.execute(query, {"inv_prod_id": inv_prod_id}).mappings().first()
@@ -204,11 +212,14 @@ def get_reporte_movimientos(db: Session, inv_prod_id: int):
                 dv.cant_convertida          as cantidad,
                 dv.precio_venta             as valor,
                 dv.estado_venta             as estado,
+                dv.unid_medida_id           as unidad_medida,
                 v.nombre_comprador          as referencia,
                 v.fecha_venta               as fecha,
-                ' '                        as motivo
+                ' '                        as motivo,
+                um.simbolo                  as simbolo
             FROM detalle_ventas dv
             LEFT JOIN ventas v ON dv.venta_id = v.id_venta
+            LEFT JOIN unidades_medida um ON dv.unid_medida_id = um.id_unidad
             WHERE dv.inv_prod_id = :inv_prod_id
 
             UNION ALL
@@ -222,10 +233,32 @@ def get_reporte_movimientos(db: Session, inv_prod_id: int):
                 ' '                        as estado,
                 p.observaciones             as referencia,
                 p.fecha_reporte             as fecha,
-                p.motivo                    as motivo
+                p.motivo                    as motivo,
+                p.unid_medida_id            as unidad_medida,
+                um.simbolo                  as simbolo
             FROM inv_perdidas p
             LEFT JOIN inv_produccion ip ON p.inv_prod_id = ip.id_inventario
-            WHERE p.inv_prod_id = :inv_prod_id            ORDER BY fecha ASC
+            LEFT JOIN unidades_medida um ON p.unid_medida_id = um.id_unidad
+            WHERE p.inv_prod_id = :inv_prod_id            
+            
+            UNION ALL
+            -- Ingredientes entregados para preparar platos          
+            SELECT
+                'Plato' AS tipo,
+                inp.id_ingrediente AS id_registro,
+                inp.cant_conv_inv AS cantidad,
+                ip.valor_unitario AS valor,
+                'Entregado' AS motivo,
+                CONCAT('Destinado para el plato: ', COALESCE(pl.nombre_plato, '')) AS observaciones,
+                inp.fecha_registro AS fecha,
+                'Área de Cocina' AS registrado_por,
+                inp.unid_med_id AS unidad_medida,
+                um_.simbolo AS simbolo
+            FROM ingredientes_plato inp
+            LEFT JOIN platos pl ON inp.plato_id = pl.id_plato
+            LEFT JOIN inv_produccion ip ON inp.inventario_id = ip.id_inventario
+            LEFT JOIN unidades_medida um_ ON inp.unid_med_id = um_.id_unidad
+            WHERE inp.inventario_id = :inv_prod_id AND inp.origen_inv = 1
         """)
         return db.execute(query, {"inv_prod_id": inv_prod_id}).mappings().all()
     except SQLAlchemyError as e:
@@ -289,7 +322,17 @@ def get_produccion_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
             "fecha_fin": fecha_fin
         }).mappings().all()
         
-        return [dict(row) for row in result]
+
+        resultado = []
+
+        for row in result:
+            data = dict(row)
+            alerta = get_nivel_alerta(data.get("fecha_vencimiento", ""), data.get("cantidad", 0))
+            data["dias_restantes"] = alerta["dias_restantes"]
+            data["nivel_alerta"] = alerta["nivel_alerta"]
+            resultado.append(data)
+
+        return resultado
 
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los productos por rango de fechas: {e}")
