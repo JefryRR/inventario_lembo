@@ -4,18 +4,6 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-type IngredienteFormState = {
-    plato_id: number;
-    origen_inv: number;
-    inventario_id: number;
-    cant_inv: string | number;
-    unid_med_id: number;
-    fecha_registro?: string;
-    nombre_plato?: string;
-    nombre_producto?: string;
-    simbolo?: string;
-};
-
 type PlatoOption = {
     id_plato: number;
     nombre_plato: string;
@@ -43,18 +31,49 @@ type MedidaOption = {
     simbolo: string;
 };
 
-const initialState: IngredienteFormState = {
-    plato_id: 0,
+// Un ingrediente que el usuario ya agregó a la lista, listo para enviarse al backend
+type ItemIngrediente = {
+    clientId: string; // id temporal solo para el frontend (key de React y para poder eliminarlo)
+    origen_inv: number;
+    inventario_id: number;
+    nombre_producto: string;
+    cantidad: number;
+    unid_med_id: number;
+    simbolo_medida: string;
+};
+
+// Campos del ingrediente que se está armando actualmente en el formulario (antes de agregarlo a la lista)
+type ItemFormState = {
+    origen_inv: number;
+    inventario_id: number;
+    cant_inv: string | number;
+    unid_med_id: number;
+};
+
+const initialItemForm: ItemFormState = {
     origen_inv: 0,
-    cant_inv: "" as string | number,
-    unid_med_id: 0,
     inventario_id: 0,
-    fecha_registro: "",
+    cant_inv: "",
+    unid_med_id: 0,
+};
+
+const getLocalISODate = () => {
+    const now = new Date();
+    return now.toISOString().split("T")[0]; // Envía "YYYY-MM-DD"
 };
 
 export default function IngredienteCreate() {
     const navigate = useNavigate();
-    const [form, setForm] = useState<IngredienteFormState>(initialState);
+
+    // Dato común a todos los ingredientes que se agreguen
+    const [platoId, setPlatoId] = useState(0);
+
+    // Ingrediente que se está llenando en el formulario ahora mismo
+    const [itemForm, setItemForm] = useState<ItemFormState>(initialItemForm);
+
+    // Lista de ingredientes ya agregados (todavía no enviados al backend)
+    const [items, setItems] = useState<ItemIngrediente[]>([]);
+
     const [loading, setLoading] = useState(false);
     const [loadingProductos, setLoadingProductos] = useState(false);
     const [loadingPlatos, setLoadingPlatos] = useState(false);
@@ -153,14 +172,14 @@ export default function IngredienteCreate() {
         };
     }, []);
 
-    const handleChange =
-        (field: keyof IngredienteFormState) =>
+    const handleItemChange =
+        (field: keyof ItemFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
                 const value = event.target.value;
 
                 // Si cambia el origen, reiniciamos el inventario_id seleccionado para evitar inconsistencias
                 if (field === "origen_inv") {
-                    setForm((current) => ({
+                    setItemForm((current) => ({
                         ...current,
                         origen_inv: Number(value),
                         inventario_id: 0,
@@ -168,68 +187,140 @@ export default function IngredienteCreate() {
                     return;
                 }
 
-                if (
-                    field === "cant_inv" ||
-                    field === "unid_med_id" ||
-                    field === "inventario_id" ||
-                    field === "plato_id"
-                ) {
-                    setForm((current) => ({
+                if (field === "inventario_id" || field === "unid_med_id") {
+                    setItemForm((current) => ({
                         ...current,
-                        [field]: field === "cant_inv" ? value : Number(value),
+                        [field]: Number(value),
                     }));
                     return;
                 }
+
+                setItemForm((current) => ({
+                    ...current,
+                    [field]: value,
+                }));
             };
 
-    const getLocalISODate = () => {
-        const now = new Date();
-        return now.toISOString().split('T')[0]; // Envía "YYYY-MM-DD"
+    // Cuánto de un producto/insumo ya está reservado en la lista (por si el usuario lo agrega en dos tandas)
+    const cantidadYaAgregada = (origenInv: number, inventarioId: number) =>
+        items
+            .filter((item) => item.origen_inv === origenInv && item.inventario_id === inventarioId)
+            .reduce((total, item) => total + item.cantidad, 0);
+
+    const handleAddItem = () => {
+        setError(null);
+
+        if (!itemForm.origen_inv) {
+            setError("Selecciona el origen de inventario");
+            return;
+        }
+
+        if (!itemForm.inventario_id) {
+            setError("Selecciona un producto");
+            return;
+        }
+
+        if (!itemForm.unid_med_id) {
+            setError("Selecciona una unidad de medida");
+            return;
+        }
+
+        const cantidadValue = parseFloat(String(itemForm.cant_inv));
+        if (Number.isNaN(cantidadValue) || cantidadValue <= 0) {
+            setError("La cantidad debe ser un número mayor a 0");
+            return;
+        }
+
+        const origenSeleccionado =
+            itemForm.origen_inv === 1
+                ? productos.find((producto) => producto.id_inventario === itemForm.inventario_id)
+                : insumos.find((insumo) => insumo.id_insumo === itemForm.inventario_id);
+
+        if (origenSeleccionado) {
+            const disponible = Number(origenSeleccionado.cantidad || 0) - cantidadYaAgregada(itemForm.origen_inv, itemForm.inventario_id);
+            if (cantidadValue > disponible) {
+                setError(`Solo hay ${disponible} ${origenSeleccionado.simbolo || ""} disponibles de "${origenSeleccionado.nombre_producto}"`);
+                return;
+            }
+        }
+
+        const medidaSeleccionada = medidas.find((medida) => medida.id_unidad === itemForm.unid_med_id);
+
+        const nuevoItem: ItemIngrediente = {
+            clientId: crypto.randomUUID(),
+            origen_inv: itemForm.origen_inv,
+            inventario_id: itemForm.inventario_id,
+            nombre_producto: origenSeleccionado?.nombre_producto || "Producto",
+            cantidad: cantidadValue,
+            unid_med_id: itemForm.unid_med_id,
+            simbolo_medida: medidaSeleccionada?.simbolo || "",
+        };
+
+        setItems((current) => [...current, nuevoItem]);
+        // Reiniciamos solo los campos del ingrediente; el plato queda igual para el siguiente
+        setItemForm(initialItemForm);
+    };
+
+    const handleRemoveItem = (clientId: string) => {
+        setItems((current) => current.filter((item) => item.clientId !== clientId));
     };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setLoading(true);
         setError(null);
         setSuccess(null);
 
-        const cantidadValue = parseFloat(String(form.cant_inv));
-
-        if (isNaN(cantidadValue) || cantidadValue <= 0) {
-            setError("La cantidad debe ser un número mayor a 0");
-            setLoading(false);
+        if (!platoId) {
+            setError("Debes seleccionar un plato");
             return;
         }
 
-        if (form.origen_inv === 0) {
-            setError("Debes seleccionar un origen de inventario");
-            setLoading(false);
+        if (items.length === 0) {
+            setError("Agrega al menos un producto antes de guardar los ingredientes");
             return;
         }
 
-        try {
-            const payload = {
-                plato_id: Number(form.plato_id),
-                cant_inv: cantidadValue,
-                inventario_id: Number(form.inventario_id),
-                unid_med_id: Number(form.unid_med_id),
-                origen_inv: Number(form.origen_inv),
-                fecha_registro: getLocalISODate(),
-            };
+        setLoading(true);
 
-            const data = await apiFetch("ingredientes/crear", {
-                method: "POST",
-                body: payload,
-            });
+        const errores: string[] = [];
+        let ultimoIdIngrediente: number | undefined;
 
-            setSuccess(data?.message || "Ingrediente registrado correctamente");
-            setForm(initialState);
-            navigate("/ingredientes", { state: { selectIngredienteId: data?.id_ingrediente } });
-        } catch (requestError: any) {
-            setError(requestError?.detail || requestError?.message || "Ocurrió un error al registrar el ingrediente");
-        } finally {
-            setLoading(false);
+        // Enviamos un ingrediente a la vez porque el backend registra un ingrediente por producto.
+        for (const item of items) {
+            try {
+                const payload = {
+                    plato_id: Number(platoId),
+                    cant_inv: item.cantidad,
+                    inventario_id: item.inventario_id,
+                    unid_med_id: item.unid_med_id,
+                    origen_inv: item.origen_inv,
+                    fecha_registro: getLocalISODate(),
+                };
+
+                const data = await apiFetch("ingredientes/crear", {
+                    method: "POST",
+                    body: payload,
+                });
+
+                ultimoIdIngrediente = data?.id_ingrediente ?? ultimoIdIngrediente;
+
+                // Si se guardó bien, lo quitamos de la lista pendiente para que, si algo más falla,
+                // el usuario vea claramente qué le falta por reintentar.
+                setItems((current) => current.filter((current_item) => current_item.clientId !== item.clientId));
+            } catch (requestError: any) {
+                errores.push(`${item.nombre_producto}: ${requestError?.detail || requestError?.message || "error desconocido"}`);
+            }
         }
+
+        setLoading(false);
+
+        if (errores.length > 0) {
+            setError(`No se pudieron guardar algunos productos: ${errores.join(" | ")}`);
+            return;
+        }
+
+        setSuccess("Ingredientes registrados correctamente");
+        navigate("/ingredientes", { state: { selectIngredienteId: ultimoIdIngrediente } });
     };
 
     return (
@@ -241,7 +332,7 @@ export default function IngredienteCreate() {
                     <div>
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Nuevo ingrediente</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Completa los datos obligatorios para registrar el ingrediente.
+                            Registra uno o varios productos como ingredientes de un plato.
                         </p>
                     </div>
 
@@ -254,15 +345,15 @@ export default function IngredienteCreate() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-5 lg:p-6">
+                    {/* Dato común a todos los ingredientes */}
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                        {/* Plato / Receta */}
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Plato <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.plato_id}
-                                onChange={handleChange("plato_id")}
+                                value={platoId}
+                                onChange={(event) => setPlatoId(Number(event.target.value))}
                                 className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                                 required
                                 disabled={loadingPlatos || platos.length === 0}
@@ -277,17 +368,23 @@ export default function IngredienteCreate() {
                                 ))}
                             </select>
                         </div>
+                    </div>
 
+                    <div className="my-6 border-t border-dashed border-gray-200 dark:border-gray-800" />
+
+                    {/* Formulario para armar UN producto a la vez */}
+                    <h4 className="mb-4 text-sm font-semibold text-gray-800 dark:text-white/90">Agregar producto</h4>
+
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         {/* Origen de Inventario */}
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Origen de Inventario <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.origen_inv}
-                                onChange={handleChange("origen_inv")}
+                                value={itemForm.origen_inv}
+                                onChange={handleItemChange("origen_inv")}
                                 className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                                required
                             >
                                 <option className="dark:text-black/90" value={0} disabled>Selecciona el origen</option>
                                 <option className="dark:text-black/90" value={1}>Inventario de Producción</option>
@@ -301,29 +398,28 @@ export default function IngredienteCreate() {
                                 Producto <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.inventario_id}
-                                onChange={handleChange("inventario_id")}
+                                value={itemForm.inventario_id}
+                                onChange={handleItemChange("inventario_id")}
                                 className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                                required
-                                disabled={form.origen_inv === 0 || (form.origen_inv === 1 ? productos.length === 0 : insumos.length === 0)}
+                                disabled={itemForm.origen_inv === 0 || (itemForm.origen_inv === 1 ? productos.length === 0 : insumos.length === 0)}
                             >
                                 <option className="dark:text-black/90" value={0} disabled>
-                                    {form.origen_inv === 0
+                                    {itemForm.origen_inv === 0
                                         ? "Primero selecciona el origen"
-                                        : form.origen_inv === 1 && loadingProductos
+                                        : itemForm.origen_inv === 1 && loadingProductos
                                             ? "Cargando producción..."
-                                            : form.origen_inv === 2 && loadingInsumos
+                                            : itemForm.origen_inv === 2 && loadingInsumos
                                                 ? "Cargando insumos..."
                                                 : "Selecciona un producto"}
                                 </option>
 
-                                {form.origen_inv === 1 && productos.map((producto) => (
+                                {itemForm.origen_inv === 1 && productos.map((producto) => (
                                     <option className="dark:text-black/90" key={producto.id_inventario} value={producto.id_inventario}>
                                         {producto.nombre_producto} cantidad: {producto.cantidad} {producto.simbolo}
                                     </option>
                                 ))}
 
-                                {form.origen_inv === 2 && insumos.map((insumo) => (
+                                {itemForm.origen_inv === 2 && insumos.map((insumo) => (
                                     <option className="dark:text-black/90" key={insumo.id_insumo} value={insumo.id_insumo}>
                                         {insumo.nombre_producto} cantidad: {insumo.cantidad} {insumo.simbolo}
                                     </option>
@@ -338,12 +434,12 @@ export default function IngredienteCreate() {
                             </label>
                             <input
                                 type="number"
-                                value={form.cant_inv}
-                                onChange={handleChange("cant_inv")}
+                                value={itemForm.cant_inv}
+                                onChange={handleItemChange("cant_inv")}
                                 min={0.01}
                                 step="any"
                                 className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
-                                required
+                                placeholder="0"
                             />
                         </div>
 
@@ -353,10 +449,9 @@ export default function IngredienteCreate() {
                                 Unidad de medida <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.unid_med_id}
-                                onChange={handleChange("unid_med_id")}
+                                value={itemForm.unid_med_id}
+                                onChange={handleItemChange("unid_med_id")}
                                 className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                                required
                                 disabled={loadingMedidas || medidas.length === 0}
                             >
                                 <option className="dark:text-black/90" value={0} disabled>
@@ -370,6 +465,59 @@ export default function IngredienteCreate() {
                             </select>
                         </div>
                     </div>
+
+                    <div className="mt-4">
+                        <button
+                            type="button"
+                            onClick={handleAddItem}
+                            className="inline-flex items-center justify-center rounded-lg border border-green-600 px-5 py-2.5 text-sm font-medium text-green-700 transition hover:bg-green-50 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-500/10"
+                        >
+                            + Agregar producto a la lista
+                        </button>
+                    </div>
+
+                    {/* Lista de productos ya agregados */}
+                    {items.length > 0 && (
+                        <div className="mt-6">
+                            <h4 className="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">
+                                Productos agregados ({items.length})
+                            </h4>
+                            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-white/[0.03] dark:text-gray-400">
+                                        <tr>
+                                            <th className="px-4 py-3">Producto</th>
+                                            <th className="px-4 py-3">Origen</th>
+                                            <th className="px-4 py-3">Cantidad</th>
+                                            <th className="px-4 py-3"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {items.map((item) => (
+                                            <tr key={item.clientId} className="border-t border-gray-100 dark:border-gray-800">
+                                                <td className="px-4 py-3 text-gray-800 dark:text-white/90">{item.nombre_producto}</td>
+                                                <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                                                    {item.origen_inv === 1 ? "Producción" : "Insumos"}
+                                                </td>
+                                                <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                                                    {item.cantidad} {item.simbolo_medida}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveItem(item.clientId)}
+                                                        className="text-xs font-medium text-error-600 hover:underline dark:text-error-400"
+                                                    >
+                                                        Quitar
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
 
                     {error && (
                         <div className="mt-5 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">
@@ -386,10 +534,10 @@ export default function IngredienteCreate() {
                     <div className="mt-6 flex flex-wrap gap-3">
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || items.length === 0}
                             className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {loading ? "Guardando..." : "Guardar ingrediente"}
+                            {loading ? "Guardando..." : `Guardar ingredientes (${items.length})`}
                         </button>
                         <Link
                             to="/ingredientes"

@@ -8,7 +8,6 @@ type MortalidadFormState = {
 	fecha_reporte: string;
 	cantidad: string;
 	observacion: string | null;
-	user_id: number;
 };
 
 type LoteOption = {
@@ -19,18 +18,19 @@ type LoteOption = {
 	nombre_categoria?: string;
 };
 
+const ALLOWED_FOTO_TYPES = ["image/jpeg", "image/png"];
 
 const initialState: MortalidadFormState = {
 	lote_id: 0,
 	fecha_reporte: "",
 	cantidad: "",
 	observacion: null,
-	user_id: 0,
 };
 
 export default function MortalidadCreate() {
 	const navigate = useNavigate();
 	const [form, setForm] = useState<MortalidadFormState>(initialState);
+	const [foto, setFoto] = useState<File | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [loadingLotes, setLoadingLotes] = useState(false);
 	const [lotes, setLotes] = useState<LoteOption[]>([]);
@@ -71,8 +71,8 @@ export default function MortalidadCreate() {
 			(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
 				const value = event.target.value;
 
-				if (field === "cantidad" || field === "lote_id" || field === "user_id") {
-					setForm((current) => ({ ...current, [field]: Number(value) }));
+				if (field === "lote_id") {
+					setForm((current) => ({ ...current, lote_id: Number(value) }));
 					return;
 				}
 
@@ -81,8 +81,23 @@ export default function MortalidadCreate() {
 					return;
 				}
 
+				// cantidad y fecha_reporte se guardan tal cual, como string
 				setForm((current) => ({ ...current, [field]: value }));
 			};
+
+	const handleFotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0] ?? null;
+
+		if (file && !ALLOWED_FOTO_TYPES.includes(file.type)) {
+			setError("Tipo de archivo no permitido. Solo se aceptan imágenes JPEG o PNG");
+			event.target.value = "";
+			setFoto(null);
+			return;
+		}
+
+		setError(null);
+		setFoto(file);
+	};
 
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -96,28 +111,41 @@ export default function MortalidadCreate() {
 			return;
 		}
 
-
-		if (form.cantidad <= "0") {
+		const cantidadNum = Number(form.cantidad);
+		if (!form.cantidad || Number.isNaN(cantidadNum) || cantidadNum <= 0) {
 			setError("La cantidad debe ser mayor a cero");
 			setLoading(false);
 			return;
 		}
 
+		if (!form.fecha_reporte) {
+			setError("Selecciona la fecha de reporte");
+			setLoading(false);
+			return;
+		}
+
 		try {
-			const payload = {
-				lote_id: Number(form.lote_id),
-				fecha_reporte: form.fecha_reporte,
-				cantidad: Number(form.cantidad),
-				observacion: form.observacion ? form.observacion.trim() : null,
-			};
+			// El backend espera multipart/form-data (Form(...) + File(None)),
+			// por eso construimos un FormData en lugar de mandar JSON.
+			const formData = new FormData();
+			formData.append("lote_id", String(form.lote_id));
+			formData.append("fecha_reporte", form.fecha_reporte);
+			formData.append("cantidad", String(cantidadNum));
+			if (form.observacion) {
+				formData.append("observacion", form.observacion.trim());
+			}
+			if (foto) {
+				formData.append("foto", foto);
+			}
 
 			const data = await apiFetch("mortalidad/create", {
 				method: "POST",
-				body: payload,
+				body: formData,
 			});
 
 			setSuccess(data?.message || "Registro de mortalidad creado correctamente");
 			setForm(initialState);
+			setFoto(null);
 			navigate("/mortalidad");
 		} catch (requestError: any) {
 			setError(requestError?.detail || requestError?.message || "Ocurrió un error al crear el registro de mortalidad");
@@ -202,10 +230,26 @@ export default function MortalidadCreate() {
 								type="text"
 								id="observacion"
 								value={form.observacion || ""}
-								onChange={(e) => setForm({ ...form, observacion: e.target.value })}
+								onChange={handleChange("observacion")}
 								className="mt-1 h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
 								placeholder="Observación"
 							/>
+						</div>
+
+						<div className="md:col-span-2">
+							<label htmlFor="foto" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+								Foto (opcional)
+							</label>
+							<input
+								type="file"
+								id="foto"
+								accept="image/jpeg,image/png"
+								onChange={handleFotoChange}
+								className="mt-1 block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200 dark:text-gray-300 dark:file:bg-white/[0.06] dark:file:text-gray-300"
+							/>
+							{foto && (
+								<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{foto.name}</p>
+							)}
 						</div>
 					</div>
 

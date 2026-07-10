@@ -3,6 +3,10 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Ajusta esto según cómo esté configurada tu apiFetch/baseURL real,
+// se usa solo para armar la URL completa de la foto servida como StaticFiles.
+const API_BASE_URL: string = (import.meta as any)?.env?.VITE_API_URL || "http://localhost:8000";
+
 type MortalidadFormState = {
   lote_id: number;
   fecha_reporte: string; // mostrado como readonly
@@ -45,12 +49,19 @@ function toDatetimeLocal(value?: string | null): string {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+function resolveFotoUrl(fotoUrl?: string | null): string | null {
+  if (!fotoUrl) return null;
+  if (fotoUrl.startsWith("http://") || fotoUrl.startsWith("https://")) return fotoUrl;
+  return `${API_BASE_URL}${fotoUrl}`;
+}
+
 export default function MortalidadEdit() {
   const navigate = useNavigate();
   const params = useParams();
   const id = params.id || params.id_mortalidad || params.mortalidad_id;
 
   const [form, setForm] = useState<MortalidadFormState>(emptyState);
+  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [lotes, setLotes] = useState<LoteOption[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,7 +80,7 @@ export default function MortalidadEdit() {
 
     const load = async () => {
       setLoading(true);
-      setError(null);
+      setLoadError(null);
 
       try {
         // Lotes por separado para manejar estados vacíos
@@ -92,11 +103,25 @@ export default function MortalidadEdit() {
             ? usersData
             : [];
 
+        // Si el lote del registro ya no está activo/en cuarentena/listo para cosecha
+        // (p. ej. fue finalizado), no aparece en `resultados`. Lo inyectamos para que
+        // el <select> muestre el valor correcto en vez de quedar vacío.
+        const currentLoteId = Number(mData?.lote_id ?? 0);
+        const yaIncluido = resultados.some((l) => l.id_lote === currentLoteId);
+        if (currentLoteId && !yaIncluido && mData?.nombre_lote) {
+          resultados.push({
+            id_lote: currentLoteId,
+            nombre_lote: mData.nombre_lote,
+            sublote: mData.sublote ?? "",
+          });
+        }
+
         setLotes(resultados);
         setUsers(userList);
+        setFotoUrl(mData?.foto_url ?? null);
 
         setForm({
-          lote_id: Number(mData?.lote_id ?? 0),
+          lote_id: currentLoteId,
           fecha_reporte: toDatetimeLocal(mData?.fecha_reporte),
           cantidad: Number(mData?.cantidad ?? 0),
           observacion: mData?.observacion ?? null,
@@ -142,6 +167,12 @@ export default function MortalidadEdit() {
     setError(null);
     setSuccess(null);
 
+    if (!form.lote_id || form.lote_id === 0) {
+      setError("Selecciona un lote");
+      setSaving(false);
+      return;
+    }
+
     if (form.cantidad <= 0) {
       setError("La cantidad debe ser mayor a cero");
       setSaving(false);
@@ -156,7 +187,9 @@ export default function MortalidadEdit() {
         user_id: Number(form.user_id),
       };
 
-      await apiFetch(`mortalidad/by-id/${id}?id_mortalidad=${id}`, {
+      // La ruta del backend ya usa {id_mortalidad}, coincidiendo con el
+      // parámetro real de la función — no hace falta duplicar el id como query param.
+      await apiFetch(`mortalidad/by-id/${id}`, {
         method: "PUT",
         body: payload,
       });
@@ -169,6 +202,8 @@ export default function MortalidadEdit() {
       setSaving(false);
     }
   };
+
+  const fotoSrc = resolveFotoUrl(fotoUrl);
 
   return (
     <>
@@ -190,8 +225,8 @@ export default function MortalidadEdit() {
         <form onSubmit={handleSubmit} className="p-5 lg:p-6">
           {loading ? (
             <div className="p-6 text-center text-sm text-gray-500">Cargando registro...</div>
-          ) : error && !form.lote_id ? (
-              <div className="p-6 text-center text-sm text-error-500">{error}</div>
+          ) : loadError ? (
+            <div className="p-6 text-center text-sm text-error-500">{loadError}</div>
           ) : (
             <>
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -232,7 +267,6 @@ export default function MortalidadEdit() {
                     Cantidad <span className="text-error-500">*</span>
                   </label>
                   <input
-                    type="number"
                     value={form.cantidad}
                     onChange={handleChange("cantidad")}
                     min={1}
@@ -272,6 +306,16 @@ export default function MortalidadEdit() {
                     maxLength={255}
                   />
                 </div>
+
+                {fotoSrc && (
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Foto</label>
+                    <a href={fotoSrc} target="_blank" rel="noreferrer" className="block h-28 w-28 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                      <img src={fotoSrc} alt="Foto de mortalidad" className="h-full w-full object-cover" />
+                    </a>
+                    <p className="mt-1 text-xs text-gray-400">La foto no se puede reemplazar.</p>
+                  </div>
+                )}
               </div>
 
               {success && (

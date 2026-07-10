@@ -6,6 +6,7 @@ import { apiFetch } from "@/services/api";
 
 type ComercializacionFormState = {
   producto_id: number;
+  lote_id: number;
   fecha_comercializacion: string;
   cantidad: number;
   unid_medida_id: number;
@@ -20,6 +21,8 @@ type ProductoOption = {
   nombre_producto: string;
   cantidad: number;
   simbolo?: string;
+  lote_id?: number;
+  sublote?: string;
 };
 
 type MedidaOption = {
@@ -27,9 +30,15 @@ type MedidaOption = {
   simbolo: string;
 };
 
+type LoteOption = {
+  id_lote: number;
+  sublote: string;
+};
+
 type ComercializacionDetail = {
   id_comercializacion: number;
   producto_id: number;
+  lote_id: number;
   fecha_comercializacion: string;
   cantidad: number;
   unid_medida_id: number;
@@ -59,6 +68,7 @@ const toDateValue = (value?: string | null) => {
 
 const initialState: ComercializacionFormState = {
   producto_id: 0,
+  lote_id: 0,
   fecha_comercializacion: getLocalISODate(),
   cantidad: 0,
   unid_medida_id: 0,
@@ -78,8 +88,10 @@ export default function ComercioEdit() {
   const [saving, setSaving] = useState(false);
   const [loadingProductos, setLoadingProductos] = useState(false);
   const [loadingMedidas, setLoadingMedidas] = useState(false);
+  const [loadingLotes, setLoadingLotes] = useState(false);
   const [productos, setProductos] = useState<ProductoOption[]>([]);
   const [medidas, setMedidas] = useState<MedidaOption[]>([]);
+  const [lotes, setLotes] = useState<LoteOption[]>([]);
   const [record, setRecord] = useState<ComercializacionDetail | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -102,13 +114,15 @@ export default function ComercioEdit() {
       setLoadingData(true);
       setLoadingProductos(true);
       setLoadingMedidas(true);
+      setLoadingLotes(true);
       setError(null);
 
       try {
-        const [comercioData, productosData, medidasData] = await Promise.all([
+        const [comercioData, productosData, medidasData, lotesData] = await Promise.all([
           apiFetch(`comercio/by-id?id=${id}`),
           apiFetch("inv_produccion/all/produccion"),
           apiFetch("unid-medida/all-unid_medidas"),
+          apiFetch("lotes_prod/all-lotes_prod"),
         ]);
 
         if (!mounted) return;
@@ -129,11 +143,27 @@ export default function ComercioEdit() {
               ? medidasData
               : [];
 
-        setProductos(productoList);
+        const loteList = Array.isArray(lotesData?.lotes)
+          ? lotesData.lotes
+          : Array.isArray(lotesData?.lotes_prod)
+            ? lotesData.lotes_prod
+            : Array.isArray(lotesData)
+              ? lotesData
+              : [];
+
+        const lotesPorId = new Map(loteList.map((lote: LoteOption) => [lote.id_lote, lote.sublote]));
+        const productosConLote = productoList.map((producto: ProductoOption) => ({
+          ...producto,
+          sublote: producto.sublote || (producto.lote_id ? lotesPorId.get(producto.lote_id) || "" : ""),
+        }));
+
+        setProductos(productosConLote);
         setMedidas(medidaList);
+        setLotes(loteList);
         setRecord(comercioData);
         setForm({
           producto_id: Number(comercioData?.producto_id ?? 0),
+          lote_id: Number(comercioData?.lote_id ?? 0),
           fecha_comercializacion: toDateValue(comercioData?.fecha_comercializacion),
           cantidad: Number(comercioData?.cantidad ?? 0),
           unid_medida_id: Number(comercioData?.unid_medida_id ?? 0),
@@ -150,6 +180,7 @@ export default function ComercioEdit() {
           setLoadingData(false);
           setLoadingProductos(false);
           setLoadingMedidas(false);
+          setLoadingLotes(false);
         }
       }
     };
@@ -179,6 +210,18 @@ export default function ComercioEdit() {
         [field]: value,
       }));
     };
+
+  // Al cambiar de producto, sincroniza automáticamente el lote_id con el del producto seleccionado
+  const handleProductoSeleccionado = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const productoId = Number(event.target.value);
+    const productoSeleccionado = productos.find((producto) => producto.id_inventario === productoId);
+
+    setForm((current) => ({
+      ...current,
+      producto_id: productoId,
+      lote_id: productoSeleccionado?.lote_id ?? current.lote_id,
+    }));
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -221,6 +264,7 @@ export default function ComercioEdit() {
     try {
       const payload = {
         producto_id: Number(form.producto_id),
+        lote_id: Number(form.lote_id),
         fecha_comercializacion: form.fecha_comercializacion,
         cantidad: cantidadValue,
         unid_medida_id: Number(form.unid_medida_id),
@@ -281,7 +325,7 @@ export default function ComercioEdit() {
                   </label>
                   <select
                     value={form.producto_id}
-                    onChange={handleChange("producto_id")}
+                    onChange={handleProductoSeleccionado}
                     className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
                     disabled={loadingProductos || (productos.length === 0 && !record)}
@@ -296,7 +340,7 @@ export default function ComercioEdit() {
                     )}
                     {productos.map((producto) => (
                       <option className="dark:text-black/90" key={producto.id_inventario} value={producto.id_inventario}>
-                        {producto.nombre_producto} - stock: {producto.cantidad} {producto.simbolo || ""}
+                        {producto.nombre_producto} - stock: {producto.cantidad} {producto.simbolo || ""} {producto.sublote ? `(${producto.sublote})` : ""}
                       </option>
                     ))}
                   </select>

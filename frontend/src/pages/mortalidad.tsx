@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -9,12 +9,17 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 
+// Ajusta esto según cómo esté configurada tu apiFetch/baseURL real,
+// se usa solo para armar la URL completa de las fotos servidas como StaticFiles.
+const API_BASE_URL: string = (import.meta as any)?.env?.VITE_API_URL || "http://localhost:8000";
+
 type MortalidadRow = {
 	id_mortalidad: number;
 	lote_id: number;
 	fecha_reporte: string;
 	cantidad: number;
 	observacion?: string;
+	foto_url?: string | null;
 	user_id: number;
 	nombre_especie?: string;
 	nombre_categoria?: string;
@@ -50,6 +55,12 @@ function formatDate(value: string): string {
 	});
 }
 
+function resolveFotoUrl(fotoUrl?: string | null): string | null {
+	if (!fotoUrl) return null;
+	if (fotoUrl.startsWith("http://") || fotoUrl.startsWith("https://")) return fotoUrl;
+	return `${API_BASE_URL}${fotoUrl}`;
+}
+
 export default function Mortalidad() {
 	const navigate = useNavigate();
 	const [rows, setRows] = useState<MortalidadRow[]>([]);
@@ -61,6 +72,8 @@ export default function Mortalidad() {
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
+	const [previewFoto, setPreviewFoto] = useState<string | null>(null);
 
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -96,6 +109,16 @@ export default function Mortalidad() {
 		}
 	}, [navigate]);
 
+	// Debounce del buscador: espera 400ms sin escribir antes de disparar la búsqueda al backend
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			setPage(1);
+			setDebouncedSearch(search.trim());
+		}, 400);
+
+		return () => clearTimeout(timeout);
+	}, [search]);
+
 	useEffect(() => {
 		let mounted = true;
 
@@ -109,6 +132,10 @@ export default function Mortalidad() {
 					page_size: String(pageSize),
 				});
 
+				if (debouncedSearch) {
+					queryParams.set("search", debouncedSearch);
+				}
+
 				const endpoint = activeDateRange
 					? (() => {
 						queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
@@ -117,7 +144,7 @@ export default function Mortalidad() {
 					})()
 					: `mortalidad/paginated?${queryParams.toString()}`;
 
-				const data = (await apiFetch(endpoint)) as MortalidadResponse; if (!mounted) return;
+				const data = (await apiFetch(endpoint)) as MortalidadResponse;
 
 				if (!mounted) {
 					return;
@@ -127,7 +154,13 @@ export default function Mortalidad() {
 				setTotal(Number(data?.total_mortalidad ?? 0));
 			} catch (requestError: any) {
 				if (!mounted) return;
-				setError(requestError?.detail || requestError?.message || "No se pudieron cargar los registros de mortalidad");
+				// Un 404 del backend significa "sin resultados", no un error real
+				if (requestError?.status === 404 || requestError?.statusCode === 404) {
+					setRows([]);
+					setTotal(0);
+				} else {
+					setError(requestError?.detail || requestError?.message || "No se pudieron cargar los registros de mortalidad");
+				}
 			} finally {
 				if (mounted) setLoading(false);
 			}
@@ -138,42 +171,9 @@ export default function Mortalidad() {
 		return () => {
 			mounted = false;
 		};
-	}, [page, pageSize, activeDateRange]);
-
-	const filtered = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) return rows;
-
-		return rows.filter((r) => {
-			return [
-				r.nombre_lote,
-				r.sublote,
-				r.nombre_especie,
-				r.nombre_categoria,
-				r.nombre_user,
-				r.observacion,
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, rows, activeDateRange]);
+	}, [page, pageSize, activeDateRange, debouncedSearch]);
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-	const applyDateFilter = () => {
-		if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
-			setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
-			return;
-		}
-		if (dateRange.fecha_inicio > dateRange.fecha_fin) {
-			setError("La fecha inicial no puede ser mayor que la fecha final.");
-			return;
-		}
-		setError(null);
-		setPage(1);
-		setActiveDateRange({ ...dateRange });
-	};
 
 	const clearDateFilter = () => {
 		setDateRange({ fecha_inicio: "", fecha_fin: "" });
@@ -322,6 +322,9 @@ export default function Mortalidad() {
 								Usuario
 							</th>
 							<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								Foto
+							</th>
+							<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 								Acciones
 							</th>
 						</tr>
@@ -331,49 +334,67 @@ export default function Mortalidad() {
 						{loading ? (
 							Array.from({ length: 5 }).map((_, index) => (
 								<tr key={index}>
-									<td colSpan={6} className="px-5 py-4">
+									<td colSpan={8} className="px-5 py-4">
 										<div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
 									</td>
 								</tr>
 							))
 						) : error ? (
 							<tr>
-								<td colSpan={6} className="px-5 py-10 text-center text-sm text-error-500">{error}</td>
+								<td colSpan={8} className="px-5 py-10 text-center text-sm text-error-500">{error}</td>
 							</tr>
-						) : filtered.length === 0 ? (
+						) : rows.length === 0 ? (
 							<tr>
-								<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No hay registros de mortalidad.</td>
+								<td colSpan={8} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No hay registros de mortalidad.</td>
 							</tr>
 						) : (
-							filtered.map((mortalidad) => (
-								<tr key={mortalidad.id_mortalidad} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
-									<td className="px-5 py-4">
-										<div className="text-sm font-medium text-gray-800 dark:text-white/90">{mortalidad.nombre_lote}</div>
-										<div className="text-xs text-gray-500 dark:text-gray-400">Sublote: {mortalidad.sublote}</div>
-									</td>
+							rows.map((mortalidad) => {
+								const fotoSrc = resolveFotoUrl(mortalidad.foto_url);
+								return (
+									<tr key={mortalidad.id_mortalidad} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 
-									<td className="px-5 py-4">
-										<div className="text-sm text-gray-800 dark:text-gray-300">{mortalidad.nombre_categoria || "-"} / {mortalidad.nombre_especie || "-"}</div>
-									</td>
+										<td className="px-5 py-4">
+											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{mortalidad.nombre_lote}</div>
+											<div className="text-xs text-gray-500 dark:text-gray-400">Sublote: {mortalidad.sublote}</div>
+										</td>
 
-									<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(mortalidad.fecha_reporte)}</td>
+										<td className="px-5 py-4">
+											<div className="text-sm text-gray-800 dark:text-gray-300">{mortalidad.nombre_categoria || "-"} / {mortalidad.nombre_especie || "-"}</div>
+										</td>
 
-									<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.cantidad}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(mortalidad.fecha_reporte)}</td>
 
-									<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.observacion || "-"}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.cantidad}</td>
 
-									<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.nombre_user}</td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.observacion || "-"}</td>
 
-									<td className="px-5 py-4">
-										<Link
-											to={`/mortalidad/edit/${mortalidad.id_mortalidad}`}
-											className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-										>
-											Editar
-										</Link>
-									</td>
-								</tr>
-							))
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.nombre_user}</td>
+
+										<td className="px-5 py-4">
+											{fotoSrc ? (
+												<button
+													type="button"
+													onClick={() => setPreviewFoto(fotoSrc)}
+													className="block h-12 w-12 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+												>
+													<img src={fotoSrc} alt="Foto de mortalidad" className="h-full w-full object-cover" />
+												</button>
+											) : (
+												<span className="text-xs text-gray-400">-</span>
+											)}
+										</td>
+
+										<td className="px-5 py-4">
+											<Link
+												to={`/mortalidad/edit/${mortalidad.id_mortalidad}`}
+												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+											>
+												Editar
+											</Link>
+										</td>
+									</tr>
+								);
+							})
 						)}
 					</tbody>
 				</table>
@@ -401,6 +422,21 @@ export default function Mortalidad() {
 				</div>
 			</div>
 		</div >
+
+		{/* Lightbox simple para ver la foto en tamaño completo */}
+		{previewFoto && (
+			<div
+				className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+				onClick={() => setPreviewFoto(null)}
+			>
+				<img
+					src={previewFoto}
+					alt="Foto de mortalidad ampliada"
+					className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+					onClick={(e) => e.stopPropagation()}
+				/>
+			</div>
+		)}
 		</>
 	);
 }

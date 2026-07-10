@@ -8,13 +8,25 @@ from app.schemas.mortalidad import MortalidadCreate,MortalidadUpdate
 
 logger = logging.getLogger(__name__)
 
+# Columnas sobre las que se puede buscar (usadas en /paginated y /rango-fechas)
+_SEARCH_WHERE = """
+    (
+        l_g.nombre_lote LIKE :search OR
+        l_p.sublote LIKE :search OR
+        e.nombre_especie LIKE :search OR
+        c.nombre_categoria LIKE :search OR
+        u.nombre_user LIKE :search OR
+        m_p.observacion LIKE :search
+    )
+"""
+
 def create_mortalidad(db: Session, mortalidad: MortalidadCreate, user_id: int) -> Optional[bool]:
     try:
         query = text("""
           INSERT INTO mortalidad_produccion (
-              lote_id, cantidad, fecha_reporte, observacion, user_id
+              lote_id, cantidad, fecha_reporte, observacion, foto_url, user_id
           ) VALUES (
-              :lote_id, :cantidad, :fecha_reporte, :observacion, :user_id
+              :lote_id, :cantidad, :fecha_reporte, :observacion, :foto_url, :user_id
           )
       """)
         db.execute(query, {**mortalidad.model_dump(), "user_id": user_id})
@@ -32,7 +44,7 @@ def get_all_mortalidad(db: Session):
     try:
         query = text("""
                      SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                     e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
+                     m_p.foto_url, e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
                      u.nombre_user
                      FROM mortalidad_produccion AS m_p
                      LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
@@ -52,7 +64,7 @@ def get_mortalidad_by_id(db: Session, id: int):
     try:
         query = text("""
                      SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                     e.nombre_especie, c.nombre_categoria, m_p.user_id, 
+                     m_p.foto_url, e.nombre_especie, c.nombre_categoria, m_p.user_id, 
                      l_g.nombre_lote, l_p.sublote, u.nombre_user
                      FROM mortalidad_produccion AS m_p
                      LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
@@ -73,7 +85,7 @@ def get_mortalidad_by_lote(db: Session, lote_id: int):
     try:
         query = text("""
             SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion,
-                   e.nombre_especie, c.nombre_categoria, m_p.user_id,
+                   m_p.foto_url, e.nombre_especie, c.nombre_categoria, m_p.user_id,
                    l_g.nombre_lote, l_p.sublote, u.nombre_user
             FROM mortalidad_produccion AS m_p
             LEFT JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
@@ -116,15 +128,17 @@ def update_mortalidad_by_id(db: Session, id_mortalidad: int, mortalidad: Mortali
         error_msg = orig.args[1] if orig and len(orig.args) > 1 else str(e)
         raise Exception(error_msg)
 
-def get_mortalidad_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
+def get_mortalidad_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str, search: Optional[str] = None):
     """
-    Obtiene las tareas cuya fecha de inicio o fin esté dentro de un rango de fechas.
-    Ignora las horas (usa DATE(fecha_init) y DATE(fecha_fin)).
+    Obtiene los registros de mortalidad cuya fecha de reporte esté dentro de un rango de fechas.
+    Ignora las horas (usa DATE(fecha_reporte)). Si se pasa `search`, filtra además por
+    lote, sublote, especie, categoría, usuario u observación.
     """
     try:
-        query = text("""
+        where_extra = f"AND {_SEARCH_WHERE}" if search else ""
+        query = text(f"""
             SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                        e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
+                        m_p.foto_url, e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
                         u.nombre_user
                         FROM mortalidad_produccion AS m_p
                         INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
@@ -133,12 +147,14 @@ def get_mortalidad_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
                         LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
                         LEFT JOIN users AS u ON m_p.user_id = u.id_user
             WHERE DATE(m_p.fecha_reporte) BETWEEN :fecha_inicio AND :fecha_fin
+            {where_extra}
             ORDER BY m_p.fecha_reporte DESC
         """)
-        result = db.execute(query, {
-            "fecha_inicio": fecha_inicio,
-            "fecha_fin": fecha_fin
-        }).mappings().all()
+        params = {"fecha_inicio": fecha_inicio, "fecha_fin": fecha_fin}
+        if search:
+            params["search"] = f"%{search}%"
+
+        result = db.execute(query, params).mappings().all()
         
         return [dict(row) for row in result]
 
@@ -146,46 +162,45 @@ def get_mortalidad_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
         raise Exception(f"Error al consultar los insumos por rango de fechas: {e}")
 
 
-def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10):
+def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
     """
     Obtiene los registros de mortalidad con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
+    Si se pasa `search`, filtra por lote, sublote, especie, categoría, usuario u observación.
     """
     try:
-        # Total de mortalidad
-        count_query = text("""
-            SELECT COUNT(m_p.id_mortalidad) AS total
+        base_from = """
             FROM mortalidad_produccion AS m_p
             INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
             LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
             LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+            LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
             LEFT JOIN users AS u ON m_p.user_id = u.id_user
-        """)
+        """
+        where_clause = f"WHERE {_SEARCH_WHERE}" if search else ""
+        params = {"search": f"%{search}%"} if search else {}
 
-        total_result = db.execute(count_query).scalar()
+        # Total de mortalidad (respetando el filtro de búsqueda)
+        count_query = text(f"""
+            SELECT COUNT(m_p.id_mortalidad) AS total
+            {base_from}
+            {where_clause}
+        """)
+        total_result = db.execute(count_query, params).scalar()
 
         # Registros paginados
-        data_query = text(""" 
-                        SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
-                        e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
-                        u.nombre_user
-                        FROM mortalidad_produccion AS m_p
-                        INNER JOIN lote_produccion AS l_p ON m_p.lote_id = l_p.id_lote
-                        LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
-                        LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
-                        LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
-                        LEFT JOIN users AS u ON m_p.user_id = u.id_user
-                        ORDER BY m_p.id_mortalidad DESC
-                        LIMIT :limit OFFSET :skip
-                    """)
+        data_query = text(f"""
+            SELECT m_p.id_mortalidad, m_p.lote_id, m_p.cantidad, m_p.fecha_reporte, m_p.observacion, 
+            m_p.foto_url, e.nombre_especie, c.nombre_categoria, m_p.user_id, l_g.nombre_lote, l_p.sublote,
+            u.nombre_user
+            {base_from}
+            {where_clause}
+            ORDER BY m_p.id_mortalidad DESC
+            LIMIT :limit OFFSET :skip
+        """)
 
-        mortalidad_prod_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        data_params = {**params, "limit": limit, "skip": skip}
+        mortalidad_prod_list = db.execute(data_query, data_params).mappings().all()
 
         return {
             "total": total_result or 0,
@@ -198,5 +213,3 @@ def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10):
         raise Exception(
             "Error de base de datos al obtener los registros de mortalidad"
         )
-        
-        

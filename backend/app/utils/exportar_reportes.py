@@ -1326,7 +1326,7 @@ def generar_excel_reporte_comercializacion(comercializacion: list) -> io.BytesIO
     ws.append([])
 
     headers = [
-        "Producto", "Fecha", "Cantidad", "Lugar", "Estado de vendido", 
+        "Producto", "Lote", "Fecha", "Cantidad", "Lugar", "Estado de vendido", 
         "Cant. no vendida",
     ]
     ws.append(headers)
@@ -1338,6 +1338,7 @@ def generar_excel_reporte_comercializacion(comercializacion: list) -> io.BytesIO
     for t in comercializacion:
         ws.append([
             t.get("nombre_producto") or "-",
+            t.get("sublote") or "-",
             t.get("fecha_comercializacion") or "-",
             str(t.get("cantidad") or "-") + "/" + str(t.get("simbolo") or "-"),
             t.get("lugar_comercializacion") or "-",
@@ -1370,11 +1371,12 @@ def generar_pdf_reporte_comercializacion(comercializacion: list) -> io.BytesIO:
 
     elementos = [Paragraph("Informe de comercializaciones", styles["Title"]), Spacer(1, 12)]
 
-    filas = [["Producto", "Fecha", "Cantidad", "Lugar", "Estado de vendido", "Cant. no vendida"]]
+    filas = [["Producto", "Lote", "Fecha", "Cantidad", "Lugar", "Estado de vendido", "Cant. no vendida"]]
     
     for t in comercializacion:
         filas.append([
             t.get("nombre_producto") or "-",
+            t.get("sublote") or "-",
             t.get("fecha_comercializacion") or "-",
             str(t.get("cantidad") or "-") + "/" + str(t.get("simbolo") or "-"),
             t.get("lugar_comercializacion") or "-",
@@ -1385,7 +1387,7 @@ def generar_pdf_reporte_comercializacion(comercializacion: list) -> io.BytesIO:
     tabla = Table(
         filas,
         repeatRows=1,
-        colWidths=[3.5 * cm, 2.5 * cm, 2 * cm, 4 * cm, 2.5 * cm, 2.5 * cm],
+        colWidths=[3.5 * cm, 2 * cm, 2.5 * cm, 2 * cm, 4 * cm, 2.5 * cm, 2.5 * cm],
     )
     tabla.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),

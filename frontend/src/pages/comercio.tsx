@@ -401,27 +401,27 @@ export default function Comercios() {
 
 				<div className="overflow-x-auto">
 					<table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-						<thead className="bg-gray-50 dark:bg-gray-900/40">
+						<thead className="bg-gray-50 dark:bg-gray-900/40 text-center">
 							<tr>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Producto
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Fecha
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Cantidad
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Lugar
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Estado
 								</th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Observación
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Acciones
 								</th>
 							</tr>
@@ -456,19 +456,19 @@ export default function Comercios() {
 											<div className="text-sm text-gray-800 dark:text-white/90">Lote: {comercializacion.sublote}</div>
 										</td>
 										<td className="px-5 py-4">
-											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{formatDate(comercializacion.fecha_comercializacion)}</div>
+											<div className="text-sm text-center font-medium text-gray-800 dark:text-white/90">{formatDate(comercializacion.fecha_comercializacion)}</div>
 										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+										<td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">
 											{comercializacion.cantidad} {comercializacion.simbolo}
 										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+										<td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">
 											{comercializacion.lugar_comercializacion}
 										</td>
 
 										<td className="px-5 py-4">
-											<div className="flex flex-col gap-2">
+											<div className="flex flex-col gap-2 items-center justify-center">
 												<div className="flex items-center gap-2">
 													<button
 														type="button"
@@ -531,11 +531,11 @@ export default function Comercios() {
 											</div>
 										</td>
 
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">
                                             {comercializacion.observacion || "Sin observación"}
                                         </td>
 
-                                        <td className="px-5 py-4">
+                                        <td className="px-5 py-4 text-center">
 											<Link
 												to={`/comercializaciones/edit/${comercializacion.id_comercializacion}`}
 												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
