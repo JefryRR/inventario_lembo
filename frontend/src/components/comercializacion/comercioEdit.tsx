@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -23,6 +23,7 @@ type ProductoOption = {
   simbolo?: string;
   lote_id?: number;
   sublote?: string;
+  fecha_vencimiento?: string | null;
 };
 
 type MedidaOption = {
@@ -211,6 +212,18 @@ export default function ComercioEdit() {
       }));
     };
 
+  // Solo se muestran productos con stock disponible (> 0) y cuya fecha de vencimiento
+  // todavía no se haya cumplido (o que no tengan fecha de vencimiento registrada)
+  const productosDisponibles = useMemo(() => {
+    const hoy = getLocalISODate();
+
+    return productos.filter((producto) => {
+      const tieneStock = Number(producto.cantidad) > 0;
+      const noVencido = !producto.fecha_vencimiento || producto.fecha_vencimiento >= hoy;
+      return tieneStock && noVencido;
+    });
+  }, [productos]);
+
   // Al cambiar de producto, sincroniza automáticamente el lote_id con el del producto seleccionado
   const handleProductoSeleccionado = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const productoId = Number(event.target.value);
@@ -328,17 +341,17 @@ export default function ComercioEdit() {
                     onChange={handleProductoSeleccionado}
                     className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
                     required
-                    disabled={loadingProductos || (productos.length === 0 && !record)}
+                    disabled={loadingProductos || (productosDisponibles.length === 0 && !record)}
                   >
                     <option className="dark:text-black/90" value={0} disabled>
                       {loadingProductos ? "Cargando productos..." : "Selecciona un producto"}
                     </option>
-                    {record && !productos.some((producto) => producto.id_inventario === form.producto_id) && form.producto_id > 0 && (
+                    {record && !productosDisponibles.some((producto) => producto.id_inventario === form.producto_id) && form.producto_id > 0 && (
                       <option className="dark:text-black/90" value={form.producto_id}>
                         {record.nombre_producto || "Producto actual"}
                       </option>
                     )}
-                    {productos.map((producto) => (
+                    {productosDisponibles.map((producto) => (
                       <option className="dark:text-black/90" key={producto.id_inventario} value={producto.id_inventario}>
                         {producto.nombre_producto} - stock: {producto.cantidad} {producto.simbolo || ""} {producto.sublote ? `(${producto.sublote})` : ""}
                       </option>

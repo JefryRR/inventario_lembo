@@ -18,6 +18,7 @@ type ComercioRow = {
 	lugar_comercializacion: string;
 	fecha_comercializacion: string;
 	cant_no_vendida: number | null;
+	fecha_vencimiento: string;
 	vendio_todo: boolean;
 	simbolo: string;
 	nombre_producto: string;
@@ -275,6 +276,9 @@ export default function Comercios() {
 	const handleToggleVendioTodo = (row: ComercioRow) => {
 		if (updatingId !== null) return;
 
+		// Una vez que quedó en "No vendió todo", el registro se bloquea y no se puede volver a modificar
+		if (row.vendio_todo === false) return;
+
 		if (row.vendio_todo) {
 			handleIniciarNoVendioTodo(row);
 		} else {
@@ -407,7 +411,10 @@ export default function Comercios() {
 									Producto
 								</th>
 								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Fecha
+									Fecha de comercialización
+								</th>
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+									Fecha de vencimiento
 								</th>
 								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Cantidad
@@ -455,8 +462,13 @@ export default function Comercios() {
 											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{comercializacion.nombre_producto}</div>
 											<div className="text-sm text-gray-800 dark:text-white/90">Lote: {comercializacion.sublote}</div>
 										</td>
+
 										<td className="px-5 py-4">
 											<div className="text-sm text-center font-medium text-gray-800 dark:text-white/90">{formatDate(comercializacion.fecha_comercializacion)}</div>
+										</td>
+
+										<td className="px-5 py-4">
+											<div className="text-sm text-center font-medium text-gray-800 dark:text-white/90">{formatDate(comercializacion.fecha_vencimiento)}</div>
 										</td>
 
 										<td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">
@@ -475,7 +487,10 @@ export default function Comercios() {
 														role="switch"
 														aria-checked={comercializacion.vendio_todo}
 														onClick={() => handleToggleVendioTodo(comercializacion)}
-														disabled={updatingId === comercializacion.id_comercializacion}
+														disabled={
+															updatingId === comercializacion.id_comercializacion ||
+															comercializacion.vendio_todo === false
+														}
 														className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
 															comercializacion.vendio_todo
 																? "bg-green-600"
@@ -502,7 +517,7 @@ export default function Comercios() {
 															onChange={(e) => setCantidadInput(e.target.value)}
 															placeholder="Cant. no vendida"
 															className="h-8 w-28 rounded-md border border-gray-300 bg-transparent px-2 text-xs text-gray-800 outline-none focus:border-gray-400 dark:border-gray-700 dark:text-white/90"
-														/>
+														/> 
 														<button
 															type="button"
 															onClick={() => handleGuardarNoVendioTodo(comercializacion)}
@@ -524,10 +539,10 @@ export default function Comercios() {
 													!comercializacion.vendio_todo &&
 													comercializacion.cant_no_vendida != null && (
 														<span className="text-xs text-gray-500 dark:text-gray-400">
-															No vendido: {comercializacion.cant_no_vendida}
+															No vendido: {comercializacion.cant_no_vendida} {comercializacion.simbolo}
 														</span>
 													)
-												)}
+																									)}
 											</div>
 										</td>
 
@@ -536,12 +551,21 @@ export default function Comercios() {
                                         </td>
 
                                         <td className="px-5 py-4 text-center">
-											<Link
-												to={`/comercializaciones/edit/${comercializacion.id_comercializacion}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-											>
-												Editar
-											</Link>
+											{comercializacion.vendio_todo === false ? (
+												<span
+													title="No se puede editar: ya se registró que no vendió todo"
+													className="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+												>
+													Editar
+												</span>
+											) : (
+												<Link
+													to={`/comercializaciones/edit/${comercializacion.id_comercializacion}`}
+													className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+												>
+													Editar
+												</Link>
+											)}
 										</td>
 
 									</tr>

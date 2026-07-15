@@ -11,6 +11,7 @@ type ProductoOption = {
   simbolo: string;
   lote_id?: number;
   sublote?: string;
+  fecha_vencimiento?: string;
 };
 
 type MedidaOption = {
@@ -130,8 +131,15 @@ export default function ComercioCreate() {
             ...producto,
             sublote: producto.sublote || (producto.lote_id ? lotesPorId.get(producto.lote_id) || "" : ""),
           }));
+        
+        const productosNoVencidos = productosActivos.filter((producto: ProductoOption) => {
+          if (!producto.fecha_vencimiento) return true;
+          const fecha_actual = new Date().toISOString().slice(0, 10);
+          return producto.fecha_vencimiento.slice(0, 10) > fecha_actual;
+        });
 
         setProductos(productosActivos);
+        setProductos(productosNoVencidos);
         setMedidas(medidaList);
       } catch (requestError: any) {
         if (!mounted) return;
@@ -361,7 +369,7 @@ export default function ComercioCreate() {
                 </option>
                 {productos.map((producto) => (
                   <option className="dark:text-black/90" key={producto.id_inventario} value={producto.id_inventario}>
-                    {producto.nombre_producto} - stock: {producto.cantidad} {producto.simbolo || ""} {producto.sublote ? `- Lote: ${producto.sublote}` : ""}
+                    {producto.nombre_producto} - stock: {producto.cantidad} {producto.simbolo || ""} {producto.sublote ? `- Lote: ${producto.sublote}` : ""} {producto.fecha_vencimiento ? `- Vence: ${producto.fecha_vencimiento.slice(0, 10)}` : ""}
                   </option>
                 ))}
               </select>

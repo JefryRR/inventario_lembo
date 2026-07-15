@@ -75,7 +75,8 @@ def get_ingrediente_by_id(db: Session, id: int):
                 ip.cant_inv, 
                 ip.unid_med_id, 
                 ip.fecha_registro, 
-                p.nombre_plato, 
+                p.nombre_plato,
+                pr.fecha_vencimiento, 
                 um.simbolo,
                 -- COALESCE toma el primer valor que NO sea null. 
                 -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
@@ -84,6 +85,7 @@ def get_ingrediente_by_id(db: Session, id: int):
             LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
             LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
             LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+            LEFT JOIN comercializacion AS c ON ip.origen_inv = 3 AND ip.inventario_id = c.id_comercializacion
             LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
             WHERE ip.id_ingrediente = :id
         """)
@@ -217,6 +219,25 @@ def delete_ingrediente_by_id(db: Session, id: int):
                 {"cant": ingrediente.cant_conv_inv, "inv_id": ingrediente.inventario_id}
             )
 
+        elif ingrediente.origen_inv == 3:
+            # Comercialización (remanente no vendido)
+            inv = db.execute(
+                text("SELECT id_comercializacion, cant_no_vendida FROM comercializacion WHERE id_comercializacion = :inv_id"),
+                {"inv_id": ingrediente.inventario_id}
+            ).fetchone()
+
+            if not inv:
+                raise Exception(f"Comercialización {ingrediente.inventario_id} no encontrada")
+
+            db.execute(
+                text("""
+                    UPDATE comercializacion
+                    SET cant_no_vendida = COALESCE(cant_no_vendida, 0) + :cant
+                    WHERE id_comercializacion = :inv_id
+                """),
+                {"cant": ingrediente.cant_conv_inv, "inv_id": ingrediente.inventario_id}
+            )
+
         else:
             raise Exception(f"origen_inv inválido: {ingrediente.origen_inv}")
 
@@ -259,6 +280,7 @@ def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: st
                     LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
                     LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
                     LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                    LEFT JOIN comercializacion AS c ON ip.origen_inv = 3 AND ip.inventario_id = c.id_comercializacion
                     LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
                     WHERE DATE(ip.fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin
                     ORDER BY ip.fecha_registro DESC
@@ -283,15 +305,17 @@ def all_ingredientes(db: Session):
                         ip.cant_inv, 
                         ip.unid_med_id, 
                         ip.fecha_registro, 
-                        p.nombre_plato, 
+                        p.nombre_plato,
                         um.simbolo,
                         -- COALESCE toma el primer valor que NO sea null. 
                         -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
-                        COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
+                        COALESCE(pr.nombre_producto, ins.nombre_producto, prc.nombre_producto, 'Producto no encontrado') AS nombre_producto
                     FROM ingredientes_plato AS ip
                     LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
                     LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
                     LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                    LEFT JOIN comercializacion AS c ON ip.origen_inv = 3 AND ip.inventario_id = c.id_comercializacion
+                    LEFT JOIN inv_produccion AS prc ON c.producto_id = prc.id_inventario
                     LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
                     ORDER BY ip.fecha_registro DESC
                     """)
@@ -300,7 +324,7 @@ def all_ingredientes(db: Session):
     
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las producciones: {e}")
-        raise Exception("Error de base de datos al obtener todas las producciones")
+        raise Exception("Error de base de datos al obtener todas los ingredientes")
 
 def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
@@ -327,15 +351,17 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
                                 ip.cant_inv, 
                                 ip.unid_med_id, 
                                 ip.fecha_registro, 
-                                p.nombre_plato, 
+                                p.nombre_plato,
                                 um.simbolo,
                                 -- COALESCE toma el primer valor que NO sea null. 
                                 -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
-                                COALESCE(pr.nombre_producto, ins.nombre_producto, 'Producto no encontrado') AS nombre_producto
+                                COALESCE(pr.nombre_producto, ins.nombre_producto, prc.nombre_producto, 'Producto no encontrado') AS nombre_producto
                             FROM ingredientes_plato AS ip
                             LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
                             LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
                             LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                            LEFT JOIN comercializacion AS c ON ip.origen_inv = 3 AND ip.inventario_id = c.id_comercializacion
+                            LEFT JOIN inv_produccion AS prc ON c.producto_id = prc.id_inventario
                             LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
                             ORDER BY ip.fecha_registro DESC
                             LIMIT :limit OFFSET :skip
