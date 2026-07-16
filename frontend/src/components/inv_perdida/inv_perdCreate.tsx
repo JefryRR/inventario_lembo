@@ -43,6 +43,12 @@ type InvInsumoOption = {
     nombre_producto: string;
 };
 
+type ComercioOption = {
+    id_comercializacion: number;
+    nombre_producto: string;
+    producto_id: number;
+};
+
 const motivoOptions: MotivoOption[] = [
     { value: "contaminacion", label: "Contaminación" },
     { value: "extravio", label: "Extravio" },
@@ -54,6 +60,7 @@ const motivoOptions: MotivoOption[] = [
 const origenOptions: MotivoOption[] = [
     { value: "produccion", label: "Producción" },
     { value: "insumo", label: "Insumo" },
+    { value: "comercializacion", label: "Comercialización" },
 ];
 
 const initialState: Inv_perdFormState = {
@@ -80,10 +87,12 @@ export default function InvPerdCreate() {
     const [loading, setLoading] = useState(false);
     const [loadingInvprod, setLoadingInvprod] = useState(false);
     const [loadingInvinsumo, setLoadingInvinsumo] = useState(false);
+    const [loadingComercio, setLoadingComercio] = useState(false);
     const [loadingUnidMedidas, setLoadingUnidMedidas] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
     const [invProd, setInvProd] = useState<InvProdOption[]>([]);
     const [invInsumo, setInvInsumo] = useState<InvInsumoOption[]>([]);
+    const [comercio, setComercio] = useState<ComercioOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -156,6 +165,29 @@ export default function InvPerdCreate() {
         };
 
         loadInvInsumo();
+
+        const loadComercio = async () => {
+            setLoadingComercio(true);
+            try {
+                const comercioData = await apiFetch(`comercio/all/comercializaciones?solo_vigentes=true`);
+                if (!mounted) return;
+
+                const invComercioList = Array.isArray(comercioData?.comercio)
+                    ? comercioData.comercio
+                    : Array.isArray(comercioData)
+                        ? comercioData
+                        : [];
+
+                setComercio(invComercioList);
+            } catch (requestError: any) {
+                if (!mounted) return;
+                setError(requestError?.detail || requestError?.message || "No se pudieron cargar los comercios");
+            } finally {
+                if (mounted) setLoadingComercio(false);
+            }
+        };
+
+        loadComercio();
 
         return () => {
             mounted = false;
@@ -261,7 +293,7 @@ export default function InvPerdCreate() {
                             </label>
                             <select value={form.inv_prod_id || ""} onChange={handleChange("inv_prod_id")}
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
-                                required disabled={(form.origen === "produccion" && (loadingInvprod || invProd.length === 0)) || (loadingInvinsumo && form.origen === "insumo" && invInsumo.length === 0)}>
+                                required disabled={(form.origen === "produccion" && (loadingInvprod || invProd.length === 0)) || (loadingInvinsumo && form.origen === "insumo" && invInsumo.length === 0) || (loadingComercio && form.origen === "comercializacion" && comercio.length === 0)}>
                                 <option className="dark:text-black/90" value="" disabled>
                                     {loadingInvprod ? "Cargando productos..." : "Selecciona un producto"}
                                 </option>
@@ -276,6 +308,13 @@ export default function InvPerdCreate() {
                                     invProd.map((prod) => (
                                         <option className="dark:text-black/90" key={prod.id_inventario} value={String(prod.id_inventario)}>
                                             {prod.nombre_producto} - Lote {prod.nombre_lote} - ID {prod.id_inventario} - {prod.cantidad} {unidMedidas.find((um) => um.id_unidad === prod.unid_medida_id)?.simbolo || ""}
+                                        </option>
+                                    ))
+                                )}
+                                {form.origen === "comercializacion" && (
+                                    comercio.map((com) => (
+                                        <option className="dark:text-black/90" key={com.id_comercializacion} value={String(com.producto_id)}>
+                                            {com.nombre_producto} - ID comercio {com.id_comercializacion}
                                         </option>
                                     ))
                                 )}

@@ -135,7 +135,7 @@ export default function ComercioCreate() {
         const productosNoVencidos = productosActivos.filter((producto: ProductoOption) => {
           if (!producto.fecha_vencimiento) return true;
           const fecha_actual = new Date().toISOString().slice(0, 10);
-          return producto.fecha_vencimiento.slice(0, 10) > fecha_actual;
+          return producto.fecha_vencimiento.slice(0, 10) >= fecha_actual;
         });
 
         setProductos(productosActivos);

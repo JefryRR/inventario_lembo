@@ -4,35 +4,30 @@ import { Link, useNavigate } from "react-router";
 import { apiFetch } from "@/services/api";
 
 type Inv_prodFormState = {
-    id_inventario: string,
-    nombre_producto: string,
-    cantidad: string,
-    unid_medida_id: string,
-    fecha_ingreso: string,
-    fecha_vencimiento: string,
-    lote_id: string,
-    valor_unitario: string,
-    nombre_lote: string,
-    categoria_id: string,
-    especie_id: string,
-    nombre_categoria: string,
-    nombre_especie: string,
-    simbolo: string
+    id_inventario: string;
+    nombre_producto: string;
+    cantidad: string;
+    unid_medida_id: string;
+    fecha_ingreso: string;
+    fecha_vencimiento: string;
+    lote_id: string;
+    valor_unitario: string;
+    nombre_lote: string;
+    categoria_id: string;
+    especie_id: string;
+    nombre_categoria: string;
+    nombre_especie: string;
+    simbolo: string;
 };
 
 type LoteOption = {
     id_lote: number;
     nombre_lote: string;
-};
-
-type CategoriaOption = {
-    id_categoria: number;
+    categoria_id: number;
+    especie_id: number;
     nombre_categoria: string;
-};
-
-type EspecieOption = {
-    id_especie: number;
     nombre_especie: string;
+
 };
 
 type Unid_medOption = {
@@ -64,11 +59,7 @@ export default function Inv_prodCreate() {
     const [loading, setLoading] = useState(false);
     const [loadingLotes, setLoadingLotes] = useState(false);
     const [loadingUnidMedidas, setLoadingUnidMedidas] = useState(false);
-    const [loadingCategorias, setLoadingCategorias] = useState(false);
-    const [loadingEspecies, setLoadingEspecies] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
-    const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
-    const [especies, setEspecies] = useState<EspecieOption[]>([]);
     const [lotes, setLotes] = useState<LoteOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -99,11 +90,11 @@ export default function Inv_prodCreate() {
         const loadUnidMedidas = async () => {
             setLoadingUnidMedidas(true);
             try {
-                const invData= await apiFetch(`unid-medida/all-unid_medidas`);
+                const invData = await apiFetch(`unid-medida/all-unid_medidas`);
                 if (!mounted) return;
                 const invList = Array.isArray(invData?.unid_medidas) ? invData.unid_medidas
                     : Array.isArray(invData) ? invData : [];
-                
+
                 setUnidMedidas(invList);
             } catch (requestError: any) {
                 if (!mounted) return;
@@ -114,50 +105,6 @@ export default function Inv_prodCreate() {
         };
 
         loadUnidMedidas();
-
-        const loadCategorias = async () => {
-            setLoadingCategorias(true);
-            try {
-                const CategoriaData = await apiFetch(`categorias/all-categorias`);
-                if (!mounted) return;
-
-                const CategoriasList = Array.isArray(CategoriaData?.categorias)
-                    ? CategoriaData.categorias
-                    : Array.isArray(CategoriaData)
-                        ? CategoriaData
-                        : [];
-
-                setCategorias(CategoriasList);
-            } catch (requestError: any) {
-                if (!mounted) return;
-                setError(requestError?.detail || requestError?.message || "No se pudieron cargar las categorías");
-            } finally {
-                if (mounted) setLoadingCategorias(false);
-            }
-        };
-
-        loadCategorias();
-
-        const loadEspecies = async () => {
-            setLoadingEspecies(true);
-            try {
-                const EspecieData = await apiFetch(`especies/all-especies`);
-                if (!mounted) return;
-                const EspeciesList = Array.isArray(EspecieData?.especies)
-                    ? EspecieData.especies
-                    : Array.isArray(EspecieData)
-                        ? EspecieData
-                        : [];
-                setEspecies(EspeciesList);
-            } catch (requestError: any) {
-                if (!mounted) return;
-                setError(requestError?.detail || requestError?.message || "No se pudieron cargar las especies");
-            } finally {
-                if (mounted) setLoadingEspecies(false);
-            }
-        };
-
-        loadEspecies();
 
         return () => {
             mounted = false;
@@ -178,6 +125,20 @@ export default function Inv_prodCreate() {
         const now = new Date();
         const offsetMs = now.getTimezoneOffset() * 60000;
         return new Date(now.getTime() - offsetMs).toISOString().slice(0, 19);
+    };
+
+    const handleLoteChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedId = event.target.value;
+        const loteSeleccionado = lotes.find((lote) => String(lote.id_lote) === selectedId);
+
+        setForm((current) => ({
+            ...current,
+            lote_id: selectedId,
+            nombre_categoria: loteSeleccionado?.nombre_categoria || "",
+            nombre_especie: loteSeleccionado?.nombre_especie || "",
+            categoria_id: loteSeleccionado?.categoria_id ? String(loteSeleccionado.categoria_id) : "",
+            especie_id: loteSeleccionado?.especie_id ? String(loteSeleccionado.especie_id) : "",
+        }));
     };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -302,8 +263,7 @@ export default function Inv_prodCreate() {
                                 Nombre lote <span className="text-error-500">*</span>
                             </label>
                             <select
-                                value={form.lote_id || ""}
-                                onChange={handleChange("lote_id")}
+                                value={form.lote_id || ""} onChange={handleLoteChange}
                                 className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
                                 required
                                 disabled={loadingLotes}
@@ -333,35 +293,20 @@ export default function Inv_prodCreate() {
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Categoría producto <span className="text-error-500">*</span>
-                            </label>
-                            <select value={form.categoria_id || ""} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingCategorias || categorias.length === 0}>
-                                <option className="dark:text-black/90" value="" disabled>
-                                    {loadingCategorias ? "Cargando categorías..." : "Selecciona una categoría"}
-                                </option>
-                                {categorias.map((categoria) => (
-                                    <option className="dark:text-black/90" key={categoria.id_categoria} value={String(categoria.id_categoria)}>
-                                        {categoria.nombre_categoria}
-                                    </option>
-                                ))}
-                            </select>
+                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Categoría producto </label>
+                            <input
+                                value={form.nombre_categoria}
+                                readOnly
+                                className="h-11 w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 px-4 text-sm text-gray-500 outline-none dark:border-gray-700 dark:bg-white/[0.02] dark:text-gray-400"
+                            />
                         </div>
-
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Especie producto <span className="text-error-500">*</span>
-                            </label>
-                            <select value={form.especie_id || ""} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required disabled={loadingEspecies || especies.length === 0}>
-                                <option className="dark:text-black/90" value="" disabled>
-                                    {loadingEspecies ? "Cargando especies..." : "Selecciona una especie"}
-                                </option>
-                                {especies.map((especie) => (
-                                    <option className="dark:text-black/90" key={especie.id_especie} value={String(especie.id_especie)}>
-                                        {especie.nombre_especie}
-                                    </option>
-                                ))}
-                            </select>
+                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Especie producto</label>
+                            <input
+                                value={form.nombre_especie}
+                                readOnly
+                                className="h-11 w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 px-4 text-sm text-gray-500 outline-none dark:border-gray-700 dark:bg-white/[0.02] dark:text-gray-400"
+                            />
                         </div>
                     </div>
 

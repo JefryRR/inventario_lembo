@@ -21,16 +21,7 @@ type Inv_prodFormState = {
 type LoteOption = {
     id_lote: number;
     nombre_lote: string;
-};
-
-type CategoriaOption = {
-    id_categoria: number;
-    nombre_categoria: string;
-};
-
-type EspecieOption = {
-    id_especie: number;
-    nombre_especie: string;
+    sublote: string;
 };
 
 type Unid_medOption = {
@@ -61,8 +52,6 @@ export default function Inv_prodEdit() {
     const [form, setForm] = useState<Inv_prodFormState>(emptyState);
     const [loading, setLoading] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
-    const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
-    const [especies, setEspecies] = useState<EspecieOption[]>([]);
     const [lotes, setLotes] = useState<LoteOption[]>([]);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -83,27 +72,20 @@ export default function Inv_prodEdit() {
             setLoading(true);
             setError(null);
             try {
-                const [invProdData, lotesData, UnidMedidasData, CategoriasData, EspeciesData] = await Promise.all([
+                const [invProdData, lotesData, UnidMedidasData] = await Promise.all([
                     apiFetch(`inv_produccion/by-id?id=${id}`),
-                    apiFetch(`lotes_prod/all-lotes_prod`),
+                    apiFetch(`lotes_prod/all-lotes_prod?estado=listo_cosecha`),
                     apiFetch(`unid-medida/all-unid_medidas`),
-                    apiFetch(`categorias/all-categorias`),
-                    apiFetch(`especies/all-especies`),
                 ]);
                 if (!mounted) return;
 
-                const lotesList = Array.isArray(lotesData?.lotes) ? lotesData.Lotes :
+                const lotesList = Array.isArray(lotesData?.lotes) ? lotesData.lotes :
                     Array.isArray(lotesData) ? lotesData : [];
 
                 const unidMedList = Array.isArray(UnidMedidasData?.unid_medidas) ? UnidMedidasData.unid_medidas :
                     Array.isArray(UnidMedidasData) ? UnidMedidasData : [];
 
-                const categoriasList = Array.isArray(CategoriasData?.categorias) ? CategoriasData.categorias :
-                    Array.isArray(CategoriasData) ? CategoriasData : [];
-
-                const especiesList = Array.isArray(EspeciesData?.especies) ? EspeciesData.especies :
-                    Array.isArray(EspeciesData) ? EspeciesData : [];
-
+                console.log("invProdData completo:", invProdData);
                 setForm({
                     nombre_producto: invProdData?.nombre_producto || "",
                     cantidad: String(invProdData?.cantidad ?? ""),
@@ -121,8 +103,6 @@ export default function Inv_prodEdit() {
 
                 setLotes(lotesList);
                 setUnidMedidas(unidMedList);
-                setCategorias(categoriasList);
-                setEspecies(especiesList);
 
             } catch (err: any) {
                 setError(err?.detail || err?.message || "No se pudo cargar el registro del producto");
@@ -228,7 +208,7 @@ export default function Inv_prodEdit() {
                                         )}
                                         {lotes.map((lote) => (
                                             <option className="dark:text-black/90" key={lote.id_lote} value={String(lote.id_lote)}>
-                                                {lote.nombre_lote}
+                                                {lote.nombre_lote} - sublote: {lote.sublote}
                                             </option>
                                         ))}
                                     </select>
@@ -240,29 +220,19 @@ export default function Inv_prodEdit() {
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Categoría producto <span className="text-error-500">*</span></label>
-                                    <select value={form.categoria_id} onChange={handleChange("categoria_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.categoria_id && !categorias.some((categoria) => String(categoria.id_categoria) === form.categoria_id) && (
-                                            <option className="dark:text-black/90" value={form.categoria_id}>{form.nombre_categoria || "Categoría asignada"}</option>
-                                        )}
-                                        {categorias.map((categoria) => (
-                                            <option className="dark:text-black/90" key={categoria.id_categoria} value={String(categoria.id_categoria)}>
-                                                {categoria.nombre_categoria}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <input
+                                        value={form.nombre_categoria}
+                                        readOnly
+                                        className="h-11 w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 px-4 text-sm text-gray-500 outline-none dark:border-gray-700 dark:bg-white/[0.02] dark:text-gray-400"
+                                    />
                                 </div>
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Especie producto <span className="text-error-500">*</span></label>
-                                    <select value={form.especie_id} onChange={handleChange("especie_id")} className="h-11 w-full rounded-lg border focus:ring-gray-500 focus:border-gray-300 border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90" required>
-                                        {form.especie_id && !especies.some((especie) => String(especie.id_especie) === form.especie_id) && (
-                                            <option className="dark:text-black/90" value={form.especie_id} style={{backgroundColor: "#1a1a2e"}}>{form.nombre_especie || "Especie asignada"}</option>
-                                        )}
-                                        {especies.map((especie) => (
-                                            <option className="dark:text-black/90" key={especie.id_especie} value={String(especie.id_especie)}>
-                                                {especie.nombre_especie}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <input
+                                        value={form.nombre_especie}
+                                        readOnly
+                                        className="h-11 w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 px-4 text-sm text-gray-500 outline-none dark:border-gray-700 dark:bg-white/[0.02] dark:text-gray-400"
+                                    />
                                 </div>
                             </div>
 
@@ -280,9 +250,9 @@ export default function Inv_prodEdit() {
                                     className="inline-flex items-center justify-center rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "Guardando..." : "Actualizar producto"}
                                 </button>
                                 <Link to="/invProd"
-                                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
                                     Cancelar
-                                    </Link>
+                                </Link>
                             </div>
                         </>
                     )}

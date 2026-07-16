@@ -32,6 +32,8 @@ class ProduccionOut(ProduccionBase):
     simbolo: str
     dias_restantes: int = 0
     nivel_alerta: Optional[str] = None
+    categoria_id: Optional[int] = None
+    especie_id: Optional[int] = None
 
 class PaginatedProducciones(BaseModel):
     page: int
