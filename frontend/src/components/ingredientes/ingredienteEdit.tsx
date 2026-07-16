@@ -41,6 +41,14 @@ type MedidaOption = {
     simbolo: string;
 };
 
+type ComercializacionOption = {
+    id_comercializacion: number;
+    nombre_producto: string;
+    cant_no_vendida: number;
+    simbolo: string;
+    fecha_vencimiento: string;
+};
+
 type IngredienteResponse = {
     id_ingrediente: number;
     plato_id: number;
@@ -68,6 +76,7 @@ export default function IngredienteEdit() {
 
     const [form, setForm] = useState<IngredienteFormState>(initialState);
     const [productos, setProductos] = useState<ProductoOption[]>([]);
+    const [comercializaciones, setComercializaciones] = useState<ComercializacionOption[]>([]);
     const [insumos, setInsumos] = useState<InsumoOption[]>([]);
     const [platos, setPlatos] = useState<PlatoOption[]>([]);
     const [medidas, setMedidas] = useState<MedidaOption[]>([]);
@@ -89,12 +98,13 @@ export default function IngredienteEdit() {
             setError(null);
 
             try {
-                const [ingredienteData, productosData, insumosData, medidasData, platosData] = await Promise.all([
+                const [ingredienteData, productosData, insumosData, medidasData, platosData, comercializacionesData] = await Promise.all([
                     apiFetch(`ingredientes/by-id?id=${id}`),
                     apiFetch("inv_produccion/all/produccion"),
                     apiFetch("inv_insumos/all_insumos"),
                     apiFetch("unid-medida/all-unid_medidas"),
                     apiFetch("platos/all-platos"),
+                    apiFetch("comercio/disponibles")
                 ]);
 
                 if (!mounted) return;
@@ -105,6 +115,12 @@ export default function IngredienteEdit() {
                     ? productosData.produccion
                     : Array.isArray(productosData)
                         ? productosData
+                        : [];
+
+                const comercializacionList = Array.isArray(comercializacionesData?.comercializaciones)
+                    ? comercializacionesData.comercializaciones
+                    : Array.isArray(comercializacionesData)
+                        ? comercializacionesData
                         : [];
 
                 const platoList = Array.isArray(platosData?.platos)
@@ -125,6 +141,11 @@ export default function IngredienteEdit() {
                     return esAlimento && noVencido;
                 });
 
+                const comercioNoVencido = comercializacionList.filter((comercio: ComercializacionOption) => {
+                    const fechaVencimiento = new Date(comercio.fecha_vencimiento);
+                    return fechaVencimiento >= new Date();
+                });
+
                 const medidaList = Array.isArray(medidasData?.medidas)
                     ? medidasData.medidas
                     : Array.isArray(medidasData)
@@ -132,9 +153,11 @@ export default function IngredienteEdit() {
                         : [];
 
                 setProductos(productoList);
+                setComercializaciones(comercializacionList);
                 setMedidas(medidaList);
                 setPlatos(platoList);
                 setInsumos(alimentosVigentes);
+                setComercializaciones(comercioNoVencido);
 
                 setForm({
                     plato_id: Number(ingrediente?.plato_id ?? 0),
@@ -296,6 +319,7 @@ export default function IngredienteEdit() {
                                         <option className="dark:text-black/90" value={0} disabled>Selecciona el origen</option>
                                         <option className="dark:text-black/90" value={1}>Inventario de Producción</option>
                                         <option className="dark:text-black/90" value={2}>Inventario de Insumos</option>
+                                        <option className="dark:text-black/90" value={3}>Comercialización</option>
                                     </select>
                                 </div>
 
@@ -324,6 +348,12 @@ export default function IngredienteEdit() {
                                         {form.origen_inv === 2 && insumos.map((insumo) => (
                                             <option className="dark:text-black/90" key={insumo.id_insumo} value={insumo.id_insumo}>
                                                 {insumo.nombre_producto} cantidad: {insumo.cantidad} {insumo.simbolo}
+                                            </option>
+                                        ))}
+
+                                        {form.origen_inv === 3 && comercializaciones.map((comercializacion) => (
+                                            <option className="dark:text-black/90" key={comercializacion.id_comercializacion} value={comercializacion.id_comercializacion}>
+                                                {comercializacion.nombre_producto} cantidad: {comercializacion.cant_no_vendida} {comercializacion.simbolo}
                                             </option>
                                         ))}
                                     </select>

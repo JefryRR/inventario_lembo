@@ -39,6 +39,7 @@ class ComercializacionOut(ComercializacionBase):
 	simbolo: Optional[str] = None
 	nombre_user: Optional[str] = None
 	sublote: Optional[str] = None
+	fecha_vencimiento: Optional[date] = None
 
 class PaginatedComercializaciones(BaseModel):
 	page: int

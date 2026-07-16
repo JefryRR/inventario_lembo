@@ -135,7 +135,7 @@ def get_comercializacion_by_id(db: Session, id: int) -> Optional[Comercializacio
 	try:
 		query = text("""
 			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
-				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion,
+				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
 				   c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
 				   c.cant_convertida, p.nombre_producto, u.simbolo, us.nombre_user, l_p.sublote
 			FROM comercializacion c
@@ -161,7 +161,7 @@ def get_all_comercializaciones(db: Session):
 	try:
 		query = text("""
 			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
-				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion,
+				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
 				   c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
 				   c.cant_convertida, p.nombre_producto, u.simbolo, us.nombre_user, l_p.sublote
 			FROM comercializacion c
@@ -177,6 +177,31 @@ def get_all_comercializaciones(db: Session):
 		logger.error(f"Error al obtener las comercializaciones: {e}")
 		raise Exception("Error de base de datos al obtener las comercializaciones")
 
+def get_comercializaciones_disponibles(db: Session):
+	"""
+	Devuelve solo las comercializaciones que tienen remanente disponible
+	para usarse como ingrediente (cant_no_vendida > 0).
+	"""
+	try:
+		query = text("""
+			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
+				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
+				   c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
+				   c.cant_convertida, p.nombre_producto, u.simbolo, us.nombre_user, l_p.sublote
+			FROM comercializacion c
+			LEFT JOIN inv_produccion p ON c.producto_id = p.id_inventario
+			LEFT JOIN lote_produccion l_p ON c.lote_id = l_p.id_lote
+			LEFT JOIN unidades_medida u ON c.unid_medida_id = u.id_unidad
+			LEFT JOIN users us ON c.user_id = us.id_user
+			WHERE c.cant_no_vendida IS NOT NULL AND c.cant_no_vendida > 0
+			ORDER BY c.id_comercializacion DESC
+		""")
+		result = db.execute(query).mappings().all()
+		return result
+	except SQLAlchemyError as e:
+		logger.error(f"Error al obtener las comercializaciones disponibles: {e}")
+		raise Exception("Error de base de datos al obtener las comercializaciones disponibles")
+
 def get_comercializaciones_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene las comercializaciones cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -185,7 +210,7 @@ def get_comercializaciones_by_date_range(db: Session, fecha_inicio: str, fecha_f
     try:
         query = text("""
                     SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion, c.cantidad, 
-                     c.unid_medida_id, c.lugar_comercializacion, c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida, 
+                     c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento, c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida, 
                      p.nombre_producto, u.simbolo, us.nombre_user, l_p.sublote
                      FROM comercializacion AS c
                      LEFT JOIN inv_produccion AS p ON c.producto_id = p.id_inventario
@@ -433,7 +458,7 @@ def get_comercializaciones_paginated(db: Session, skip: int = 0, limit: int = 10
 
 		data_query = text("""
 			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
-				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion,
+				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
 				   c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
 				   c.cant_convertida, p.nombre_producto, u.simbolo, us.nombre_user, l_p.sublote
 			FROM comercializacion AS c

@@ -1,4 +1,3 @@
-from app.schemas.permisos import List
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
@@ -9,6 +8,7 @@ class MortalidadBase(BaseModel):
     fecha_reporte: datetime
     cantidad: int
     observacion: Optional[str] = Field(default=None, max_length=255)
+    foto_url: Optional[str] = None
 
 class MortalidadCreate(MortalidadBase):
    pass
@@ -17,6 +17,7 @@ class MortalidadUpdate(BaseModel):
     lote_id: Optional[int] = None
     cantidad: Optional[int] = None
     observacion: Optional[str] = Field(default=None, max_length=255)
+    foto_url: Optional[str] = None
 
 
 class MortalidadOut(MortalidadBase):

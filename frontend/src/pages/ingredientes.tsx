@@ -25,14 +25,15 @@ type IngredienteResponse = {
 };
 
 function formatDate(value: string): string {
-	if (!value) return "-";
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
-	return date.toLocaleString("es-CO", {
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-	});
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString("es-CO", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "UTC",
+    });
 }
 
 export default function Ingrediente() {
@@ -197,7 +198,7 @@ export default function Ingrediente() {
 											{ingrediente.nombre_plato}
 										</td>
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-											{ingrediente.origen_inv === 1 ? "Producción" : "Insumo"}
+											{ingrediente.origen_inv === 1 ? "Producción" : ingrediente.origen_inv === 2 ? "Insumo" : ingrediente.origen_inv === 3 ? "Comercialización" : "Desconocido"}
 										</td>
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{ingrediente.nombre_producto}
