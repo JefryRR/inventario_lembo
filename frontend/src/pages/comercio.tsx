@@ -551,21 +551,30 @@ export default function Comercios() {
                                         </td>
 
                                         <td className="px-5 py-4 text-center">
-											{comercializacion.vendio_todo === false ? (
-												<span
-													title="No se puede editar: ya se registró que no vendió todo"
-													className="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-												>
-													Editar
-												</span>
-											) : (
+											<div className="flex items-center justify-center gap-2">
+												{comercializacion.vendio_todo === false ? (
+													<span
+														title="No se puede editar: ya se registró que no vendió todo"
+														className="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+													>
+														Editar
+													</span>
+												) : (
+													<Link
+														to={`/comercializaciones/edit/${comercializacion.id_comercializacion}`}
+														className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+													>
+														Editar
+													</Link>
+												)}
 												<Link
-													to={`/comercializaciones/edit/${comercializacion.id_comercializacion}`}
-													className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+													to={`/comercializaciones/report/${comercializacion.id_comercializacion}`}
+													state={{ comercializacion }}
+													className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
 												>
-													Editar
+													Informe
 												</Link>
-											)}
+											</div>
 										</td>
 
 									</tr>

@@ -341,13 +341,13 @@ export default function InformesProd() {
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
                                 <thead className="bg-gray-50 dark:bg-gray-900/40">
                                     <tr>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Tipo</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Referencia</th>
-                                        <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cantidad</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Unidad</th>
-                                        <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado o Motivo</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha</th>
+                                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Tipo</th>
+                                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Referencia</th>
+                                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cantidad</th>
+                                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Unidad</th>
+                                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor</th>
+                                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado o Motivo</th>
+                                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -360,17 +360,17 @@ export default function InformesProd() {
                                     ) : (
                                         reporte.movimientos.map((movimiento) => (
                                             <tr key={`${movimiento.tipo}-${movimiento.id_registro}`} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
-                                                <td className="px-5 py-4 text-sm font-medium text-gray-800 dark:text-white/90">{movimiento.tipo}</td>
-                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{movimiento.referencia}</td>
-                                                <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">{movimiento.cantidad}</td>
-                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{movimiento.simbolo || "-"}</td>
-                                                <td className="px-5 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
+                                                <td className="px-5 py-4 text-center text-sm font-medium text-gray-800 dark:text-white/90">{movimiento.tipo}</td>
+                                                <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{movimiento.referencia}</td>
+                                                <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{movimiento.cantidad}</td>
+                                                <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{movimiento.simbolo || "-"}</td>
+                                                <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                                     {movimiento.valor === "-" ? "-" : formatearMoneda(movimiento.valor)}
                                                 </td>
-                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                                <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                                     {movimiento.estado} {movimiento.motivo !== " " ? `${formatearMotivo(movimiento.motivo)}` : ""}
                                                 </td>
-                                                <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatearFecha(movimiento.fecha)}</td>
+                                                <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{formatearFecha(movimiento.fecha)}</td>
                                             </tr>
                                         ))
                                     )}
