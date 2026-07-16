@@ -175,22 +175,6 @@ export default function Comercios() {
 		});
 	}, [search, comercializaciones, activeDateRange]);
 
-    const applyDateFilter = () => {
-		if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
-		setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
-		return;
-		}
-
-		if (dateRange.fecha_inicio > dateRange.fecha_fin) {
-		setError("La fecha inicial no puede ser mayor que la fecha final.");
-		return;
-		}
-
-		setError(null);
-		setPage(1);
-		setActiveDateRange({ ...dateRange });
-	};
-
 	const clearDateFilter = () => {
 		setDateRange({ fecha_inicio: "", fecha_fin: "" });
 		setActiveDateRange(null);

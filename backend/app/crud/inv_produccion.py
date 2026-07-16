@@ -3,7 +3,8 @@ from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from datetime import date
 from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate
-
+from typing import Optional
+from datetime import timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -366,52 +367,71 @@ def all_produccion(db: Session):
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas las producciones")
 
-def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
-
+def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None):
     """
     Obtiene inventario de producción con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     registrar_vencidos_como_perdidas(db)
     try:
+        # Construir cláusula WHERE según el estado, para filtrar por los insumos vigentes, vencidos, sin stock, críticos o urgentes.
+        
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+
+        if estado:
+            hoy = date.today()
+            params["hoy"] = hoy
+
+            if estado == "vencido":
+                where_clause = "WHERE pr.fecha_vencimiento < :hoy AND pr.cantidad > 0"
+            elif estado == "sin_stock":
+                where_clause = "WHERE pr.cantidad <= 0"
+            elif estado == "critico":
+                where_clause = """WHERE pr.fecha_vencimiento >= :hoy 
+                    AND pr.fecha_vencimiento <= :hoy_mas_7 AND pr.cantidad > 0"""
+                params["hoy_mas_7"] = hoy + timedelta(days=7)
+            elif estado == "urgente":
+                where_clause = """WHERE pr.fecha_vencimiento > :hoy_mas_7 
+                    AND pr.fecha_vencimiento <= :hoy_mas_15 AND pr.cantidad > 0"""
+                params["hoy_mas_7"] = hoy + timedelta(days=7)
+                params["hoy_mas_15"] = hoy + timedelta(days=15)
+            elif estado == "vigente":
+                where_clause = "WHERE pr.fecha_vencimiento > :hoy_mas_15 AND pr.cantidad > 0"
+                params["hoy_mas_15"] = hoy + timedelta(days=15)
+
         # Total de producción
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(pr.id_inventario) AS total
             FROM inv_produccion AS pr
             LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
             LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
             LEFT JOIN especies AS e ON l.especie_id = e.id_especie
             LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
-            ORDER BY pr.fecha_vencimiento ASC
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Producción paginada
-        data_query = text(""" 
-                        SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
-                        pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
-                        l_g.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
-                        FROM inv_produccion pr
-                        LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
-                        LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
-                        LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
-                        LEFT JOIN especies AS e ON l.especie_id = e.id_especie
-                        LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
-                        ORDER BY pr.fecha_vencimiento ASC
-                        LIMIT :limit OFFSET :skip
-                    """)
-            
-        prod_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        data_query = text(f"""
+            SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
+            pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
+            l_g.nombre_lote, l.categoria_id, l.especie_id, c.nombre_categoria, e.nombre_especie, u_m.simbolo
+            FROM inv_produccion pr
+            LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
+            LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
+            LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
+            LEFT JOIN especies AS e ON l.especie_id = e.id_especie
+            LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad
+            {where_clause}
+            ORDER BY pr.fecha_vencimiento ASC
+            LIMIT :limit OFFSET :skip
+        """)
+
+        prod_list = db.execute(data_query, params).mappings().all()
 
         resultado = []
-
         for row in prod_list:
             data = dict(row)
             alerta = get_nivel_alerta(data.get("fecha_vencimiento", ""), data.get("cantidad", 0))
@@ -427,4 +447,3 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener la producción: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener la producción")
-    

@@ -10,8 +10,8 @@ from app.crud import lotes_prod as crud_lotes_prod
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from fastapi.responses import StreamingResponse  #type: ignore
-from app.utils.exportar_reportes import generar_excel_reporte_produccion, generar_pdf_reporte_produccion
-
+from app.utils.reporte_produccion import generar_excel_rep_gral_produccion, generar_excel_reporte_produccion, generar_pdf_rep_gral_produccion, generar_pdf_reporte_produccion
+from typing import Optional, Literal
 router = APIRouter()
 modulo = 17
 
@@ -96,6 +96,55 @@ def update_produccion(
         raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar_reporte_general/pdf")
+def exportar_rep_gral_produccion_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        producciones = crud_produccion.all_produccion(db)
+        if not producciones:
+            raise HTTPException(status_code=404, detail="No hay producciones registradas")
+
+        buffer = generar_pdf_rep_gral_produccion(producciones)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_general_produccion.pdf"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar_reporte_general/excel")
+def exportar_rep_gral_produccion_excel(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        producciones = crud_produccion.all_produccion(db)
+        if not producciones:
+            raise HTTPException(status_code=404, detail="No hay producciones registradas")
+
+        buffer = generar_excel_rep_gral_produccion(producciones)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="reporte_general_produccion.xlsx"'}
+        )
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/rango-fechas", response_model=PaginatedProducciones)
 def obtener_produccion_por_rango_fechas(
@@ -213,7 +262,8 @@ def get_produccion_paginated(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
-    user_token: UserOut = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user),
+    estado: Optional[Literal["vencido", "sin_stock", "critico", "urgente", "vigente"]] = None   
 ): 
     try:
         id_rol = user_token.rol_id
@@ -221,7 +271,7 @@ def get_produccion_paginated(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_produccion.get_produccion_paginated(db, skip=skip, limit=page_size)
+        data = crud_produccion.get_produccion_paginated(db, skip=skip, limit=page_size, estado=estado)
         total = data["total"]  
         produccion = data["produccion"]
         

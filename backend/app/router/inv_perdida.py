@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.inv_perdida import PerdidaCreate, PerdidaUpdate, PerdidaOut, PaginatedPerdidas
+from app.schemas.inv_perdida import Optional, PerdidaCreate, PerdidaUpdate, PerdidaOut, PaginatedPerdidas
 from app.schemas.users import UserOut
 from app.crud import inv_perdida as inv_perdida_crud
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
@@ -140,6 +140,7 @@ def update_perdida_by_id(
 def obtener_perdidas_por_rango_fechas(
     fecha_inicio: str = Query(..., description="Fecha inicial en formato YYYY-MM-DD"),
     fecha_fin: str = Query(..., description="Fecha final en formato YYYY-MM-DD"),
+    origen: Optional[str] = Query(None, description="Origen de la pérdida (opcional)"),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -150,7 +151,7 @@ def obtener_perdidas_por_rango_fechas(
         if not verify_permissions(db, id_rol, modulo, "seleccionar"):
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
-        perdidas = inv_perdida_crud.get_perdidas_by_date_range(db, fecha_inicio, fecha_fin)
+        perdidas = inv_perdida_crud.get_perdidas_by_date_range(db, fecha_inicio, fecha_fin, origen)
 
         if not perdidas:
             raise HTTPException(status_code=404, detail="No hay registro(s) de pérdidas en ese rango de fechas")

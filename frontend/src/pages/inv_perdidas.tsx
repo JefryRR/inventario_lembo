@@ -38,6 +38,19 @@ type DateRangeState = {
   fecha_fin: string;
 };
 
+  const MotivosPerdida: Record<string, string> = {
+    vencimiento: "Vencimiento",
+    daño_fisico: "Dañado",
+    extravio: "Extraviado",
+    contaminacion: "Contaminación",
+    robo: "Robo"
+  };
+
+  function formatearMotivo(value: string): string {
+    return MotivosPerdida[value] || value;
+  }
+
+
 export default function InvPerd() {
   const [invPerd, setInvPerd] = useState<invPerdRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,7 +154,7 @@ export default function InvPerd() {
       return [
         inv_perd.nombre_producto,
         String(inv_perd.cantidad),
-        inv_perd.motivo,
+        formatearMotivo(inv_perd.motivo),
         inv_perd.nombre_user,
         inv_perd.fecha_reporte,
         inv_perd.observaciones,
@@ -386,7 +399,7 @@ export default function InvPerd() {
                       <div>$ {inv_perd.valor_unitario * inv_perd.cantidad}</div>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div>{inv_perd.motivo}</div>
+                      <div>{formatearMotivo(inv_perd.motivo)}</div>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                       <div>{inv_perd.origen}</div>

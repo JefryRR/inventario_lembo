@@ -77,6 +77,7 @@ export default function StatisticsChart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  {/*Aqui es donde se cargan los datos para la gráfica de perdidas vs inventario de producción */ }
   useEffect(() => {
     const cargarDatos = async () => {
       setLoading(true);
@@ -85,6 +86,8 @@ export default function StatisticsChart() {
       const anioActual = new Date().getFullYear();
       const fechaInicio = `${anioActual}-01-01`;
       const fechaFin = `${anioActual}-12-31`;
+
+      const origen = "produccion"; // Filtrar solo las pérdidas de producción
 
       try {
         const [produccion, perdidas] = await Promise.all([
@@ -96,7 +99,7 @@ export default function StatisticsChart() {
             throw err;
           }),
           fetchTodasLasPaginas<PerdidaItem>(
-            `inv_perdida/rango-fechas?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&origen=produccion`,
+            `inv_perdida/rango-fechas?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&origen=${origen}`,
             "perdidas"
           ).catch((err: any) => {
             if (err?.status === 404) return [];
@@ -115,7 +118,7 @@ export default function StatisticsChart() {
           perdidas.map((p) => ({
             fecha: p.fecha_reporte,
             cantidad: p.cantidad,
-            valor_unitario: p.valor_unitario,
+            valor_unitario: p.valor_unitario
           }))
         );
 

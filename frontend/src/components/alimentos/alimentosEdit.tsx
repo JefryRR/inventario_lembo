@@ -47,6 +47,7 @@ const emptyState: AlimentoFormState = {
     nombre_lote: ""
 };
 
+// Función para convertir una fecha a formato datetime-local
 function toDatetimeLocal(value?: string | null): string {
     if (!value) return "";
     const date = new Date(value);
@@ -131,6 +132,7 @@ export default function AlimentoEdit() {
                 setInsumos(alimentosVigentes);
                 setUnidades(medidasVigentes);
 
+                // Traer los valores del formulario almacenados en la tabla de alimento
                 setForm({
                     nombre_lote: alimentoData?.nombre_lote || "",
                     nombre_producto: alimentoData?.nombre_producto || "",
@@ -157,6 +159,7 @@ export default function AlimentoEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario
     const handleChange =
         (field: keyof AlimentoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -179,6 +182,7 @@ export default function AlimentoEdit() {
         setSuccess(null);
 
         try {
+            // Validar que los campos requeridos no estén vacíos
             const payload = {
                 nombre_lote: form.nombre_lote.trim(),
                 nombre_producto: form.nombre_producto.trim(),

@@ -14,6 +14,7 @@ class TipoPerdida(str, Enum):
 class TipoOrigen(str, Enum):
     insumo = "insumo"
     produccion = "produccion"
+    comercializacion = "comercializacion"
 
 class PerdidaBase(BaseModel):
     inv_prod_id: int
