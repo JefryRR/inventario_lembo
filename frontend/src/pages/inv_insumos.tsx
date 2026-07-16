@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 import FacturaModal from "@/components/inv_insumos/factura_insumo";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Para que el calendario aparezca en español
@@ -56,8 +56,8 @@ export default function InvInsumo() {
     const [dateRange, setDateRange] = useState<DateRangeState>({ fecha_inicio: "", fecha_fin: "" });
     const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
     const [facturaInsumoId, setFacturaInsumoId] = useState<number | null>(null);
-
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [estadoFiltro, setEstadoFiltro] = useState< "vencido" | "sin_stock" | "critico" | "urgente" | "vigente" | null>(null);
 
     // Estado que requiere react-day-picker (usa objetos Date de JS)
     const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
@@ -97,13 +97,18 @@ export default function InvInsumo() {
                     page_size: String(pageSize),
                 });
 
-                const endpoint = activeDateRange
-                    ? (() => {
+                let endpoint;
+
+                if (activeDateRange) {
                         queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
                         queryParams.set("fecha_fin", activeDateRange.fecha_fin);
-                        return `inv_insumos/rango-fechas?${queryParams.toString()}`;
-                    })()
-                    : `inv_insumos/insumos_paginated?${queryParams.toString()}`;
+                        endpoint = `inv_insumos/rango-fechas?${queryParams.toString()}`;
+                    } else if (estadoFiltro) {
+                        queryParams.set("estado", estadoFiltro);
+                        endpoint = `inv_insumos/insumos_paginated?${queryParams.toString()}`;
+                    } else {
+                        endpoint = `inv_insumos/insumos_paginated?${queryParams.toString()}`;
+                    }
 
                 const data = (await apiFetch(endpoint)) as invInsumoResponse;
                 if (!isMounted) return;
@@ -124,7 +129,7 @@ export default function InvInsumo() {
 
         loadInvInsumo();
         return () => { isMounted = false; };
-    }, [page, pageSize, activeDateRange]);
+    }, [page, pageSize, activeDateRange, estadoFiltro]);
 
     const SoloFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
@@ -167,6 +172,23 @@ export default function InvInsumo() {
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+    const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
+
+    const handleExportarInsumos = async (formato: "pdf" | "excel") => {
+        setDescargando(formato);
+        try {
+            const extension = formato === "pdf" ? "pdf" : "xlsx";
+            await apiDownload(
+                `inv_insumos/exportar_reporte_general/${formato}`,
+                `reporte_general_insumos.${extension}`,
+            );
+        } catch (err: any) {
+            alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+        } finally {
+            setDescargando(null);
+        }
+    };
+
     type EstadoInsumo = { label: string; color: string };
 
     const Estadoinsumo = (cantidad: number, minima: number): EstadoInsumo => {
@@ -188,13 +210,46 @@ export default function InvInsumo() {
                         >
                             Nuevo insumo
                         </Link>
+                        
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar inventario..."
                             className="h-11 rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-50"
                         />
+                        <button
+                            onClick={() => handleExportarInsumos("excel")}
+                            disabled={descargando !== null}
+                            className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                        >
+                            {descargando === "excel" ? "Descargando..." : "Exportar Excel"}
+                        </button>
+                        <button
+                            onClick={() => handleExportarInsumos("pdf")}
+                            disabled={descargando !== null}
+                            className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                        >Exportar PDF</button>
                     </div>
+
+                    <div className="flex gap-2">
+                        <select
+                            value={estadoFiltro ?? ""}
+                            onChange={(e) => {
+                                const valor = e.target.value;
+                                setEstadoFiltro(valor === "" ? null : valor as typeof estadoFiltro);
+                                setPage(1);
+                            }}
+                            className="border rounded px-3 py-1"
+                        >
+                            <option value="">Todos</option>
+                            <option value="vencido">Vencidos</option>
+                            <option value="sin_stock">Sin stock</option>
+                            <option value="critico">Crítico (≤7 días)</option>
+                            <option value="urgente">Urgente (≤15 días)</option>
+                            <option value="vigente">Vigente</option>
+                        </select>
+                    </div>
+                    
                     <div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             Filtrar por fechas:

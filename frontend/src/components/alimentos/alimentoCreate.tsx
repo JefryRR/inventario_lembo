@@ -5,6 +5,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Tipo para el estado del formulario de alimento
 type AlimentoFormState = {
     lote_id: number;
     insumo_id: number;
@@ -37,6 +38,7 @@ type UnidadOption = {
     tipo_unidad: string;
 };
 
+// Estado inicial del formulario de alimento
 const initialState: AlimentoFormState = {
     lote_id: 0,
     insumo_id: 0,
@@ -61,6 +63,8 @@ export default function AlimentoCreate() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+
+  // Cargar los nombres de lotes, insumos y unidades al montar el componente
   useEffect(() => {
     let mounted = true;
 
@@ -83,7 +87,7 @@ export default function AlimentoCreate() {
           : Array.isArray(lotesData)
             ? lotesData
             : [];
-
+          // Filtrar los lotes que estén activos o en cuarentena
         const Lotesvisibles = LoteList.filter((lote: LoteOption) => {
           const estado = lote.estado_lote === "activo" || lote.estado_lote === "cuarentena";
           return estado;
@@ -95,6 +99,7 @@ export default function AlimentoCreate() {
             ? insumosData
             : [];
 
+        // Filtrar los insumos que sean alimentos(id 7) y que no estén vencidos
         const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
           const esAlimento = insumo.tipo_id === 7;
           const noVencido = insumo.fecha_vencimiento && new Date(insumo.fecha_vencimiento) >= new Date(); //Aquí hice un cambio por si no funciona
@@ -134,6 +139,7 @@ export default function AlimentoCreate() {
     };
   }, []);
 
+  // Función para manejar los cambios en los campos del formulario
     const handleChange =
         (field: keyof AlimentoFormState) =>
         (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -147,6 +153,7 @@ export default function AlimentoCreate() {
             setForm((current) => ({...current,[field]: value }));
         };
 
+  // Función para manejar el envío del formulario
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);

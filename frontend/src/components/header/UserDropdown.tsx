@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { Link } from "react-router";
-import {
-  UserCircleIcon as UserIcon,
-} from "../../icons";
+import { UserCircleIcon as UserIcon } from "../../icons";
+import { logout } from "@/services/api"; 
 
 type LoggedUser = {
   nombre_user?: string;
   correo?: string;
 };
+
+
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +26,7 @@ export default function UserDropdown() {
     }
   });
 
+  {/* función para alternar el menú desplegable */}
   function toggleDropdown() {
     setIsOpen(!isOpen);
   }
@@ -33,6 +34,12 @@ export default function UserDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
+
+  {/* función para cerrar sesión */}
+  const handleLogout = () => {
+    logout();
+  }
+
   return (
     <div className="relative">
       <button
@@ -64,6 +71,7 @@ export default function UserDropdown() {
         </svg>
       </button>
       
+      {/* menu desplegable */}
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
@@ -77,9 +85,10 @@ export default function UserDropdown() {
             {user?.correo || "correo@ejemplo.com"}
           </span>
         </div>
-        
+        {/* boton para cerrar sesión */}
         <Link
           to="/signin"
+          onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
           <svg

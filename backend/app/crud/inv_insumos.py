@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text 
 from sqlalchemy.exc import SQLAlchemyError 
 from app.schemas.inv_insumos import InsumoCreate, InsumoUpdate
-
+from typing import Optional
+from datetime import timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -412,43 +413,63 @@ def get_insumos_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los insumos por rango de fechas: {e}")
 
-def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10):
+def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None):
     """
     Obtiene insumos con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     registrar_vencidos_como_perdidas(db);  # Registrar vencidos antes de obtener la lista
     try:
+        # Construir cláusula WHERE según el estado, para filtrar por los insumos vigentes, vencidos, sin stock, críticos o urgentes.
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+
+        if estado:
+            hoy = date.today()
+            params["hoy"] = hoy
+
+            if estado == "vencido":
+                where_clause = "WHERE i_in.fecha_vencimiento < :hoy AND i_in.cantidad > 0"
+            elif estado == "sin_stock":
+                where_clause = "WHERE i_in.cantidad <= 0"
+            elif estado == "critico":
+                where_clause = """WHERE i_in.fecha_vencimiento >= :hoy 
+                    AND i_in.fecha_vencimiento <= :hoy_mas_7 AND i_in.cantidad > 0"""
+                params["hoy_mas_7"] = hoy + timedelta(days=7)
+            elif estado == "urgente":
+                where_clause = """WHERE i_in.fecha_vencimiento > :hoy_mas_7 
+                    AND i_in.fecha_vencimiento <= :hoy_mas_15 AND i_in.cantidad > 0"""
+                params["hoy_mas_7"] = hoy + timedelta(days=7)
+                params["hoy_mas_15"] = hoy + timedelta(days=15)
+            elif estado == "vigente":
+                where_clause = "WHERE i_in.fecha_vencimiento > :hoy_mas_15 AND i_in.cantidad > 0"
+                params["hoy_mas_15"] = hoy + timedelta(days=15)
+
         # Total de insumos
-        count_query = text("""
-            SELECT COUNT(inv_insumos.id_insumo) AS total
-            FROM inv_insumos
-            LEFT JOIN tipo_insumo ON inv_insumos.tipo_id = tipo_insumo.id_tipo_insumo
+        count_query = text(f"""
+            SELECT COUNT(i_in.id_insumo) AS total
+            FROM inv_insumos AS i_in
+            LEFT JOIN tipo_insumo AS ti ON i_in.tipo_id = ti.id_tipo_insumo
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Insumos paginados
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
                         i_in.min_stock, i_in.fecha_ingreso, i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo, u_m.simbolo
                         FROM inv_insumos AS i_in
                         INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
                         LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
+                        {where_clause}
                         ORDER BY i_in.fecha_vencimiento ASC
                         LIMIT :limit OFFSET :skip
                     """)
 
-        insumos_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        insumos_list = db.execute(data_query, params).mappings().all()
 
         resultado = []
-
         for row in insumos_list:
             data = dict(row)
             alerta = get_nivel_alerta(data.get("fecha_vencimiento", ""), data.get("cantidad", 0))

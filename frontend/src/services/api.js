@@ -1,7 +1,7 @@
 // URL base del backend usada por todas las peticiones del frontend.
 const api_backend = "http://localhost:8000";
 
-//validar si el usuario exite y la contraseña coincide
+// validar si el usuario exite y la contraseña coincide
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
 
@@ -17,6 +17,7 @@ export async function apiFetch(endpoint, options = {}) {
     headers["Content-Type"] = "application/json";
   }
 
+  // Configuración de la petición
   const config = {
     method: options.method || "GET",
     headers,
@@ -31,6 +32,12 @@ export async function apiFetch(endpoint, options = {}) {
   //url dinámica para ejecutar la vista principal del usuario
   const response = await fetch(`${api_backend}/${endpoint}`, config);
 
+  // Guardar el nuevo token si el backend lo envía en la cabecera
+  const nuevo_token = response.headers.get("X-New-Token");
+  if (nuevo_token) {
+    localStorage.setItem("token", nuevo_token);
+  }
+  
   //validación de errores 
   if (!response.ok) {
     let errorData = {};
@@ -65,6 +72,14 @@ export async function apiFetch(endpoint, options = {}) {
   return response.json();
 }
 
+// Cerrar sesión eliminando el token y redirigiendo al inicio de sesión
+export function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/signin";
+}
+
+
+// Función para descargar archivos desde el backend
 export async function apiDownload(endpoint, nombreArchivo) {
   const token = localStorage.getItem("token");
 

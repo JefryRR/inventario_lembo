@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
-import { apiFetch } from "@/services/api";
+import { apiFetch, apiDownload } from "@/services/api";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Para que el calendario aparezca en español
 import { Calendar as CalendarIcon } from 'lucide-react';
@@ -61,6 +61,7 @@ export default function Inv_prod() {
         fecha_fin: "",
     });
     const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
+    const [estadoFiltro, setEstadoFiltro] = useState< "vencido" | "sin_stock" | "critico" | "urgente" | "vigente" | null>(null);
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -103,13 +104,19 @@ export default function Inv_prod() {
                     page_size: String(pageSize),
                 });
 
-                const endpoint = activeDateRange
-                    ? (() => {
-                        queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
-                        queryParams.set("fecha_fin", activeDateRange.fecha_fin);
-                        return `inv_produccion/rango-fechas?${queryParams.toString()}`;
-                    })()
-                    : `inv_produccion/paginated-production?${queryParams.toString()}`;
+                let endpoint;
+
+                if (activeDateRange) {
+                    queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
+                    queryParams.set("fecha_fin", activeDateRange.fecha_fin);
+                    endpoint = `inv_produccion/rango-fechas?${queryParams.toString()}`;
+                } else if (estadoFiltro) {
+                    queryParams.set("estado", estadoFiltro);
+                    endpoint = `inv_produccion/paginated-production?${queryParams.toString()}`;
+                    // ajusta el nombre del endpoint/parámetro al que ya exista en tu backend
+                } else {
+                    endpoint = `inv_produccion/paginated-production?${queryParams.toString()}`;
+                }
 
                 const data = (await apiFetch(endpoint)) as invProdResponse;
 
@@ -141,7 +148,7 @@ export default function Inv_prod() {
         return () => {
             isMounted = false;
         };
-    }, [page, pageSize, activeDateRange]);
+    }, [page, pageSize, activeDateRange, estadoFiltro]);
 
     const filteredInvProduc = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -190,22 +197,6 @@ export default function Inv_prod() {
         });
     };
 
-    const applyDateFilter = () => {
-        if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
-            setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
-            return;
-        }
-
-        if (dateRange.fecha_inicio > dateRange.fecha_fin) {
-            setError("La fecha inicial no puede ser mayor que la fecha final.");
-            return;
-        }
-
-        setError(null);
-        setPage(1);
-        setActiveDateRange({ ...dateRange });
-    };
-
     const clearDateFilter = () => {
         setDateRange({ fecha_inicio: "", fecha_fin: "" });
         setActiveDateRange(null);
@@ -215,6 +206,23 @@ export default function Inv_prod() {
     };
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
+
+    const handleExportarProduccion = async (formato: "pdf" | "excel") => {
+        setDescargando(formato);
+        try {
+            const extension = formato === "pdf" ? "pdf" : "xlsx";
+            await apiDownload(
+                `inv_produccion/exportar_reporte_general/${formato}`,
+                `reporte_general_produccion.${extension}`,
+            );
+        } catch (err: any) {
+            alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+        } finally {
+            setDescargando(null);
+        }
+    };
 
     return (
         <>
@@ -228,14 +236,50 @@ export default function Inv_prod() {
                             className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                             Nuevo inventario
                         </Link>
+                        {/* buscador dinámico */}
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar inventario..."
                             className="rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-100"
                         />
+                        {/* botones para exportar */}
+                        <button
+                            onClick={() => handleExportarProduccion("excel")}
+                            disabled={descargando !== null}
+                            className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                        >
+                            {descargando === "excel" ? "Descargando..." : "Exportar Excel"}
+                        </button>
+                        <button
+                            onClick={() => handleExportarProduccion("pdf")}
+                            disabled={descargando !== null}
+                            className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                        >
+                            {descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
+                        </button>
+                    </div>
+                    {/* filtro por estado */}
+                    <div className="flex gap-2">
+                        <select
+                            value={estadoFiltro ?? ""}
+                            onChange={(e) => {
+                                const valor = e.target.value;
+                                setEstadoFiltro(valor === "" ? null : valor as typeof estadoFiltro);
+                                setPage(1);
+                            }}
+                            className="border rounded px-3 py-1"
+                        >
+                            <option value="">Todos</option>
+                            <option value="vencido">Vencidos</option>
+                            <option value="sin_stock">Sin stock</option>
+                            <option value="critico">Crítico (≤7 días)</option>
+                            <option value="urgente">Urgente (≤15 días)</option>
+                            <option value="vigente">Vigente</option>
+                        </select>
                     </div>
 
+                    {/* filtro por fechas */}
                     <div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             Filtrar por fechas:

@@ -17,6 +17,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-New-Token"],  # Exponer el encabezado personalizado X-New-Token
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")

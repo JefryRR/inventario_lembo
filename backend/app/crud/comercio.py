@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from datetime import date
 from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
@@ -79,6 +80,56 @@ def create_comercializacion(db: Session, comercializacion: ComercializacionCreat
 		logger.error(f"Error al crear comercialización: {e}")
 		raise Exception("Error de base de datos al crear la comercialización")
 
+def registrar_vencidos_como_perdidas(db: Session):
+    try:
+        vencidos = db.execute(text("""
+            SELECT c.producto_id, 
+					CASE 
+        				WHEN c.cantidad > 0 THEN c.cantidad
+        				ELSE c.cant_no_vendida
+    				END AS cantidad, 
+					ip.fecha_vencimiento, ip.unid_medida_id, ip.nombre_producto,
+				    ip.valor_unitario
+            FROM comercializacion c
+            LEFT JOIN inv_produccion ip ON c.producto_id = ip.id_inventario
+            WHERE ip.fecha_vencimiento < CURDATE()
+            AND c.cantidad > 0
+            AND c.producto_id NOT IN (
+                SELECT inv_prod_id FROM inv_perdidas
+                WHERE motivo = 'vencimiento'
+                AND origen = 'comercializacion'
+            )
+        """)).mappings().all()
+
+        for row in vencidos:
+            db.execute(text("""
+                INSERT INTO inv_perdidas (
+                    inv_prod_id, cantidad, origen, motivo,
+                    fecha_reporte, user_id,
+                    unid_medida_id, observaciones
+                ) VALUES (
+                    :inv_prod_id, :cantidad, :origen, :motivo,
+                    :fecha_reporte, :user_id,
+                    :unid_medida_id, :observaciones
+                )
+            """), {
+                "inv_prod_id": row["producto_id"],
+                "cantidad": row["cantidad"],
+                "origen": "comercializacion",
+                "motivo": "vencimiento",
+                "fecha_reporte": date.today(),
+                "user_id": None,
+                "unid_medida_id": row["unid_medida_id"],
+                "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}"
+            })
+
+        db.commit()
+        return len(vencidos)
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Error al registrar vencidos: {e}")
+        raise Exception("Error al registrar productos vencidos como pérdidas")
+
 
 def get_comercializacion_by_id(db: Session, id: int) -> Optional[ComercializacionOut]:
 	try:
@@ -106,6 +157,7 @@ def get_comercializacion_by_id(db: Session, id: int) -> Optional[Comercializacio
 
 
 def get_all_comercializaciones(db: Session):
+	registrar_vencidos_como_perdidas(db)  # Registrar productos vencidos como pérdidas antes de obtener las comercializaciones
 	try:
 		query = text("""
 			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
@@ -394,8 +446,8 @@ def change_vendio_todo_status(db: Session, id: int, vendio_todo: bool):
 		logger.error(f"Error al cambiar el estado de vendio_todo: {e}")
 		raise Exception("Error de base de datos al cambiar el estado de vendio_todo")
 
-
 def get_comercializaciones_paginated(db: Session, skip: int = 0, limit: int = 10):
+	registrar_vencidos_como_perdidas(db)  # Registrar productos vencidos como pérdidas antes de obtener las comercializaciones
 	try:
 		count_query = text("""
 			SELECT COUNT(c.id_comercializacion) AS total

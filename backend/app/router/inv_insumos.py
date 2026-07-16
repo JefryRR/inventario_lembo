@@ -1,6 +1,8 @@
 import os, uuid
 from datetime import date
-from typing import List
+from typing import List, Optional, Literal
+
+from app.utils.exportar_reportes import generar_excel_reporte_perdidas
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form   #type: ignore
 from sqlalchemy.orm import Session   #type: ignore
 from app.crud.permisos import verify_permissions
@@ -11,7 +13,7 @@ from app.crud import inv_insumos as crud_insumos
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError #type: ignore
 from fastapi.responses import StreamingResponse  #type: ignore
-from app.utils.exportar_reportes import generar_excel_reporte_insumo, generar_pdf_reporte_insumo
+from app.utils.reporte_insumo import generar_excel_rep_gral_insumos, generar_excel_reporte_insumo, generar_pdf_rep_gral_insumos, generar_pdf_reporte_insumo
 
 router = APIRouter()
 modulo = 10
@@ -206,6 +208,54 @@ def exportar_reporte_insumo_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/exportar_reporte_general/pdf")
+def exportar_rep_gral_insumos_pdf(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        insumos =  crud_insumos.get_all_insumos(db)
+        if not insumos:
+            raise HTTPException(status_code=404, detail="No hay insumos registrados")
+
+        buffer = generar_pdf_rep_gral_insumos(insumos)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="reporte_general_insumos.pdf"'}
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/exportar_reporte_general/excel")
+def exportar_rep_gral_insumos_excel(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
+
+        insumos = crud_insumos.get_all_insumos(db)
+        if not insumos:
+            raise HTTPException(status_code=404, detail="No hay insumos registrados")
+
+        buffer = generar_excel_rep_gral_insumos(insumos)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="reporte_general_insumos.xlsx"'}
+        )
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.put("/update_by_id/{id_insumo}")
 def update_insumo(
     id_insumo: int,
@@ -266,7 +316,8 @@ def get_paginated_insumos(
     page: int = 1,
     page_size: int = 10,
     db: Session = Depends(get_db),
-    user_token: UserOut = Depends(get_current_user)
+    user_token: UserOut = Depends(get_current_user),
+    estado: Optional[Literal["vencido", "sin_stock", "critico", "urgente", "vigente"]] = None
 ):
     try:
         id_rol = user_token.rol_id
@@ -274,7 +325,7 @@ def get_paginated_insumos(
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
         skip = (page - 1) * page_size
-        data = crud_insumos.get_insumos_paginated(db, skip=skip, limit=page_size)
+        data = crud_insumos.get_insumos_paginated(db, skip=skip, limit=page_size, estado=estado)
 
         total = data["total"]
         insumos = data["insumos"]
