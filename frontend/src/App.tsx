@@ -97,6 +97,7 @@ import Comercio from "./pages/comercio";
 import ComercioCreate from "./components/comercializacion/comercioCreate";
 import ComercioEdit from "./components/comercializacion/comercioEdit";
 import ComercioReport from "./components/comercializacion/informeComercio";
+import MovimientosComercio from "./pages/movimientosComercio";
 import Home from "./pages/Dashboard/Home";
 
 export default function App() {
@@ -196,6 +197,7 @@ export default function App() {
             <Route path="/comercializaciones/crear" element={<ComercioCreate />} />
             <Route path="/comercializaciones/edit/:id_comercializacion" element={<ComercioEdit />} />
             <Route path="/comercializaciones/report/:id_comercializacion" element={<ComercioReport />} />
+            <Route path="/movimientos-comercio" element={<MovimientosComercio />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 
