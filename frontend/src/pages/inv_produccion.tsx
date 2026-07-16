@@ -286,7 +286,7 @@ export default function Inv_prod() {
                         </label>
 
                         {/* BOTÓN INTERACTIVO DEL CALENDARIO UNIFICADO */}
-                        <div className="relative w-full lg:w-64">
+                        <div className="relative w-full lg:w-50">
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(!isOpen)}

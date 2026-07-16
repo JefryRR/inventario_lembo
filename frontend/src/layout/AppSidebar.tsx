@@ -126,6 +126,10 @@ const modulosItems: NavItem[] = [
         name: "Comercialización de productos",
         path: "/comercializaciones",
       },
+      {
+        name: "Historial de comercializaciones",
+        path: "/movimientos-comercio",
+      },
     ],
   },
   {

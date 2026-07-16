@@ -28,6 +28,14 @@ type InvProdOption = {
     unid_medida_id: number;
 };
 
+type ComercializacionOption = {
+    id_comercializacion: number;
+    nombre_producto: string;
+    cant_no_vendida: number;
+    simbolo: string;
+    fecha_vencimiento: string;
+};
+
 type Unid_medOption = {
     id_unidad: number;
     simbolo: string;
@@ -87,12 +95,20 @@ export default function InvPerdCreate() {
     const [loading, setLoading] = useState(false);
     const [loadingInvprod, setLoadingInvprod] = useState(false);
     const [loadingInvinsumo, setLoadingInvinsumo] = useState(false);
+<<<<<<< HEAD
     const [loadingComercio, setLoadingComercio] = useState(false);
+=======
+    const [loadingComercializacion, setLoadingComercializacion] = useState(false);
+>>>>>>> 3a24be7fed0f7257c8c3bc33aed94796b53b2471
     const [loadingUnidMedidas, setLoadingUnidMedidas] = useState(false);
     const [unidMedidas, setUnidMedidas] = useState<Unid_medOption[]>([]);
     const [invProd, setInvProd] = useState<InvProdOption[]>([]);
     const [invInsumo, setInvInsumo] = useState<InvInsumoOption[]>([]);
+<<<<<<< HEAD
     const [comercio, setComercio] = useState<ComercioOption[]>([]);
+=======
+    const [comercializacion, setComercializacion] = useState<ComercializacionOption[]>([]);
+>>>>>>> 3a24be7fed0f7257c8c3bc33aed94796b53b2471
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -166,6 +182,7 @@ export default function InvPerdCreate() {
 
         loadInvInsumo();
 
+<<<<<<< HEAD
         const loadComercio = async () => {
             setLoadingComercio(true);
             try {
@@ -188,6 +205,30 @@ export default function InvPerdCreate() {
         };
 
         loadComercio();
+=======
+        const loadComercializacion = async () => {
+            setLoadingComercializacion(true);
+            try {
+                const comercializacionData = await apiFetch(`comercio/all/comercializaciones`);
+                if (!mounted) return;
+
+                const comercializacionList = Array.isArray(comercializacionData?.comercializacion)
+                    ? comercializacionData.comercializacion
+                    : Array.isArray(comercializacionData)
+                        ? comercializacionData
+                        : [];
+
+                setComercializacion(comercializacionList);
+            } catch (requestError: any) {
+                if (!mounted) return;
+                setError(requestError?.detail || requestError?.message || "No se pudieron cargar las opciones de comercialización");
+            } finally {
+                if (mounted) setLoadingComercializacion(false);
+            }
+        };
+
+        loadComercializacion();
+>>>>>>> 3a24be7fed0f7257c8c3bc33aed94796b53b2471
 
         return () => {
             mounted = false;
@@ -293,7 +334,11 @@ export default function InvPerdCreate() {
                             </label>
                             <select value={form.inv_prod_id || ""} onChange={handleChange("inv_prod_id")}
                                 className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+<<<<<<< HEAD
                                 required disabled={(form.origen === "produccion" && (loadingInvprod || invProd.length === 0)) || (loadingInvinsumo && form.origen === "insumo" && invInsumo.length === 0) || (loadingComercio && form.origen === "comercializacion" && comercio.length === 0)}>
+=======
+                                required disabled={(form.origen === "produccion" && (loadingInvprod || invProd.length === 0)) || (loadingInvinsumo && form.origen === "insumo" && invInsumo.length === 0) || (loadingComercializacion && form.origen === "comercializacion" && comercializacion.length === 0)} >
+>>>>>>> 3a24be7fed0f7257c8c3bc33aed94796b53b2471
                                 <option className="dark:text-black/90" value="" disabled>
                                     {loadingInvprod ? "Cargando productos..." : "Selecciona un producto"}
                                 </option>
@@ -312,9 +357,15 @@ export default function InvPerdCreate() {
                                     ))
                                 )}
                                 {form.origen === "comercializacion" && (
+<<<<<<< HEAD
                                     comercio.map((com) => (
                                         <option className="dark:text-black/90" key={com.id_comercializacion} value={String(com.producto_id)}>
                                             {com.nombre_producto} - ID comercio {com.id_comercializacion}
+=======
+                                    comercializacion.map((comercial) => (
+                                        <option className="dark:text-black/90" key={comercial.id_comercializacion} value={String(comercial.id_comercializacion)}>
+                                            {comercial.nombre_producto} - Cantidad no vendida: {comercial.cant_no_vendida} - Vencimiento: {comercial.fecha_vencimiento}
+>>>>>>> 3a24be7fed0f7257c8c3bc33aed94796b53b2471
                                         </option>
                                     ))
                                 )}

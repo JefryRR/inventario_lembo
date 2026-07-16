@@ -83,7 +83,7 @@ def create_comercializacion(db: Session, comercializacion: ComercializacionCreat
 def registrar_vencidos_como_perdidas(db: Session):
     try:
         vencidos = db.execute(text("""
-            SELECT c.producto_id, 
+			SELECT c.id_comercializacion, c.producto_id,
 					CASE 
         				WHEN c.cantidad > 0 AND c.cant_no_vendida = 0 THEN c.cantidad
         				ELSE c.cant_no_vendida
@@ -100,7 +100,6 @@ def registrar_vencidos_como_perdidas(db: Session):
                 AND origen = 'comercializacion'
             )
         """)).mappings().all()
-
         for row in vencidos:
             db.execute(text("""
                 INSERT INTO inv_perdidas (
@@ -113,7 +112,7 @@ def registrar_vencidos_como_perdidas(db: Session):
                     :unid_medida_id, :observaciones
                 )
             """), {
-                "inv_prod_id": row["producto_id"],
+                "inv_prod_id": row["id_comercializacion"],
                 "cantidad": row["cantidad"],
                 "origen": "comercializacion",
                 "motivo": "vencimiento",
