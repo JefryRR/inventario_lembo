@@ -115,13 +115,13 @@ export default function Unidades() {
                                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Nombre unidad
                                     </th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Símbolo
                                     </th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Conversión
                                     </th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Acciones
                                     </th>
                                 </tr>
@@ -155,17 +155,17 @@ export default function Unidades() {
                                                     {unidades.unidad}
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-4 text-center">
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                                     {unidades.simbolo}
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-4 text-center">
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                                     {unidades.conversion}
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-4 text-center">
                                                 <Link
                                                     to={`/unidades/edit/${unidades.id_unidad}`}
                                                     className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">

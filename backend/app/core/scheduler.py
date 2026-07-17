@@ -3,7 +3,6 @@ Tareas programadas para procesos automáticos de la aplicación.
 """
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
-
 from app.core.database import SessionLocal
 from app.crud.comercio import registrar_vencidos_como_perdidas as vencidos_comercio
 from app.crud.inv_produccion import registrar_vencidos_como_perdidas as vencidos_produccion

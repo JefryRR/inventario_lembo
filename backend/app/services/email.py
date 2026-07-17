@@ -1,4 +1,5 @@
 import smtplib
+from datetime import date
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from app.core.config import settings
@@ -41,14 +42,51 @@ def send_solicitud_creada_email(to_email: str, solicitante: str, insumo: str, ca
     send_email(to_email, f"Nueva solicitud #{solicitud_id}", html)
 
 
-def send_solicitud_autorizada_email(to_email: str, insumo: str, cantidad: float, solicitud_id: int):
+MENSAJES_ESTADO_SOLICITUD = {
+    "autorizado": {
+        "asunto": "Solicitud #{id} autorizada",
+        "titulo": "Solicitud autorizada",
+        "cuerpo": "Tu solicitud ha sido autorizada.",
+    },
+    "cancelado": {
+        "asunto": "Solicitud #{id} cancelada",
+        "titulo": "Solicitud cancelada",
+        "cuerpo": "Tu solicitud ha sido cancelada.",
+    },
+    "entregado": {
+        "asunto": "Solicitud #{id} entregada",
+        "titulo": "Solicitud entregada",
+        "cuerpo": "Tu solicitud fue entregada el {fecha}.",
+    },
+    "devuelto": {
+        "asunto": "Solicitud #{id} devuelta",
+        "titulo": "Devolución registrada",
+        "cuerpo": "Se registró la devolución de tu solicitud el {fecha}.",
+    },
+}
+
+def send_solicitud_estado_email(
+    to_email: str,
+    estado: str,
+    insumo: str,
+    cantidad: float,
+    solicitud_id: int,
+    fecha: date | None = None,
+):
+    info = MENSAJES_ESTADO_SOLICITUD.get(estado)
+    if not info:
+        return
+
+    fecha_str = fecha.strftime("%d/%m/%Y") if fecha else ""
+    cuerpo = info["cuerpo"].format(fecha=fecha_str)
+
     html = f"""
-        <h2>Solicitud autorizada</h2>
-        <p>Tu solicitud <strong>#{solicitud_id}</strong> ha sido autorizada.</p>
+        <h2>{info['titulo']}</h2>
+        <p>{cuerpo}</p>
         <ul>
+            <li><strong>Solicitud:</strong> #{solicitud_id}</li>
             <li><strong>Insumo:</strong> {insumo}</li>
-            <li><strong>Cantidad:</strong> {cantidad}</li>
+            <li><strong>Cantidad solicitada:</strong> {cantidad}</li>
         </ul>
-        <p>Por favor acércate al área encargada para recoger tus insumos.</p>
     """
-    send_email(to_email, f"Solicitud #{solicitud_id} autorizada", html)
+    send_email(to_email, info["asunto"].format(id=solicitud_id), html)

@@ -50,7 +50,6 @@ type DateRangeState = {
     return MotivosPerdida[value] || value;
   }
 
-
 export default function InvPerd() {
   const [invPerd, setInvPerd] = useState<invPerdRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -313,31 +312,25 @@ export default function InvPerd() {
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Nombre producto
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Cantidad
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Fecha reporte
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Valor unitario / Total
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Motivo
+                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Detalles de origen
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Origen
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Registrado por
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Observaciones
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Lugar
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Observaciones
+                </th>
+                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Fecha reporte
+                </th>
+                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Accciones
                 </th>
               </tr>
@@ -382,7 +375,7 @@ export default function InvPerd() {
                     </td>
                     <td className="px-5 py-4">
                       <div
-                        className="text-sm text-gray-800 dark:text-gray-400"
+                        className="text-sm text-center text-gray-800 dark:text-gray-400"
                         title={formatearCantidad(
                           inv_perd.cantidad,
                           inv_perd.simbolo,
@@ -392,28 +385,24 @@ export default function InvPerd() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div> {formatearFecha(inv_perd.fecha_reporte)} </div>
-                    </td>
-                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                       <div>$ {inv_perd.valor_unitario} /</div>
                       <div>$ {inv_perd.valor_unitario * inv_perd.cantidad}</div>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div>{formatearMotivo(inv_perd.motivo)}</div>
+                      <div>Motivo: {formatearMotivo(inv_perd.motivo)}</div>
+                      <div>Origen: {inv_perd.origen}</div>
+                      <div>Registró: {inv_perd.nombre_user || "Sistema"}</div>
                     </td>
-                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div>{inv_perd.origen}</div>
-                    </td>
-                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div>{inv_perd.nombre_user || "Sistema"}</div>
+                    <td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">
+                      <div>
+                        {inv_perd.nombre_lote ? inv_perd.nombre_lote : "Otro"}
+                      </div>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                       <div>{inv_perd.observaciones || "Sin observaciones"}</div>
                     </td>
-                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div>
-                        {inv_perd.nombre_lote ? inv_perd.nombre_lote : "Otro"}
-                      </div>
+                    <td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">
+                      <div> {formatearFecha(inv_perd.fecha_reporte)} </div>
                     </td>
                     <td className="px-5 py-4">
                     {inv_perd.motivo?.toLowerCase() === "vencimiento" ? (

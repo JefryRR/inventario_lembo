@@ -239,7 +239,7 @@ export default function InvInsumo() {
                                 setEstadoFiltro(valor === "" ? null : valor as typeof estadoFiltro);
                                 setPage(1);
                             }}
-                            className="border rounded px-3 py-1"
+                            className="rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-100"
                         >
                             <option value="">Todos</option>
                             <option value="vencido">Vencidos</option>
@@ -256,7 +256,7 @@ export default function InvInsumo() {
                         </label>
 
                         {/* BOTÓN INTERACTIVO DEL CALENDARIO UNIFICADO */}
-                        <div className="relative w-full lg:w-64">
+                        <div className="relative w-full lg:w-50">
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(!isOpen)}

@@ -8,7 +8,7 @@ class LoteEstado(str, Enum):
     activo = "activo"
     finalizado = "finalizado"
     cuarentena = "cuarentena"
-    listo_cosecha = "listo_cosecha"
+    listo_cosecha = "listo cosecha"
 
 class LoteBase(BaseModel):
     lote_granj_id: int

@@ -13,10 +13,12 @@ from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from fastapi.responses import StreamingResponse  #type: ignore
 from app.utils.exportar_reportes import generar_excel_reporte_soli_insumo, generar_pdf_reporte_soli_insumo
-from app.services.email import send_solicitud_creada_email, send_solicitud_autorizada_email
+from app.services.email import send_solicitud_creada_email, send_solicitud_estado_email
 
 router = APIRouter()
 modulo = 19
+
+ESTADOS_NOTIFICABLES = {"autorizado", "cancelado", "entregado", "devuelto"}
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_solicitud(
@@ -106,7 +108,6 @@ def update_solicitud(
         if not verify_permissions(db, id_rol, modulo, 'actualizar'):
             raise HTTPException(status_code=401, detail='Usuario no autorizado')
 
-        # Estado ANTES de actualizar, para saber si es una transición nueva
         detalle_previo = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
         estado_previo = detalle_previo.estado_solicitud if detalle_previo else None
 
@@ -114,20 +115,28 @@ def update_solicitud(
         if not success:
             raise HTTPException(status_code=400, detail="No se pudo actualizar la solicitud")
 
-        # --- Notificación: solo si el estado cambió A "autorizado" ---
         nuevo_estado = solicitud.model_dump(exclude_unset=True).get("estado_solicitud")
 
-        if nuevo_estado == SolicitudStatus.autorizado and estado_previo != SolicitudStatus.autorizado:
+        # Notifica si el estado cambió a alguno de los estados relevantes
+        if nuevo_estado in ESTADOS_NOTIFICABLES and nuevo_estado != estado_previo:
             detalle = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
             solicitante_email = crud_users.get_email_by_user_id(db, detalle.user_id)
 
             if solicitante_email:
+                fecha_relevante = None
+                if nuevo_estado == "entregado":
+                    fecha_relevante = detalle.fecha_entrega
+                elif nuevo_estado == "devuelto":
+                    fecha_relevante = detalle.fecha_devolucion
+
                 background_tasks.add_task(
-                    send_solicitud_autorizada_email,
+                    send_solicitud_estado_email,
                     solicitante_email,
+                    nuevo_estado,
                     detalle.nombre_producto,
                     detalle.cantidad_in,
                     solicitud_id,
+                    fecha_relevante,
                 )
 
         return {"message": "Solicitud actualizada correctamente"}
@@ -210,8 +219,9 @@ def change_status_solicitud(
 
             if solicitante_email:
                 background_tasks.add_task(
-                    send_solicitud_autorizada_email,
+                    send_solicitud_estado_email,
                     solicitante_email,
+                    estado,
                     detalle.nombre_producto,
                     detalle.cantidad_in,
                     solicitud_id,
