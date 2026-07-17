@@ -54,6 +54,32 @@ def get_user_by_email(db: Session, email: str):
   except SQLAlchemyError as e:
       logger.error(f"Error al obtener usuario por email: {e}")
       raise Exception("Error de base de datos al obtener el usuario")
+  
+def get_email_by_user_id(db: Session, user_id: int) -> Optional[str]:
+    try:
+        query = text("SELECT correo FROM users WHERE id_user = :id_user")
+        return db.execute(query, {"id_user": user_id}).scalar()
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener correo de usuario {user_id}: {e}")
+        raise Exception("Error de base de datos al obtener el correo del usuario")
+
+
+def get_emails_by_rol_id(db: Session, rol_id: int) -> list[str]:
+    """
+    Trae los correos de todos los usuarios activos que tengan un rol_id determinado.
+    """
+    try:
+        query = text("""
+            SELECT correo
+            FROM users
+            WHERE rol_id = :rol_id
+              AND estado = 1
+        """)
+        result = db.execute(query, {"rol_id": rol_id}).fetchall()
+        return [row.correo for row in result]
+    except SQLAlchemyError as e:
+        logger.error(f"Error al obtener correos por rol_id {rol_id}: {e}")
+        raise Exception("Error de base de datos al obtener correos por rol")
 
 def get_all_user_except_admins(db: Session):
     try:

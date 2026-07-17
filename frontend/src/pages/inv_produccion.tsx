@@ -268,7 +268,7 @@ export default function Inv_prod() {
                                 setEstadoFiltro(valor === "" ? null : valor as typeof estadoFiltro);
                                 setPage(1);
                             }}
-                            className="border rounded px-3 py-1"
+                            className="rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-100"
                         >
                             <option value="">Todos</option>
                             <option value="vencido">Vencidos</option>
@@ -348,15 +348,15 @@ export default function Inv_prod() {
                 <div className="overflow-x-auto">
                     <table className="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-800">
                         <colgroup>
-                            <col className="w-56" />
-                            <col className="w-36" />
+                            <col className="w-42" />
+                            <col className="w-20" />
                             <col className="w-40" />
                             <col className="w-36" />
                             <col className="w-44" />
                             <col className="w-36" />
                             <col className="w-32" />
-                            <col className="w-32" />
-                            <col className="w-48" />
+                            <col className="w-36" />
+                            <col className="w-50" />
                             <col className="w-44" />
                         </colgroup>
                         <thead className="bg-gray-50 dark:bg-gray-900/40">
@@ -438,7 +438,7 @@ export default function Inv_prod() {
                                         <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <div className="truncate">{inv_prod.nombre_lote}</div>
                                         </td>
-                                        <td className="px-4 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-4 py-4 text-left text-sm text-gray-600 dark:text-gray-300">
                                             <div>$ {inv_prod.valor_unitario}</div>
                                         </td>
                                         <td className="px-5 py-4 text-left text-xs text-gray-600 dark:text-gray-300">

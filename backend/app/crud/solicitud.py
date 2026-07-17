@@ -1,5 +1,4 @@
 from datetime import date
-from unittest import result
 from sqlalchemy.orm import Session
 from sqlalchemy import text 
 from typing import Optional
@@ -31,10 +30,10 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
         params = solicitud.model_dump()
         params["cant_convertida"] = float(solicitud.cantidad_in) * float(conv) 
         params["user_id"] = user_id
-        db.execute(query, params)
+        result = db.execute(query, params)
         db.commit()
 
-        return True
+        return result.lastrowid
     except SQLAlchemyError as e:
         db.rollback()
         orig = getattr(e, 'orig', None)

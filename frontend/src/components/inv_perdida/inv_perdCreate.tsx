@@ -49,6 +49,8 @@ type MotivoOption = {
 type InvInsumoOption = {
     id_insumo: number;
     nombre_producto: string;
+    cantidad: number;
+    simbolo: string;
 };
 
 const motivoOptions: MotivoOption[] = [
@@ -180,7 +182,18 @@ export default function InvPerdCreate() {
                         ? comercializacionData
                         : [];
 
+                const fecha_actual = new Date().toISOString().slice(0, 10);
+
+                const productosVigentes = comercializacionList.filter((c: ComercializacionOption) => {
+                    const noVencido = c.fecha_vencimiento
+                        ? c.fecha_vencimiento.slice(0, 10) > fecha_actual
+                        : true;
+                    const conStock = c.cant_no_vendida > 0;
+                    return noVencido && conStock;
+                });
+
                 setComercializacion(comercializacionList);
+                setComercializacion(productosVigentes);
             } catch (requestError: any) {
                 if (!mounted) return;
                 setError(requestError?.detail || requestError?.message || "No se pudieron cargar las opciones de comercialización");
@@ -263,7 +276,7 @@ export default function InvPerdCreate() {
                         to="/invPerd"
                         className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                     >
-                        Volver a inv. perdidas
+                        Volver a Inv. perdidas
                     </Link>
                 </div>
 
@@ -302,7 +315,7 @@ export default function InvPerdCreate() {
                                 {form.origen === "insumo" && (
                                     invInsumo.map((insumo) => (
                                         <option className="dark:text-black/90" key={insumo.id_insumo} value={String(insumo.id_insumo)}>
-                                            {insumo.nombre_producto} - ID insumo {insumo.id_insumo}
+                                            {insumo.nombre_producto} - Cantidad: {insumo.cantidad} {insumo.simbolo}
                                         </option>
                                     ))
                                 )}
@@ -316,7 +329,7 @@ export default function InvPerdCreate() {
                                 {form.origen === "comercializacion" && (
                                     comercializacion.map((comercial) => (
                                         <option className="dark:text-black/90" key={comercial.id_comercializacion} value={String(comercial.id_comercializacion)}>
-                                            {comercial.nombre_producto} - Cantidad no vendida: {comercial.cant_no_vendida} - Vencimiento: {comercial.fecha_vencimiento}
+                                            {comercial.nombre_producto} - Cantidad no vendida: {comercial.cant_no_vendida} {comercial.simbolo} - Vencimiento: {comercial.fecha_vencimiento}
                                         </option>
                                     ))
                                 )}
