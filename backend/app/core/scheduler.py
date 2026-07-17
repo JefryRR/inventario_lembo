@@ -37,7 +37,7 @@ def iniciar_scheduler():
     scheduler.add_job(
         job_registrar_vencidos,
         "interval",
-        minutes=1,       # ajusta la frecuencia que necesites
+        minutes=30,       # ajusta la frecuencia que necesites
         id="job_vencidos",
         replace_existing=True,
     )
