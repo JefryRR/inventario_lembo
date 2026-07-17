@@ -355,7 +355,6 @@ def get_produccion_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
         raise Exception(f"Error al consultar los productos por rango de fechas: {e}")
 
 def all_produccion(db: Session):
-    registrar_vencidos_como_perdidas(db)
     try:
         query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
                      pr.fecha_ingreso, pr.fecha_vencimiento, pr.lote_id, pr.valor_unitario,
@@ -388,7 +387,6 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado
     Obtiene inventario de producción con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
-    registrar_vencidos_como_perdidas(db)
     try:
         # Construir cláusula WHERE según el estado, para filtrar por los insumos vigentes, vencidos, sin stock, críticos o urgentes.
         

@@ -27,7 +27,7 @@ type invPerdRow = {
 };
 
 type invPerdResponse = {
-  total: number;
+  total_perdidas: number;
   page: number;
   page_size: number;
   perdidas: invPerdRow[];
@@ -123,7 +123,7 @@ export default function InvPerd() {
         }
 
         setInvPerd(Array.isArray(data?.perdidas) ? data.perdidas : []);
-        setTotal(Number(data?.total ?? 0));
+        setTotal(Number(data?.total_perdidas ?? 0));
       } catch (requestError: any) {
         if (!isMounted) {
           return;

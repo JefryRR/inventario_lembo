@@ -83,16 +83,16 @@ def create_comercializacion(db: Session, comercializacion: ComercializacionCreat
 def registrar_vencidos_como_perdidas(db: Session):
     try:
         vencidos = db.execute(text("""
-			SELECT c.id_comercializacion, c.producto_id,
+            SELECT c.producto_id, 
 					CASE 
-        				WHEN c.cantidad > 0 AND c.cant_no_vendida = 0 THEN c.cantidad
+        				WHEN c.cantidad > 0 THEN c.cantidad
         				ELSE c.cant_no_vendida
     				END AS cantidad, 
-					p.fecha_vencimiento, p.unid_medida_id, p.nombre_producto,
-				    p.valor_unitario
+					ip.fecha_vencimiento, ip.unid_medida_id, ip.nombre_producto,
+				    ip.valor_unitario
             FROM comercializacion c
-            LEFT JOIN inv_produccion p ON c.producto_id = p.id_inventario
-            WHERE p.fecha_vencimiento < CURDATE()
+            LEFT JOIN inv_produccion ip ON c.producto_id = ip.id_inventario
+            WHERE ip.fecha_vencimiento < CURDATE()
             AND c.cantidad > 0
             AND c.producto_id NOT IN (
                 SELECT inv_prod_id FROM inv_perdidas
@@ -100,6 +100,7 @@ def registrar_vencidos_como_perdidas(db: Session):
                 AND origen = 'comercializacion'
             )
         """)).mappings().all()
+
         for row in vencidos:
             db.execute(text("""
                 INSERT INTO inv_perdidas (
@@ -112,7 +113,7 @@ def registrar_vencidos_como_perdidas(db: Session):
                     :unid_medida_id, :observaciones
                 )
             """), {
-                "inv_prod_id": row["id_comercializacion"],
+                "inv_prod_id": row["producto_id"],
                 "cantidad": row["cantidad"],
                 "origen": "comercializacion",
                 "motivo": "vencimiento",
@@ -128,6 +129,7 @@ def registrar_vencidos_como_perdidas(db: Session):
         db.rollback()
         logger.error(f"Error al registrar vencidos: {e}")
         raise Exception("Error al registrar productos vencidos como pérdidas")
+
 
 def get_comercializacion_by_id(db: Session, id: int) -> Optional[ComercializacionOut]:
 	try:
@@ -153,10 +155,10 @@ def get_comercializacion_by_id(db: Session, id: int) -> Optional[Comercializacio
 		logger.error(f"Error al obtener comercialización por id: {e}")
 		raise Exception("Error de base de datos al obtener la comercialización")
 
-def get_all_comercializaciones(db: Session, vigentes: bool = False):
-	registrar_vencidos_como_perdidas(db)  # Registrar productos vencidos como pérdidas antes de obtener las comercializaciones
+
+def get_all_comercializaciones(db: Session):
 	try:
-		query = """
+		query = text("""
 			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
 				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
 				   c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
@@ -166,18 +168,38 @@ def get_all_comercializaciones(db: Session, vigentes: bool = False):
 			LEFT JOIN lote_produccion l_p ON c.lote_id = l_p.id_lote
 			LEFT JOIN unidades_medida u ON c.unid_medida_id = u.id_unidad
 			LEFT JOIN users us ON c.user_id = us.id_user
-			WHERE 1=1
-		"""
-		if vigentes:
-			query += " AND p.fecha_vencimiento >= CURDATE()"
-
-		query += " ORDER BY c.id_comercializacion DESC"
-
-		result = db.execute(text(query)).mappings().all()
+			ORDER BY c.id_comercializacion DESC
+		""")
+		result = db.execute(query).mappings().all()
 		return result
 	except SQLAlchemyError as e:
 		logger.error(f"Error al obtener las comercializaciones: {e}")
 		raise Exception("Error de base de datos al obtener las comercializaciones")
+
+def get_comercializaciones_disponibles(db: Session):
+	"""
+	Devuelve solo las comercializaciones que tienen remanente disponible
+	para usarse como ingrediente (cant_no_vendida > 0).
+	"""
+	try:
+		query = text("""
+			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
+				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
+				   c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
+				   c.cant_convertida, p.nombre_producto, u.simbolo, us.nombre_user, l_p.sublote
+			FROM comercializacion c
+			LEFT JOIN inv_produccion p ON c.producto_id = p.id_inventario
+			LEFT JOIN lote_produccion l_p ON c.lote_id = l_p.id_lote
+			LEFT JOIN unidades_medida u ON c.unid_medida_id = u.id_unidad
+			LEFT JOIN users us ON c.user_id = us.id_user
+			WHERE c.cant_no_vendida IS NOT NULL AND c.cant_no_vendida > 0
+			ORDER BY c.id_comercializacion DESC
+		""")
+		result = db.execute(query).mappings().all()
+		return result
+	except SQLAlchemyError as e:
+		logger.error(f"Error al obtener las comercializaciones disponibles: {e}")
+		raise Exception("Error de base de datos al obtener las comercializaciones disponibles")
 
 def get_comercializaciones_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
@@ -424,7 +446,6 @@ def change_vendio_todo_status(db: Session, id: int, vendio_todo: bool):
 		raise Exception("Error de base de datos al cambiar el estado de vendio_todo")
 
 def get_comercializaciones_paginated(db: Session, skip: int = 0, limit: int = 10):
-	registrar_vencidos_como_perdidas(db)  # Registrar productos vencidos como pérdidas antes de obtener las comercializaciones
 	try:
 		count_query = text("""
 			SELECT COUNT(c.id_comercializacion) AS total

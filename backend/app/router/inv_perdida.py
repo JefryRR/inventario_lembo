@@ -10,6 +10,7 @@ from app.crud import inv_perdida as inv_perdida_crud
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from fastapi.responses import StreamingResponse   # type: ignore
 from app.utils.exportar_reportes import generar_excel_reporte_perdidas, generar_pdf_reporte_perdidas
+from app.core.scheduler import job_registrar_vencidos
 
 
 router = APIRouter()
@@ -200,3 +201,24 @@ def get_perdidas_paginated(
         }
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
+    
+# Ruta para procesar los vencidos manualmente
+@router.post("/procesar-vencidos")
+def procesar_vencidos_manual(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    from app.crud.comercio import registrar_vencidos_como_perdidas as vencidos_comercio
+    from app.crud.inv_produccion import registrar_vencidos_como_perdidas as vencidos_produccion
+    from app.crud.inv_insumos import registrar_vencidos_como_perdidas as vencidos_insumos
+
+    n_produccion = vencidos_produccion(db)
+    n_insumos = vencidos_insumos(db)
+    n_comercio = vencidos_comercio(db)
+
+    return {
+        "message": "Proceso de vencidos ejecutado correctamente",
+        "produccion_registrados": n_produccion,
+        "insumos_registrados": n_insumos,
+        "comercio_registrados": n_comercio,
+    }

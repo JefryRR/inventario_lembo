@@ -6,6 +6,7 @@ from app.router import (users, rols, modulos, permisos, auth, inv_perdida, inv_p
     categorias, especies, lotes_prod, lotes, mortalidad, inv_insumos, tipo_insumos, alimento_prod, 
     tratamiento, ventas, detalles_venta, unid_medida, solicitud, platos, ingredientes, prog_platos, 
     venta_platos, maquinas, solicitud_maq, comercio)
+from app.core.scheduler import iniciar_scheduler, scheduler
 
 
 app = FastAPI()
@@ -50,6 +51,15 @@ app.include_router(venta_platos.router, prefix="/venta_platos", tags=["venta_pla
 app.include_router(maquinas.router, prefix="/maquinas", tags=["maquinas"])
 app.include_router(solicitud_maq.router, prefix="/solicitud-maq", tags=["solicitud-maq"])
 app.include_router(comercio.router, prefix="/comercio", tags=["comercio"])
+
+@app.on_event("startup")
+def startup_event():
+    iniciar_scheduler()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    scheduler.shutdown()
+
 @app.get("/")
 def read_root():
   return {
