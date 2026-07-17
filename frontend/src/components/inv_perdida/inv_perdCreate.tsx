@@ -50,6 +50,8 @@ type ComercioOption = {
     id_comercializacion: number;
     nombre_producto: string;
     producto_id: number;
+    cant_no_vendida: number;
+    simbolo: string;
 };
 
 const motivoOptions: MotivoOption[] = [
@@ -318,7 +320,7 @@ export default function InvPerdCreate() {
                                 {form.origen === "comercializacion" && (
                                     comercio.map((com) => (
                                         <option className="dark:text-black/90" key={com.id_comercializacion} value={String(com.producto_id)}>
-                                            {com.nombre_producto} - ID comercio {com.id_comercializacion}
+                                            {com.nombre_producto} - ID comercio {com.id_comercializacion} - Cantidad: {com.cant_no_vendida} {com.simbolo}
 
                                         </option>
                                     ))

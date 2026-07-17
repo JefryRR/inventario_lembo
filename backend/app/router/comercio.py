@@ -129,6 +129,21 @@ def get_all_comercializaciones(
 	except SQLAlchemyError as e:
 		raise HTTPException(status_code=500, detail=str(e))
 	
+@router.get("/disponibles", response_model=List[ComercializacionOut])
+def get_comercializaciones_disponibles(
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, "seleccionar"):
+            raise HTTPException(status_code=401, detail="Usuario no autorizado")
+
+        comercializaciones = crud_comercializacion.get_comercializaciones_disponibles(db)
+        return comercializaciones
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+	
 @router.get("/rango-fechas", response_model=PaginatedComercializaciones)
 def obtener_comercializaciones_por_rango_fechas(
     fecha_inicio: str = Query(..., description="Fecha inicial en formato YYYY-MM-DD"),

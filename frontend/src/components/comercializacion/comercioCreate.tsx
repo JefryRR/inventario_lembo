@@ -385,6 +385,20 @@ export default function ComercioCreate() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Cantidad <span className="text-error-500">*</span>
+              </label>
+              <input
+                min={0}
+                step="any"
+                value={productoForm.cantidad}
+                onChange={handleProductoChange("cantidad")}
+                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Unidad de medida <span className="text-error-500">*</span>
               </label>
               <select
@@ -402,20 +416,6 @@ export default function ComercioCreate() {
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Cantidad <span className="text-error-500">*</span>
-              </label>
-              <input
-                min={0}
-                step="any"
-                value={productoForm.cantidad}
-                onChange={handleProductoChange("cantidad")}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none focus:border-gray-300 focus:ring-gray-500 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-                placeholder="0"
-              />
             </div>
 
             <div>
