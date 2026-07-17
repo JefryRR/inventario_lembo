@@ -144,19 +144,19 @@ export default function Users() {
                                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Nombre / Documento
                                 </th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Correo
                                 </th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Telefono
                                 </th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Rol
                                 </th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Estado
                                 </th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     Accciones
                                 </th>
                             </tr>
@@ -191,17 +191,17 @@ export default function Users() {
                                             </div>
                                             <div className="text-xs text-gray-500 dark:text-gray-400">{user.tipo_documento}. {user.documento}</div>
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             <div> {user.correo} </div>
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             <div>{user.telefono}</div>
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                        <td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                             <div>{user.nombre_rol}</div>
 
                                         </td>
-                                        <td className="px-5 py-4">
+                                        <td className="px-5 py-4 text-center">
                                             <button
                                                 type="button"
                                                 onClick={() => handleStatusChange(user.id_user, !user.estado)}
@@ -209,7 +209,7 @@ export default function Users() {
                                                 {user.estado ? <span className="text-success-700">Activo</span> : <span className="text-error-700">Inactivo</span>}
                                             </button>
                                         </td>
-                                        <td className="px-5 py-4">
+                                        <td className="px-5 py-4 text-center">
                                             <Link
                                                 to={`/users/Edit/${user.id_user}`}
                                                 className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">

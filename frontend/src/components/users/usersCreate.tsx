@@ -154,20 +154,6 @@ export default function UsersCreate() {
 
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Documento <span className="text-error-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={form.documento}
-                                onChange={handleChange("documento")}
-                                placeholder="1001234567"
-                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Tipo de documento <span className="text-error-500">*</span>
                             </label>
                             <select
@@ -181,6 +167,20 @@ export default function UsersCreate() {
                                 <option className="dark:text-black" value="CE">CE</option>
                                 <option className="dark:text-black" value="PP">PP</option>
                             </select>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Documento <span className="text-error-500">*</span>
+                            </label>
+                            <input
+                                type="number"
+                                value={form.documento}
+                                onChange={handleChange("documento")}
+                                placeholder="1001234567"
+                                className="h-11 block w-full rounded-lg focus:border-gray-300 border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-gray-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+                                required
+                            />
                         </div>
 
                         <div>

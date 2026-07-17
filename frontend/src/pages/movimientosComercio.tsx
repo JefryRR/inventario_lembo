@@ -36,6 +36,9 @@ type ComercializacionRow = {
 
 type ComercializacionesResponse = {
     total: number;
+    total_comercializaciones: number;
+    page: number;
+    page_size: number;
     comercializaciones: ComercializacionRow[];
 };
 
@@ -101,7 +104,7 @@ export default function MovimientosComercioPage() {
                 let data: ComercializacionesResponse | ComercializacionRow[];
 
                 if (soloDisponibles) {
-                    // Endpoint sin paginación: trae solo remanentes disponibles
+                    // Endpoint sin paginación: trae solo productos con stock disponible
                     data = await apiFetch("comercio/disponibles");
                 } else if (activeDateRange) {
                     const queryParams = new URLSearchParams({
@@ -129,7 +132,7 @@ export default function MovimientosComercioPage() {
                 setTotal(
                     Array.isArray(data)
                         ? movimientosList.length
-                        : Number((data as ComercializacionesResponse)?.total ?? movimientosList.length)
+                        : Number((data as ComercializacionesResponse)?.total_comercializaciones ?? movimientosList.length)
                 );
 
                 if (locationState?.newComercializacionId) {

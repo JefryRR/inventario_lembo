@@ -364,7 +364,7 @@ export default function Mortalidad() {
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(mortalidad.fecha_reporte)}</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.cantidad}</td>
+										<td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{mortalidad.cantidad}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{mortalidad.observacion || "-"}</td>
 

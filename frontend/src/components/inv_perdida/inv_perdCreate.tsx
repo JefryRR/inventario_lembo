@@ -42,12 +42,16 @@ type MotivoOption = {
 type InvInsumoOption = {
     id_insumo: number;
     nombre_producto: string;
+    cantidad: number;
+    simbolo: string;
 };
 
 type ComercioOption = {
     id_comercializacion: number;
     nombre_producto: string;
     producto_id: number;
+    cant_no_vendida: number;
+    simbolo: string;
 };
 
 const motivoOptions: MotivoOption[] = [
@@ -262,7 +266,7 @@ export default function InvPerdCreate() {
                         to="/invPerd"
                         className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                     >
-                        Volver a inv. perdidas
+                        Volver a Inv. perdidas
                     </Link>
                 </div>
 
@@ -302,7 +306,7 @@ export default function InvPerdCreate() {
                                 {form.origen === "insumo" && (
                                     invInsumo.map((insumo) => (
                                         <option className="dark:text-black/90" key={insumo.id_insumo} value={String(insumo.id_insumo)}>
-                                            {insumo.nombre_producto} - ID insumo {insumo.id_insumo}
+                                            {insumo.nombre_producto} - Cantidad: {insumo.cantidad} {insumo.simbolo}
                                         </option>
                                     ))
                                 )}
@@ -316,7 +320,7 @@ export default function InvPerdCreate() {
                                 {form.origen === "comercializacion" && (
                                     comercio.map((com) => (
                                         <option className="dark:text-black/90" key={com.id_comercializacion} value={String(com.producto_id)}>
-                                            {com.nombre_producto} - ID comercio {com.id_comercializacion}
+                                            {com.nombre_producto} - ID comercio {com.id_comercializacion} - Cantidad: {com.cant_no_vendida} {com.simbolo}
 
                                         </option>
                                     ))

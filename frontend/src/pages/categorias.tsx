@@ -107,10 +107,10 @@ export default function Categorias() {
                             <thead className="bg-gray-50 dark:bg-gray-900/40">
                                 <tr>
 
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Nombre categoría
                                     </th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Acciones
                                     </th>
                                 </tr>
@@ -139,12 +139,12 @@ export default function Categorias() {
                                 ) : (
                                     filteredCategorias.map((categorias) => (
                                         <tr key={categorias.id_categoria} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-4 text-center">
                                                 <div className="text-sm font-medium text-gray-800 dark:text-white/90">
                                                     {categorias.nombre_categoria}
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-4 text-center">
                                                 <Link
                                                     to={`/categorias/edit/${categorias.id_categoria}`}
                                                     className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">

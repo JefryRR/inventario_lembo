@@ -33,7 +33,7 @@ const ESTADO_LABELS: Record<string, string> = {
 	finalizado: "Finalizado",
 	cuarentena: "Cuarentena",
 	cosechar: "Cosechar",
-	listo_para_carne: "Listo para carne",
+	listo_cosecha: "Listo para cosecha",
 };
 
 function formatEstado(value: string): string {
@@ -164,22 +164,22 @@ export default function Lotes() {
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Lote
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Sublote
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Fechas
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Cant. actual
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Catálogos
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Estado
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Acciones
 								</th>
 							</tr>
@@ -214,14 +214,14 @@ export default function Lotes() {
 											<div className="text-xs text-gray-500 dark:text-gray-400">ID: {lote.id_lote}</div>
 										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{lote.sublote}</td>
+										<td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{lote.sublote}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											<div>Siembra: {formatDate(lote.fecha_siembra)}</div>
 											<div>Cosecha: {formatDate(lote.fecha_cosecha)}</div>
 										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{lote.cantidad}</td>
+										<td className="px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-300">{lote.cantidad}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											<div>Especie: {lote.nombre_especie}</div>
@@ -229,7 +229,7 @@ export default function Lotes() {
 											<div>Responsable: {lote.nombre_user}</div>
 										</td>
 
-										<td className="px-5 py-4">
+										<td className="px-5 py-4 text-center">
 											<span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
 												{formatEstado(lote.estado_lote)}
 											</span>

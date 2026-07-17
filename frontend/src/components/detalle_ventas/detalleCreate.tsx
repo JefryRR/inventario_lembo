@@ -395,22 +395,6 @@ export default function DetalleCreate() {
 
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Precio de venta <span className="text-error-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={form.precio_venta}
-                                onChange={handleChange("precio_venta")}
-                                placeholder="12500"
-                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Unidad de medida <span className="text-error-500">*</span>
                             </label>
                             <select
@@ -429,6 +413,22 @@ export default function DetalleCreate() {
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Precio de venta <span className="text-error-500">*</span>
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={form.precio_venta}
+                                onChange={handleChange("precio_venta")}
+                                placeholder="12500"
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-green-800"
+                                required
+                            />
                         </div>
 
                         <div>

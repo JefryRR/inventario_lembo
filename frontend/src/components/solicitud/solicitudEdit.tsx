@@ -6,6 +6,7 @@ import { apiFetch } from "@/services/api";
 type SolicitudEstado =
   | "pendiente"
   | "entregado"
+  | "autorizado"
   | "cancelado"
   | "devuelto";
 
@@ -58,6 +59,7 @@ const emptyState: SolicitudFormState = {
 const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "pendiente", label: "Pendiente" },
   { value: "entregado", label: "Entregado" },
+  { value: "autorizado", label: "Autorizado" },
   { value: "cancelado", label: "Cancelado" },
   { value: "devuelto", label: "Devuelto" },
 ];

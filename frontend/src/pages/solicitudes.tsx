@@ -33,6 +33,7 @@ type SolicitudResponse = {
 const ESTADO_LABELS: Record<string, string> = {
 	pendiente: "Pendiente",
 	entregado: "Entregado",
+	autorizado: "Autorizado",
 	cancelado: "Cancelado",
 	devuelto: "Devuelto"
 };

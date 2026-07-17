@@ -149,6 +149,7 @@ export default function IngredienteCreate() {
                         : [];
 
                 const fecha_actual = new Date().toISOString().slice(0, 10);
+                
                 const productosVigentes = productoList.filter((p: ProductoOption) => {
                     const noVencido = p.fecha_vencimiento
                         ? p.fecha_vencimiento.slice(0, 10) > fecha_actual

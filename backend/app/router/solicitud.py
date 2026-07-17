@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks # type: ignore
 from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
@@ -7,30 +7,51 @@ from app.core.database import get_db
 from app.schemas.solicitud import SolicitudCreate, SolicitudUpdate, SolicitudOut, PaginatedSolicitudes, SolicitudStatus
 from app.crud import solicitud as crud_solicitud
 from app.crud import inv_insumos as crud_insumos
+from app.crud import users as crud_users
+from app.crud.users import get_email_by_user_id, get_emails_by_rol_id
 from app.schemas.users import UserOut
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from fastapi.responses import StreamingResponse  #type: ignore
 from app.utils.exportar_reportes import generar_excel_reporte_soli_insumo, generar_pdf_reporte_soli_insumo
+from app.services.email import send_solicitud_creada_email, send_solicitud_estado_email
 
 router = APIRouter()
 modulo = 19
 
+ESTADOS_NOTIFICABLES = {"autorizado", "cancelado", "entregado", "devuelto"}
+
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_solicitud(
-    solicitud: SolicitudCreate, 
+    solicitud: SolicitudCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
     try:
         id_rol = user_token.rol_id
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
-            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
 
         insumo = crud_insumos.get_insumo_by_id(db, solicitud.insumo_id)
         if not insumo:
             raise HTTPException(status_code=404, detail="Insumo no encontrado")
-        
-        crud_solicitud.create_solicitud(db, solicitud, user_token.id_user)
+
+        solicitud_id = crud_solicitud.create_solicitud(db, solicitud, user_token.id_user)
+
+        # --- Notificación por correo al encargado ---
+        detalle = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
+        encargados = crud_users.get_emails_by_rol_id(db, 9)
+
+        for email in encargados:
+            background_tasks.add_task(
+                send_solicitud_creada_email,
+                email,
+                detalle.solicitante,
+                detalle.nombre_producto,
+                detalle.cantidad_in,
+                solicitud_id,
+            )
+
         return {"message": "Solicitud registrada correctamente"}
     except HTTPException:
         raise
@@ -78,6 +99,7 @@ def get_all_solicitud(
 def update_solicitud(
     solicitud_id: int,
     solicitud: SolicitudUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
@@ -85,10 +107,38 @@ def update_solicitud(
         id_rol = user_token.rol_id
         if not verify_permissions(db, id_rol, modulo, 'actualizar'):
             raise HTTPException(status_code=401, detail='Usuario no autorizado')
-        
+
+        detalle_previo = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
+        estado_previo = detalle_previo.estado_solicitud if detalle_previo else None
+
         success = crud_solicitud.update_solicitud_by_id(db, solicitud_id, solicitud, user_token.id_user)
         if not success:
             raise HTTPException(status_code=400, detail="No se pudo actualizar la solicitud")
+
+        nuevo_estado = solicitud.model_dump(exclude_unset=True).get("estado_solicitud")
+
+        # Notifica si el estado cambió a alguno de los estados relevantes
+        if nuevo_estado in ESTADOS_NOTIFICABLES and nuevo_estado != estado_previo:
+            detalle = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
+            solicitante_email = crud_users.get_email_by_user_id(db, detalle.user_id)
+
+            if solicitante_email:
+                fecha_relevante = None
+                if nuevo_estado == "entregado":
+                    fecha_relevante = detalle.fecha_entrega
+                elif nuevo_estado == "devuelto":
+                    fecha_relevante = detalle.fecha_devolucion
+
+                background_tasks.add_task(
+                    send_solicitud_estado_email,
+                    solicitante_email,
+                    nuevo_estado,
+                    detalle.nombre_producto,
+                    detalle.cantidad_in,
+                    solicitud_id,
+                    fecha_relevante,
+                )
+
         return {"message": "Solicitud actualizada correctamente"}
     except HTTPException:
         raise
@@ -146,20 +196,40 @@ def exportar_soli_insumos_pdf(
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.put("/estado/{solicitud_id}", status_code=status.HTTP_200_OK)
-def change_status_solicitud(solicitud_id: int, estado: SolicitudStatus, db: Session = Depends(get_db),
-                           user_token: UserOut = Depends(get_current_user)
-                           ):
-  try:
-      id_rol = user_token.rol_id
-      if not verify_permissions(db, id_rol, modulo, 'actualizar'):
-             raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
+def change_status_solicitud(
+    solicitud_id: int,
+    estado: SolicitudStatus,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user_token: UserOut = Depends(get_current_user)
+):
+    try:
+        id_rol = user_token.rol_id
+        if not verify_permissions(db, id_rol, modulo, 'actualizar'):
+            raise HTTPException(status_code=401, detail='Usuario no autorizado')
 
-      success = crud_solicitud.change_status_solicitud(db, solicitud_id, estado=estado)
-      if not success:
-          raise HTTPException(status_code=400, detail="No se pudo cambiar el estado de la solicitud")
-      return {"message": "Estado de la solicitud actualizado correctamente"}
-  except Exception as e:
-      raise HTTPException(status_code=500, detail=str(e))
+        success = crud_solicitud.change_status_solicitud(db, solicitud_id, estado=estado)
+        if not success:
+            raise HTTPException(status_code=400, detail="No se pudo cambiar el estado de la solicitud")
+
+        # --- Notificación por correo al solicitante, solo si quedó autorizado ---
+        if estado == SolicitudStatus.autorizado:
+            detalle = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
+            solicitante_email = crud_users.get_email_by_user_id(db, detalle.solicitante)
+
+            if solicitante_email:
+                background_tasks.add_task(
+                    send_solicitud_estado_email,
+                    solicitante_email,
+                    estado,
+                    detalle.nombre_producto,
+                    detalle.cantidad_in,
+                    solicitud_id,
+                )
+
+        return {"message": "Estado de la solicitud actualizado correctamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/historial_insumo")
 def get_historial_endpoint(

@@ -229,7 +229,7 @@ export default function Tratamientos() {
 											<div>Fin: {formatDate(tratamiento.fecha_fin)}</div>
 										</td>
 
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{tratamiento.cantidad} {tratamiento.simbolo || "-"}</td>
+										<td className="px-5 py-4 text-left text-sm text-gray-600 dark:text-gray-300">{tratamiento.cantidad} {tratamiento.simbolo || "-"}</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											<div>Lote: {tratamiento.nombre_lote}</div>
