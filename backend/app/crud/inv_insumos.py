@@ -80,7 +80,6 @@ def get_insumo_by_id(db: Session, insumo_id: int):
         raise
 
 def get_all_insumos(db: Session):
-    registrar_vencidos_como_perdidas(db);  # Registrar vencidos antes de obtener la lista
     try:
         query = text("""SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
                       i_in.min_stock, i_in.fecha_ingreso, i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo, u_m.simbolo
@@ -418,7 +417,6 @@ def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: O
     Obtiene insumos con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
-    registrar_vencidos_como_perdidas(db);  # Registrar vencidos antes de obtener la lista
     try:
         # Construir cláusula WHERE según el estado, para filtrar por los insumos vigentes, vencidos, sin stock, críticos o urgentes.
         where_clause = ""
@@ -427,7 +425,6 @@ def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: O
         if estado:
             hoy = date.today()
             params["hoy"] = hoy
-
             if estado == "vencido":
                 where_clause = "WHERE i_in.fecha_vencimiento < :hoy AND i_in.cantidad > 0"
             elif estado == "sin_stock":

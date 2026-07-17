@@ -148,8 +148,7 @@ def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
             LEFT JOIN lote_produccion lp ON ip.lote_id = lp.id_lote
             LEFT JOIN lotes_granja lg ON lp.lote_granj_id = lg.id_lote_g
             LEFT JOIN inv_insumos ii ON p.origen = 'insumo' AND p.inv_prod_id = ii.id_insumo
-            LEFT JOIN comercializacion c ON p.origen = 'comercializacion' AND p.inv_prod_id = c.id_comercializacion
-            LEFT JOIN inv_produccion ip_c ON p.origen = 'comercializacion' AND c.producto_id = ip_c.id_inventario
+            LEFT JOIN inv_produccion ip_c ON p.origen = 'comercializacion' AND p.inv_prod_id = ip_c.id_inventario
             LEFT JOIN users u ON p.user_id = u.id_user
             LEFT JOIN unidades_medida um ON p.unid_medida_id = um.id_unidad
             WHERE p.id_perdida = :id
@@ -263,7 +262,8 @@ def get_perdidas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str, o
     """
     try:
         query = text("""
-            SELECT p.*,
+            SELECT 
+                p.*,
                 CASE 
                     WHEN p.origen = 'produccion' THEN ip.nombre_producto
                     WHEN p.origen = 'insumo' THEN ii.nombre_producto
@@ -281,8 +281,7 @@ def get_perdidas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str, o
             LEFT JOIN lote_produccion lp ON ip.lote_id = lp.id_lote
             LEFT JOIN lotes_granja lg ON lp.lote_granj_id = lg.id_lote_g
             LEFT JOIN inv_insumos ii ON p.origen = 'insumo' AND p.inv_prod_id = ii.id_insumo
-            LEFT JOIN comercializacion c ON p.origen = 'comercializacion' AND p.inv_prod_id = c.id_comercializacion
-            LEFT JOIN inv_produccion ip_c ON p.origen = 'comercializacion' AND c.producto_id = ip_c.id_inventario
+            LEFT JOIN inv_produccion ip_c ON p.origen = 'comercializacion' AND p.inv_prod_id = ip_c.id_inventario
             LEFT JOIN users u ON p.user_id = u.id_user
             LEFT JOIN unidades_medida um ON p.unid_medida_id = um.id_unidad
             WHERE (DATE(p.fecha_reporte) BETWEEN :fecha_inicio AND :fecha_fin) and (:origen IS NULL OR p.origen = :origen) 
@@ -307,26 +306,26 @@ def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
         """)
         total_result = db.execute(count_query).scalar()
 
-        data_query = text("""SELECT p.*,
-                                CASE 
-                                    WHEN p.origen = 'produccion' THEN ip.nombre_producto
-                                    WHEN p.origen = 'insumo' THEN ii.nombre_producto
-                                    WHEN p.origen = 'comercializacion' THEN ip_c.nombre_producto
-                                END AS nombre_producto,
-                                CASE 
-                                    WHEN p.origen = 'produccion' THEN ip.valor_unitario
-                                    WHEN p.origen = 'insumo' THEN ii.precio_unitario
-                                    WHEN p.origen = 'comercializacion' THEN ip_c.valor_unitario
-                                END AS valor_unitario,
-                                lg.nombre_lote,
-                                u.nombre_user, um.simbolo
+        data_query = text("""SELECT 
+                            p.*,
+                            CASE 
+                                WHEN p.origen = 'produccion' THEN ip.nombre_producto
+                                WHEN p.origen = 'insumo' THEN ii.nombre_producto
+                                WHEN p.origen = 'comercializacion' THEN ip_c.nombre_producto
+                            END AS nombre_producto,
+                            CASE 
+                                WHEN p.origen = 'produccion' THEN ip.valor_unitario
+                                WHEN p.origen = 'insumo' THEN ii.precio_unitario
+                                WHEN p.origen = 'comercializacion' THEN ip_c.valor_unitario
+                            END AS valor_unitario,
+                            lg.nombre_lote,
+                            u.nombre_user, um.simbolo
                             FROM inv_perdidas p
                             LEFT JOIN inv_produccion ip ON p.origen = 'produccion' AND p.inv_prod_id = ip.id_inventario
                             LEFT JOIN lote_produccion lp ON ip.lote_id = lp.id_lote
                             LEFT JOIN lotes_granja lg ON lp.lote_granj_id = lg.id_lote_g
                             LEFT JOIN inv_insumos ii ON p.origen = 'insumo' AND p.inv_prod_id = ii.id_insumo
-                            LEFT JOIN comercializacion c ON p.origen = 'comercializacion' AND p.inv_prod_id = c.id_comercializacion
-                            LEFT JOIN inv_produccion ip_c ON p.origen = 'comercializacion' AND c.producto_id = ip_c.id_inventario
+                            LEFT JOIN inv_produccion ip_c ON p.origen = 'comercializacion' AND p.inv_prod_id = ip_c.id_inventario
                             LEFT JOIN users u ON p.user_id = u.id_user
                             LEFT JOIN unidades_medida um ON p.unid_medida_id = um.id_unidad
                             ORDER BY p.fecha_reporte DESC

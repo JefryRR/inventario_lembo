@@ -117,7 +117,7 @@ export default function ComercioCreate() {
             : Array.isArray(medidasData)
               ? medidasData
               : [];
-        
+
         const lotesList = Array.isArray(lotesData?.lotes)
           ? lotesData.lotes
           : Array.isArray(lotesData)
@@ -131,11 +131,19 @@ export default function ComercioCreate() {
             ...producto,
             sublote: producto.sublote || (producto.lote_id ? lotesPorId.get(producto.lote_id) || "" : ""),
           }));
-        
+
+        const getFechaLocalISO = () => {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, "0");
+          const day = String(now.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+
         const productosNoVencidos = productosActivos.filter((producto: ProductoOption) => {
           if (!producto.fecha_vencimiento) return true;
-          const fecha_actual = new Date().toISOString().slice(0, 10);
-          return producto.fecha_vencimiento.slice(0, 10) > fecha_actual;
+          const fecha_actual = getFechaLocalISO();
+          return producto.fecha_vencimiento.slice(0, 10) >= fecha_actual;
         });
 
         setProductos(productosActivos);
@@ -161,22 +169,22 @@ export default function ComercioCreate() {
 
   const handleProductoChange =
     (field: keyof ProductoFormState) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value = event.target.value;
+      (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const value = event.target.value;
 
-      if (field === "producto_id" || field === "cantidad" || field === "unid_medida_id" || field === "cant_no_vendida") {
+        if (field === "producto_id" || field === "cantidad" || field === "unid_medida_id" || field === "cant_no_vendida") {
+          setProductoForm((current) => ({
+            ...current,
+            [field]: Number(value),
+          }));
+          return;
+        }
+
         setProductoForm((current) => ({
           ...current,
-          [field]: Number(value),
+          [field]: value,
         }));
-        return;
-      }
-
-      setProductoForm((current) => ({
-        ...current,
-        [field]: value,
-      }));
-    };
+      };
 
   // Cuánto de un producto ya está reservado en la lista (por si el usuario lo agrega en dos tandas)
   const cantidadYaAgregada = (productoId: number) =>
