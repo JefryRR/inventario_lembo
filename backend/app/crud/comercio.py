@@ -130,7 +130,6 @@ def registrar_vencidos_como_perdidas(db: Session):
         logger.error(f"Error al registrar vencidos: {e}")
         raise Exception("Error al registrar productos vencidos como pérdidas")
 
-
 def get_comercializacion_by_id(db: Session, id: int) -> Optional[ComercializacionOut]:
 	try:
 		query = text("""
@@ -155,22 +154,26 @@ def get_comercializacion_by_id(db: Session, id: int) -> Optional[Comercializacio
 		logger.error(f"Error al obtener comercialización por id: {e}")
 		raise Exception("Error de base de datos al obtener la comercialización")
 
-
-def get_all_comercializaciones(db: Session):
+def get_all_comercializaciones(db: Session, vigentes: bool = False):
 	try:
-		query = text("""
-			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
-				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
-				   c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
-				   c.cant_convertida, p.nombre_producto, u.simbolo, us.nombre_user, l_p.sublote
-			FROM comercializacion c
-			LEFT JOIN inv_produccion p ON c.producto_id = p.id_inventario
-			LEFT JOIN lote_produccion l_p ON c.lote_id = l_p.id_lote
-			LEFT JOIN unidades_medida u ON c.unid_medida_id = u.id_unidad
-			LEFT JOIN users us ON c.user_id = us.id_user
-			ORDER BY c.id_comercializacion DESC
-		""")
-		result = db.execute(query).mappings().all()
+		query = """
+				SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
+					c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
+					c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
+					c.cant_convertida, p.nombre_producto, u.simbolo, us.nombre_user, l_p.sublote
+				FROM comercializacion c
+				LEFT JOIN inv_produccion p ON c.producto_id = p.id_inventario
+				LEFT JOIN lote_produccion l_p ON c.lote_id = l_p.id_lote
+				LEFT JOIN unidades_medida u ON c.unid_medida_id = u.id_unidad
+				LEFT JOIN users us ON c.user_id = us.id_user
+				WHERE 1=1
+			"""
+
+		if vigentes:
+			query += " AND p.fecha_vencimiento >= CURDATE() AND c.cantidad > 0"
+
+		query += " ORDER BY c.id_comercializacion DESC"
+		result = db.execute(text(query)).mappings().all()
 		return result
 	except SQLAlchemyError as e:
 		logger.error(f"Error al obtener las comercializaciones: {e}")

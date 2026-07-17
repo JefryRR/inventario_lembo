@@ -926,7 +926,7 @@ def generar_excel_reporte_general_maquina(maquinaria: list) -> io.BytesIO:
         ws.append([
             t.get("nombre_maq") or "-",
             t.get("tipo_maq") or "-",
-            t.get("marca") + "/" + t.get("modelo") or "-",
+            f"{t.get('marca') or '-'}/{t.get('modelo') or '-'}",
             t.get("num_serie") or "-",
             str(t.get("fecha_compra") or "-"),
             t.get("estado") or "-",
@@ -967,7 +967,7 @@ def generar_pdf_reporte_general_maquina(maquinaria: list) -> io.BytesIO:
         filas.append([
             t.get("nombre_maq") or "-",
             t.get("tipo_maq") or "-",
-            t.get("marca") + "/" + t.get("modelo") or "-",
+            f"{t.get('marca') or '-'}/{t.get('modelo') or '-'}",
             t.get("num_serie") or "-",
             str(t.get("fecha_compra") or "-"),
             t.get("estado") or "-",
@@ -1068,7 +1068,7 @@ def generar_pdf_reporte_soli_insumo(solicitud: list) -> io.BytesIO:
             str(t.get("fecha_devolucion")or "-"),
             str(t.get("cantidad_in") or "-"),
             str(t.get("cant_devolver") or "-"),
-            t.get("nombre_producto") or "-",
+            Paragraph(t.get("nombre_producto") or "-", estilo_observaciones),
             t.get("nombre_tipo") or "-",
             t.get("estado_solicitud") or "-",
         ])

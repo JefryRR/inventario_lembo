@@ -90,44 +90,63 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
 def registrar_vencidos_como_perdidas(db: Session):
     try:
         query = text("""
-            SELECT pr.id_inventario, pr.cantidad, pr.fecha_vencimiento, pr.unid_medida_id
+            SELECT pr.id_inventario, pr.cantidad, pr.fecha_vencimiento, pr.unid_medida_id,
+                   ip.id_perdida, ip.cantidad AS cantidad_registrada
             FROM inv_produccion pr
+            LEFT JOIN inv_perdidas ip 
+                ON ip.inv_prod_id = pr.id_inventario 
+                AND ip.motivo = 'vencimiento' 
+                AND ip.origen = 'produccion'
             WHERE pr.fecha_vencimiento < CURDATE()
             AND pr.cantidad > 0
-            AND pr.id_inventario NOT IN (
-                SELECT inv_prod_id FROM inv_perdidas
-                WHERE motivo = 'vencimiento'
-                AND origen = 'produccion'
-            )
+            AND (ip.id_perdida IS NULL OR ip.cantidad <> pr.cantidad)
         """)
         vencidos = db.execute(query).mappings().all()
 
+        procesados = 0
         for row in vencidos:
-            insert = text("""
-                INSERT INTO inv_perdidas (
-                    inv_prod_id, cantidad, origen, motivo,
-                    fecha_reporte, user_id, cant_convertida, 
-                    unid_medida_id, observaciones
-                ) VALUES (
-                    :inv_prod_id, :cantidad, :origen, :motivo,
-                    :fecha_reporte, :user_id, :cant_convertida,
-                    :unid_medida_id, :observaciones
-                )
-            """)
-            db.execute(insert, {
-                "inv_prod_id": row["id_inventario"],
-                "cantidad": row["cantidad"],
-                "origen": "produccion",
-                "unid_medida_id": row["unid_medida_id"],
-                "motivo": "vencimiento",
-                "fecha_reporte": date.today(),
-                "user_id": None,
-                "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}",
-                "cant_convertida": row["cantidad"]  # Se asume que la cantidad ya está en la unidad base o que el trigger lo ajustará
-            })
+            if row["id_perdida"] is None:
+                # No existe todavía: se inserta por primera vez
+                insert = text("""
+                    INSERT INTO inv_perdidas (
+                        inv_prod_id, cantidad, origen, motivo,
+                        fecha_reporte, user_id, cant_convertida, 
+                        unid_medida_id, observaciones
+                    ) VALUES (
+                        :inv_prod_id, :cantidad, :origen, :motivo,
+                        :fecha_reporte, :user_id, :cant_convertida,
+                        :unid_medida_id, :observaciones
+                    )
+                """)
+                db.execute(insert, {
+                    "inv_prod_id": row["id_inventario"],
+                    "cantidad": row["cantidad"],
+                    "origen": "produccion",
+                    "unid_medida_id": row["unid_medida_id"],
+                    "motivo": "vencimiento",
+                    "fecha_reporte": date.today(),
+                    "user_id": None,
+                    "observaciones": f"Registrado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}",
+                    "cant_convertida": row["cantidad"]
+                })
+            else:
+                # Ya existe, pero la cantidad cambió (ej: se comercializó una parte): se actualiza
+                update = text("""
+                    UPDATE inv_perdidas
+                    SET cantidad = :cantidad,
+                        cant_convertida = :cantidad,
+                        observaciones = :observaciones
+                    WHERE id_perdida = :id_perdida
+                """)
+                db.execute(update, {
+                    "cantidad": row["cantidad"],
+                    "observaciones": f"Actualizado automáticamente. Fecha de vencimiento: {row['fecha_vencimiento']}",
+                    "id_perdida": row["id_perdida"]
+                })
+            procesados += 1
 
         db.commit()
-        return len(vencidos)  # retorna cuántos se registraron
+        return procesados
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"Error al registrar vencidos: {e}")

@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
 
+// Definición de tipos para el historial de la máquina
 type HistorialMaquinaRow = {
     id_historial: number;
     id_maquina: number;
@@ -19,11 +20,13 @@ type HistorialMaquinaRow = {
     tipo_maq: string;
 };
 
+// Definición de tipo para el reporte completo de la máquina
 type ReporteMaquina = {
     encabezado: HistorialMaquinaRow;
     movimientos: HistorialMaquinaRow[];
 };
 
+// Componente principal para mostrar el informe de la máquina
 export default function InformeMaquina() {
     const { id_maquina } = useParams();
     const [reporte, setReporte] = useState<ReporteMaquina | null>(null);

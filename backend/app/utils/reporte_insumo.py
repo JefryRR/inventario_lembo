@@ -1,4 +1,5 @@
 import io
+from typing import Any
 from openpyxl import Workbook   # type: ignore
 from openpyxl.styles import Font, PatternFill  # type: ignore
 from reportlab.lib import colors  # type: ignore
@@ -6,8 +7,7 @@ from reportlab.lib.pagesizes import letter, landscape  # type: ignore
 from reportlab.lib.units import cm # type: ignore
 from reportlab.lib.styles import getSampleStyleSheet  # type: ignore
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer # type: ignore
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.styles import ParagraphStyle
+
 
 styles = getSampleStyleSheet()
 
@@ -157,7 +157,10 @@ def generar_pdf_rep_gral_insumos(reporte: list) -> io.BytesIO:
     elementos.append(Spacer(1, 12))
 
     total_insumo = 0.0
-    filas = [["Producto", "cantidad", "Tipo insumo", "F. registro", "F. vencimiento", "Estado stock", "Precio unit.", "Precio total.", "Detalles"]]
+    from typing import Any
+# ...
+
+    filas: list[list[Any]] = [["Producto", "cantidad", "Tipo insumo", "F. registro", "F. vencimiento", "Estado stock", "Precio unit.", "Precio total.", "Detalles"]]
     for i in reporte:
         valor_unitario = i.get("precio_unitario")
         valor_total = _calcular_valor_total_ins(i)
