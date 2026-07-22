@@ -12,7 +12,7 @@ from app.crud import prog_platos as crud_prog_platos
 from sqlalchemy.exc import SQLAlchemyError #type: ignore
 
 router = APIRouter()
-modulo = 20
+modulo = 22
 
 # Endpoint para crear un nuevo rol
 @router.post("/crear", status_code=status.HTTP_201_CREATED)

@@ -14,7 +14,7 @@ from fastapi.responses import StreamingResponse   # type: ignore
 from app.utils.exportar_reportes import generar_excel_reporte_mortalidad, generar_pdf_reporte_mortalidad
 
 router = APIRouter()
-modulo = 11
+modulo = 15
 UPLOAD_DIR = "static/mortalidad"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 

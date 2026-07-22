@@ -1,3 +1,4 @@
+import { AuthProvider } from "./context/AuthContext";
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -103,6 +104,7 @@ import Home from "./pages/Dashboard/Home";
 export default function App() {
   return (
     <>
+    <AuthProvider>
       <Router>
         <ScrollToTop />
         <Routes>
@@ -227,6 +229,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
+    </AuthProvider>
     </>
   );
 }

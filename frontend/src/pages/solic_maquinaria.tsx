@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale'; // Para que el calendario aparezca en espa
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type SolicitudRow = {
 	id_solicitud_maq: number;
@@ -187,12 +188,14 @@ export default function Solicitudes() {
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-						<Link
-							to="/solicitud-maq/crear"
-							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-						>
-							Nueva solicitud
-						</Link>
+						<ConPermiso accion="insertar">
+							<Link
+								to="/solicitud-maq/crear"
+								className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+							>
+								Nueva solicitud
+							</Link>
+						</ConPermiso>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
@@ -284,9 +287,11 @@ export default function Solicitudes() {
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Observaciones
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Acciones
-								</th>
+								<ConPermiso accion="actualizar">
+                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        Acciones
+                                    </th>
+                                </ConPermiso>
 							</tr>
 						</thead>
 
@@ -340,16 +345,20 @@ export default function Solicitudes() {
 
 										<td className="px-5 py-4">
 											{solicitud.estado?.toLowerCase() === "cancelada" || solicitud.estado?.toLowerCase() === "devuelta" ? (
-                    						  <span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
-                    						    Editar
-                    						  </span>
+                    						  <ConPermiso accion="actualizar">
+													<span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+													Editar
+												</span>
+											  </ConPermiso>
                     						) : (
 												<div className="flex flex-col items-center gap-2">
-													<Link
-														to={`/solicitud-maq/edit/${solicitud.id_solicitud_maq}`}
-														className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-														Editar
-													</Link>
+													<ConPermiso accion="actualizar">
+														<Link
+															to={`/solicitud-maq/edit/${solicitud.id_solicitud_maq}`}
+															className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+															Editar
+														</Link>
+													</ConPermiso>
 												</div>
 											)}
 										</td>

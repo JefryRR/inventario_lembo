@@ -65,7 +65,7 @@ async def login_for_access_token(
 
     return ResponseLoggin(
         user=user,
-        access_token=access_token
+        access_token=access_token,
     )
 
 @router.post("/forgot-password")

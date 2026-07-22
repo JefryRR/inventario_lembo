@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type LoteRow = {
 	id_lote: number;
@@ -142,12 +143,14 @@ export default function Lotes() {
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-						<Link
-							to="/lotesProd/create"
-							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-						>
-							Nueva producción
-						</Link>
+						<ConPermiso accion="insertar">
+							<Link
+								to="/lotesProd/create"
+								className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+							>
+								Nueva producción
+							</Link>
+						</ConPermiso>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
@@ -179,9 +182,11 @@ export default function Lotes() {
 								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Estado
 								</th>
-								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Acciones
-								</th>
+								<ConPermiso accion="actualizar">
+                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        Acciones
+                                    </th>
+                                </ConPermiso>
 							</tr>
 						</thead>
 
@@ -237,11 +242,13 @@ export default function Lotes() {
 
 										<td className="px-5 py-4">
 											<div className="flex flex-col items-center gap-2">
-												<Link
-													to={`/lotesProd/edit/${lote.id_lote}`}
-													className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-													Editar
-												</Link>
+												<ConPermiso accion="actualizar">
+													<Link
+														to={`/lotesProd/edit/${lote.id_lote}`}
+														className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+														Editar
+													</Link>
+												</ConPermiso>
 												<Link
 													to={`/lotesProd/report/${lote.id_lote}`}
 													className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">

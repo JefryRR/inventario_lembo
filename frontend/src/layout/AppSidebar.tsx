@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 
-// Assume these icons are imported from an icon library
 import {
   CalenderIcon,
   ChevronDownIcon,
@@ -15,6 +14,9 @@ import {
   MailIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
+import { getModuloPorRuta } from "../config/rutasModulos";
+import { useAuth } from "../context/AuthContext";
+import { useMemo } from "react";
 
 type NavItem = {
   name: string;
@@ -115,7 +117,7 @@ const modulosItems: NavItem[] = [
         path: "/invInsumo",
       },
       {
-        name: "Inventario de perdidas",
+        name: "Inventario de pérdidas",
         path: "/invPerd",
       },
       {
@@ -186,34 +188,57 @@ const modulosItems: NavItem[] = [
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { tienePermiso } = useAuth();
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "Módulos";
-    index: number;
+    key: string;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
     {}
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
     (path: string) => location.pathname === path,
     [location.pathname]
   );
 
+  // Filtra los módulos según los permisos del usuario
+  const modulosVisibles = useMemo(() => {
+    return modulosItems
+      .map((nav) => {
+        if (!nav.subItems) return nav;
+        const subItemsVisibles = nav.subItems.filter((sub) => {
+          const modulo = getModuloPorRuta(sub.path);
+          return modulo ? tienePermiso(modulo, "seleccionar") : true;
+        });
+        return { ...nav, subItems: subItemsVisibles };
+      })
+      .filter((nav) => !nav.subItems || nav.subItems.length > 0);
+  }, [tienePermiso]);
+
+  const navVisibles = useMemo(() => {
+    return navItems.filter((nav) => {
+      if (!nav.path) return true;
+      const modulo = getModuloPorRuta(nav.path);
+      return modulo ? tienePermiso(modulo, "seleccionar") : true;
+    });
+  }, [tienePermiso]);
+
   useEffect(() => {
     let submenuMatched = false;
-    ["main", "Módulos"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : modulosItems;
-      items.forEach((nav, index) => {
+
+    (["main", "Módulos"] as const).forEach((menuType) => {
+      const items = menuType === "main" ? navVisibles : modulosVisibles;
+      items.forEach((nav) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
             if (isActive(subItem.path)) {
               setOpenSubmenu({
-                type: menuType as "main" | "Módulos",
-                index,
+                type: menuType,
+                key: nav.name,
               });
               submenuMatched = true;
             }
@@ -225,11 +250,11 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [location, isActive]);
+  }, [location, isActive, navVisibles, modulosVisibles]);
 
   useEffect(() => {
     if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
+      const key = `${openSubmenu.type}-${openSubmenu.key}`;
       if (subMenuRefs.current[key]) {
         setSubMenuHeight((prevHeights) => ({
           ...prevHeights,
@@ -239,28 +264,28 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: "main" | "Módulos") => {
+  const handleSubmenuToggle = (name: string, menuType: "main" | "Módulos") => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
         prevOpenSubmenu &&
         prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
+        prevOpenSubmenu.key === name
       ) {
         return null;
       }
-      return { type: menuType, index };
+      return { type: menuType, key: name };
     });
   };
 
   const renderMenuItems = (items: NavItem[], menuType: "main" | "Módulos") => (
     <ul className="flex flex-col gap-4">
-      {items.map((nav, index) => (
+      {items.map((nav) => (
         <li key={nav.name}>
           {nav.subItems ? (
             <button
-              onClick={() => handleSubmenuToggle(index, menuType)}
+              onClick={() => handleSubmenuToggle(nav.name, menuType)}
               className={`menu-item group ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
+                openSubmenu?.type === menuType && openSubmenu?.key === nav.name
                   ? "menu-item-active"
                   : "menu-item-inactive"
               } cursor-pointer ${
@@ -271,7 +296,7 @@ const AppSidebar: React.FC = () => {
             >
               <span
                 className={`menu-item-icon-size  ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
+                  openSubmenu?.type === menuType && openSubmenu?.key === nav.name
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
                 }`}
@@ -285,7 +310,7 @@ const AppSidebar: React.FC = () => {
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                     openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
+                    openSubmenu?.key === nav.name
                       ? "rotate-180 text-success-500"
                       : ""
                   }`}
@@ -318,13 +343,13 @@ const AppSidebar: React.FC = () => {
           {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
             <div
               ref={(el) => {
-                subMenuRefs.current[`${menuType}-${index}`] = el;
+                subMenuRefs.current[`${menuType}-${nav.name}`] = el;
               }}
               className="overflow-hidden transition-all duration-300"
               style={{
                 height:
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
+                  openSubmenu?.type === menuType && openSubmenu?.key === nav.name
+                    ? `${subMenuHeight[`${menuType}-${nav.name}`]}px`
                     : "0px",
               }}
             >
@@ -408,7 +433,7 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(navVisibles, "main")}
             </div>
             <div className="">
               <h2
@@ -424,7 +449,7 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(modulosItems, "Módulos")}
+              {renderMenuItems(modulosVisibles, "Módulos")}
             </div>
           </div>
         </nav>

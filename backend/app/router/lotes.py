@@ -8,7 +8,7 @@ from app.schemas.users import UserOut
 from app.crud import lotes as crud_lotes_prod
 
 router = APIRouter()
-modulo = 5 # ID del módulo de lotes para verificar permisos
+modulo = 28
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_lote(lote: LoteCreate, db: Session = Depends(get_db),

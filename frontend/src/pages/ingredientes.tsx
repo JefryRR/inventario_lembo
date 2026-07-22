@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type IngredienteRow = {
 	id_ingrediente: number;
@@ -139,12 +140,14 @@ export default function Ingrediente() {
 				{/* Barra superior */}
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-						<Link
-							to="/ingredientes/crear"
-							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-						>
-							Nuevo ingrediente
-						</Link>
+						<ConPermiso accion="insertar">
+							<Link
+								to="/ingredientes/crear"
+								className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+							>
+								Nuevo ingrediente
+							</Link>
+						</ConPermiso>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
@@ -211,19 +214,23 @@ export default function Ingrediente() {
 										</td>
 										<td className="px-5 py-4 flex flex-col gap-2 sm:flex-row sm:items-center">
 											<div className="flex flex-col items-center gap-2">
-												<Link
-													to={`/ingredientes/edit/${ingrediente.id_ingrediente}`}
-													className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-												>
-													Editar
-												</Link>
-												<button
-													type="button"
-													onClick={() => handleConfirmarEliminar(ingrediente.id_ingrediente)}
-													className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700"
-												>
-													Eliminar
-												</button>
+												<ConPermiso accion="actualizar">
+													<Link
+														to={`/ingredientes/edit/${ingrediente.id_ingrediente}`}
+														className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+													>
+														Editar
+													</Link>
+												</ConPermiso>
+												<ConPermiso accion="borrar">
+													<button
+														type="button"
+														onClick={() => handleConfirmarEliminar(ingrediente.id_ingrediente)}
+														className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700"
+													>
+														Eliminar
+													</button>
+												</ConPermiso>
 											</div>
 										</td>
 									</tr>

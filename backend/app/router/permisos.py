@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 from app.schemas.permisos import PermisoCreate, PermisoOut, PermisoUpdate, PaginatedPermisos
 from app.crud import modulo_permisos as modulo_permisos
-from app.crud.permisos import verify_permissions  # tu función actual de verificación
+from app.crud.permisos import verify_permissions, get_permisos_by_rol
 from app.schemas.users import UserOut
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
@@ -34,6 +34,14 @@ def create_permiso(
         raise HTTPException(status_code=500, detail=str(e))
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/mios")
+def obtener_mis_permisos(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    id_rol = current_user.rol_id
+    return get_permisos_by_rol(db, id_rol)
 
 # Obtener todos los permisos
 @router.get("/all-permisos", response_model=List[PermisoOut])

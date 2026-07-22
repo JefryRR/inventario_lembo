@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type VentasLocationState = {
     refresh?: boolean;
@@ -218,47 +219,55 @@ export default function VentasPage() {
                 {/* ── Toolbar ── */}
                 <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                        <Link
-                            to="/ventas/create"
-                            className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-                        >
-                            Nueva venta
-                        </Link>
+                        <ConPermiso accion="insertar">
+                            <Link
+                                to="/ventas/create"
+                                className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+                            >
+                                Nueva venta
+                            </Link>
+                        </ConPermiso>
 
                         {selectedVenta && (
                             <>
-                                <Link
-                                    to={`/ventas/edit/${selectedVenta}`}
-                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-[#71277A] px-4 text-sm font-medium text-white transition hover:bg-[#71277A]/90"
-                                >
-                                    Editar venta
-                                </Link>
-                                <Link
-                                    to="/detalle-ventas/create"
-                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-[#f8c315] px-4 text-sm font-medium text-white transition hover:bg-[#f1bb0a]"
-                                >
-                                    Nuevo detalle
-                                </Link>
+                                <ConPermiso accion="actualizar">
+                                    <Link
+                                        to={`/ventas/edit/${selectedVenta}`}
+                                        className="inline-flex h-11 items-center justify-center rounded-lg bg-[#71277A] px-4 text-sm font-medium text-white transition hover:bg-[#71277A]/90"
+                                    >
+                                        Editar venta
+                                    </Link>
+                                </ConPermiso>
+                                <ConPermiso accion="insertar">
+                                    <Link
+                                        to="/detalle-ventas/create"
+                                        className="inline-flex h-11 items-center justify-center rounded-lg bg-[#f8c315] px-4 text-sm font-medium text-white transition hover:bg-[#f1bb0a]"
+                                    >
+                                        Nuevo detalle
+                                    </Link>
+                                </ConPermiso>
                             </>
                         )}
 
-                        <select
-                            value={selectedVenta ?? 0}
-                            onChange={(e) =>
-                                handleSelectVenta(Number(e.target.value) || null)
-                            }
-                            className="h-11 w-80 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-700"
-                        >
-                            <option className="dark:text-black" value={0} disabled>
-                                {loading ? "Cargando ventas..." : "Selecciona una venta"}
-                            </option>
-                            {ventasHoy.map((venta) => (
-                                <option className="dark:text-black" key={venta.id_venta} value={venta.id_venta}>
-                                    {venta.nombre_comprador}
-                                    {venta.fecha_venta? ` - ${new Date(venta.fecha_venta).toLocaleDateString()}`: ""}
+                        <ConPermiso accion="insertar">
+                            <select
+                                value={selectedVenta ?? 0}
+                                onChange={(e) =>
+                                    handleSelectVenta(Number(e.target.value) || null)
+                                }
+                                className="h-11 w-80 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-700"
+                            >
+                                <option className="dark:text-black" value={0} disabled>
+                                    {loading ? "Cargando ventas..." : "Selecciona una venta"}
                                 </option>
-                            ))}
-                        </select>
+                                {ventasHoy.map((venta) => (
+                                    <option className="dark:text-black" key={venta.id_venta} value={venta.id_venta}>
+                                        {venta.nombre_comprador}
+                                        {venta.fecha_venta? ` - ${new Date(venta.fecha_venta).toLocaleDateString()}`: ""}
+                                    </option>
+                                ))}
+                            </select>
+                        </ConPermiso>
                     </div>
 
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
@@ -378,18 +387,20 @@ export default function VentasPage() {
                                             {det.estado_venta}
                                         </td>
                                         <td className="px-3 py-4 text-center">
-                                            {puedeEditarDetalle(det, selectedVentaData?.fecha_venta) ? (
-                                                <Link
-                                                    to={`/detalle-ventas/edit/${det.id_detalle_venta}`}
-                                                    className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-                                                >
-                                                    Editar
-                                                </Link>
-                                            ) : (
-                                                <span className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed">
-                                                    Editar
-                                                </span>
-                                            )}
+                                            <ConPermiso accion="actualizar">
+                                                {puedeEditarDetalle(det, selectedVentaData?.fecha_venta) ? (
+                                                    <Link
+                                                        to={`/detalle-ventas/edit/${det.id_detalle_venta}`}
+                                                        className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+                                                    >
+                                                        Editar
+                                                    </Link>
+                                                ) : (
+                                                    <span className="inline-flex h-10 w-20 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed">
+                                                        Editar
+                                                    </span>
+                                                )}
+                                            </ConPermiso>
                                         </td>
                                     </tr>
                                 ))

@@ -7,7 +7,7 @@ from app.schemas.users import UserCreate, UserEstado, UserUpdate, UserOut
 from app.crud import users as crud_users
 
 router = APIRouter()
-modulo = 3 # ID del módulo de usuarios para verificar permisos
+modulo = 3
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db),

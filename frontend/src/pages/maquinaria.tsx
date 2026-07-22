@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type estadoMaquina = "operativa" | "dañada" | "mantenimiento" | "de_baja";
 
@@ -155,12 +156,14 @@ export default function Maquinas() {
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-						<Link
-							to="/maquinaria/crear"
-							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-						>
-							Nueva máquina
-						</Link>
+						<ConPermiso accion="insertar">
+							<Link
+								to="/maquinaria/crear"
+								className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+							>
+								Nueva máquina
+							</Link>
+						</ConPermiso>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
@@ -201,7 +204,7 @@ export default function Maquinas() {
 									Número de Serie
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Fecha de compra
+									Fechas
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Estado
@@ -211,9 +214,6 @@ export default function Maquinas() {
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Observaciones
-								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Fecha retiro
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Acciones
@@ -259,7 +259,12 @@ export default function Maquinas() {
 											{maquina.num_serie}
 										</td>
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-											{formatDate(maquina.fecha_compra)}
+											<div className="text-sm font-medium text-gray-600 dark:text-white/90">
+												Compra:{formatDate(maquina.fecha_compra)}
+											</div>
+											<div className="text-sm font-medium text-gray-600 dark:text-white/90">
+												Retiro:{maquina.fecha_de_baja ? formatDate(maquina.fecha_de_baja) : "-"}
+											</div>
 										</td>
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
@@ -271,16 +276,15 @@ export default function Maquinas() {
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{maquina.observaciones ? maquina.observaciones : "-"}
 										</td>
-										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-											{maquina.fecha_de_baja ? formatDate(maquina.fecha_de_baja) : "-"}
-										</td>
 										<td className="px-5 py-4">
-											<Link
-												to={`/maquinaria/edit/${maquina.id_maquina}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700 mb-2"
-											>
-												Editar
-											</Link>
+											<ConPermiso accion="actualizar">
+												<Link
+													to={`/maquinaria/edit/${maquina.id_maquina}`}
+													className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700 mb-2"
+												>
+													Editar
+												</Link>
+											</ConPermiso>
 											<Link
 												to={`/maquinas/historial/${maquina.id_maquina}`}
 												className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-600 px-3 text-sm font-medium text-white transition hover:bg-gray-700">

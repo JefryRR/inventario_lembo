@@ -2,7 +2,6 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from typing import Optional
 import logging
 
 
@@ -36,3 +35,13 @@ def verify_permissions(db: Session, id_rol: int, id_modulo: int, accion: str):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener permisos: {e}")
         raise Exception("Error de base de datos al obtener permisos")
+
+def get_permisos_by_rol(db: Session, id_rol: int):
+    query = text("""
+        SELECT m.id_modulo, m.nombre AS modulo, p.insertar, p.actualizar, p.seleccionar, p.borrar
+        FROM permisos p
+        INNER JOIN modulos m ON m.id_modulo = p.id_modulo
+        WHERE p.id_rol = :id_rol
+    """)
+    result = db.execute(query, {"id_rol": id_rol}).mappings().all()
+    return [dict(row) for row in result]

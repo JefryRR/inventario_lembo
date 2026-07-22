@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type RolRow = {
     id_rol: number;
@@ -103,11 +104,13 @@ export default function Roles() {
                     <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                            <Link
-                                to="/roles/crear"
-                                className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                                Nuevo rol
-                            </Link>
+                            <ConPermiso accion="insertar">
+                                <Link
+                                    to="/roles/crear"
+                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                    Nuevo rol
+                                </Link>
+                            </ConPermiso>
                             <input
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -131,9 +134,11 @@ export default function Roles() {
                                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Estado
                                     </th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                        Accciones
-                                    </th>
+                                    <ConPermiso accion="actualizar">
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                            Accciones
+                                        </th>
+                                    </ConPermiso>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -178,11 +183,13 @@ export default function Roles() {
                                                 </button>
                                             </td>
                                             <td className="px-5 py-4">
-                                                <Link
-                                                    to={`/roles/editar/${rol.id_rol}`}
-                                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                                                    Editar
-                                                </Link>
+                                                <ConPermiso accion="actualizar">
+                                                    <Link
+                                                        to={`/roles/editar/${rol.id_rol}`}
+                                                        className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                                        Editar
+                                                    </Link>
+                                                </ConPermiso>
                                             </td>
                                         </tr>
                                     ))

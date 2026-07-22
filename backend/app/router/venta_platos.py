@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse   # type: ignore
 from app.utils.exportar_reportes import generar_excel_reporte_ventas_platos, generar_pdf_reporte_ventas_platos
 
 router = APIRouter()
-modulo = 20
+modulo = 23
 
 # Endpoint para crear una nueva venta de plato
 @router.post("/crear", status_code=status.HTTP_201_CREATED)

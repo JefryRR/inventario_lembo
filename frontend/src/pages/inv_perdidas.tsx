@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale'; // Para que el calendario aparezca en espa
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type invPerdRow = {
   id_perdida: number;
@@ -219,12 +220,14 @@ export default function InvPerd() {
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 lg:flex-row lg:items-center sm:justify-between">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link
-              to="/invPerd/create"
-              className="inline-flex h-12 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-            >
-              Registrar pérdida
-            </Link>
+            <ConPermiso accion="insertar">
+              <Link
+                to="/invPerd/create"
+                className="inline-flex h-12 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+              >
+                Registrar pérdida
+              </Link>
+            </ConPermiso>
             <button
               onClick={() => handleExportarPerdidas("excel")}
               disabled={descargando !== null}
@@ -330,9 +333,11 @@ export default function InvPerd() {
                 <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Fecha reporte
                 </th>
-                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Accciones
-                </th>
+                <ConPermiso accion="actualizar">
+                  <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Acciones
+                  </th>
+                </ConPermiso>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -405,19 +410,21 @@ export default function InvPerd() {
                       <div> {formatearFecha(inv_perd.fecha_reporte)} </div>
                     </td>
                     <td className="px-5 py-4">
-                    {inv_perd.motivo?.toLowerCase() === "vencimiento" ? (
-                      <span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
-                        Vencido
-                      </span>
-                    ) : (
-                      <Link
-                        to={`/invPerd/edit/${inv_perd.id_perdida}`}
-                        className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-                      >
-                        Editar
-                      </Link>
-                    )}
-                  </td>
+                      <ConPermiso accion="actualizar">
+                        {inv_perd.motivo?.toLowerCase() === "vencimiento" ? (
+                          <span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+                            Vencido
+                          </span>
+                        ) : (
+                          <Link
+                            to={`/invPerd/edit/${inv_perd.id_perdida}`}
+                            className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+                          >
+                            Editar
+                          </Link>
+                        )}
+                      </ConPermiso>
+                    </td>
                   </tr>
                 ))
               )}

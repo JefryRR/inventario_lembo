@@ -10,7 +10,7 @@ from app.crud import tipo_insumo as crud_tipo_insumo
 from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
-modulo = 2
+modulo = 29
 
 # Endpoint para crear un nuevo rol
 @router.post("/crear", status_code=status.HTTP_201_CREATED)

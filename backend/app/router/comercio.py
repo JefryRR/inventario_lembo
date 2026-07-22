@@ -21,7 +21,6 @@ from app.utils.exportar_reportes import generar_excel_reporte_comercializacion, 
 router = APIRouter()
 modulo = 26
 
-
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_comercializacion(
 	comercializacion: ComercializacionCreate,

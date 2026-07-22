@@ -11,7 +11,7 @@ from fastapi.responses import StreamingResponse   # type: ignore
 from app.utils.exportar_reportes import generar_excel_reporte_tratamientos, generar_pdf_reporte_tratamientos
 
 router = APIRouter()
-modulo = 16 # ID del módulo de lotes para verificar permisos
+modulo = 16
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_tratamiento(tratamiento: TratamientoCreate, db: Session = Depends(get_db),

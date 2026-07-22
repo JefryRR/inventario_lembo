@@ -6,6 +6,7 @@ import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 // @ts-ignore: auth service is a JS module without types
 import { login } from "../../services/auth";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +16,7 @@ export default function SignInForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { refrescarPermisos } = useAuth();
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -46,6 +48,7 @@ export default function SignInForm() {
         if (data?.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
         }
+        await refrescarPermisos();
         navigate("/dashboard");
       } else {
         setError("Respuesta inválida del servidor");

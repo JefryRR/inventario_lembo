@@ -10,6 +10,7 @@ import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type TipoComida = "desayuno" | "almuerzo" | "refrigerio";
 
@@ -218,33 +219,35 @@ const CalendarProgramacion: React.FC = () => {
       />
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="custom-calendar">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            locale={esLocale}
-            headerToolbar={{
-              left: "prev,next addEventButton",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
-            }}
-            events={events}
-            selectable={true}
-            select={handleDateSelect}
-            eventClick={handleEventClick}
-            eventContent={renderEventContent}
-            customButtons={{
-              addEventButton: {
-                text: "Nueva programación +",
-                click: () => {
-                  setSelectedId(null);
-                  setForm(FORM_EMPTY);
-                  setError(null);
-                  openModal();
+          <ConPermiso accion="insertar">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              locale={esLocale}
+              headerToolbar={{
+                left: "prev,next addEventButton",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              events={events}
+              selectable={true}
+              select={handleDateSelect}
+              eventClick={handleEventClick}
+              eventContent={renderEventContent}
+              customButtons={{
+                addEventButton: {
+                  text: "Nueva programación +",
+                  click: () => {
+                    setSelectedId(null);
+                    setForm(FORM_EMPTY);
+                    setError(null);
+                    openModal();
+                  },
                 },
-              },
-            }}
-          />
+              }}
+            />
+          </ConPermiso>
         </div>
 
         <Modal
@@ -254,16 +257,18 @@ const CalendarProgramacion: React.FC = () => {
         >
           <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
             {/* Cabecera */}
-            <div>
-              <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
-                {selectedId ? "Editar programación" : "Nueva programación"}
-              </h5>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {selectedId
-                  ? "Modifica los datos de esta programación."
-                  : "Registra un plato para una fecha específica."}
-              </p>
-            </div>
+            <ConPermiso accion="actualizar">
+              <div>
+                <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
+                  {selectedId ? "Editar programación" : "Nueva programación"}
+                </h5>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {selectedId
+                    ? "Modifica los datos de esta programación."
+                    : "Registra un plato para una fecha específica."}
+                </p>
+              </div>
+            </ConPermiso>
 
             {/* Error global */}
             {error && (
@@ -411,14 +416,16 @@ const CalendarProgramacion: React.FC = () => {
               ) : (
                 <>
                   {selectedId && (
-                    <button
-                      onClick={() => setConfirmandoEliminar(true)}
-                      disabled={loading}
-                      type="button"
-                      className="flex w-full justify-center rounded-lg border border-red-300 bg-white px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 sm:w-auto"
-                    >
-                      Eliminar
-                    </button>
+                    <ConPermiso accion="borrar">
+                      <button
+                        onClick={() => setConfirmandoEliminar(true)}
+                        disabled={loading}
+                        type="button"
+                        className="flex w-full justify-center rounded-lg border border-red-300 bg-white px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 sm:w-auto"
+                      >
+                        Eliminar
+                      </button>
+                    </ConPermiso>
                   )}
                   <button
                     onClick={handleCerrar}

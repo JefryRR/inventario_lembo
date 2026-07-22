@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type TipoInsumoRow = {
     id_tipo_insumo: number;
@@ -88,11 +89,13 @@ export default function TiposInsumos() {
                     <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                            <Link
-                                to="/tipos-insumos/crear"
-                                className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                                Nuevo tipo de insumo
-                            </Link>
+                            <ConPermiso accion="insertar">
+                                <Link
+                                    to="/tipos-insumos/crear"
+                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                    Nuevo tipo de insumo
+                                </Link>
+                            </ConPermiso>
                             <input
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -110,9 +113,11 @@ export default function TiposInsumos() {
                                     <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                         Nombre tipo de insumo
                                     </th>
-                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                        Acciones
-                                    </th>
+                                    <ConPermiso accion="actualizar">
+                                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                            Acciones
+                                        </th>
+                                    </ConPermiso>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -145,11 +150,13 @@ export default function TiposInsumos() {
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4 text-center">
-                                                <Link
-                                                    to={`/tipos-insumos/edit/${tipo.id_tipo_insumo}`}
-                                                    className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                                                    Editar
-                                                </Link>
+                                                <ConPermiso accion="actualizar">
+                                                    <Link
+                                                        to={`/tipos-insumos/edit/${tipo.id_tipo_insumo}`}
+                                                        className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                                        Editar
+                                                    </Link>
+                                                </ConPermiso>
                                             </td>
                                         </tr>
                                     ))

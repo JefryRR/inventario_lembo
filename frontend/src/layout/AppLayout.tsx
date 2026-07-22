@@ -1,11 +1,18 @@
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import { Outlet } from "react-router";
+import { Outlet, useLocation, Navigate } from "react-router";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
+import { useAuth } from "../context/AuthContext";
+import { getModuloPorRuta } from "../config/rutasModulos";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const { tienePermiso, cargandoPermisos } = useAuth();
+  const location = useLocation();
+
+  const modulo = getModuloPorRuta(location.pathname);
+  const sinPermiso = !cargandoPermisos && modulo && !tienePermiso(modulo, "seleccionar");
 
   return (
     <div className="min-h-screen xl:flex">
@@ -20,7 +27,13 @@ const LayoutContent: React.FC = () => {
       >
         <AppHeader />
         <div className="p-4 mx-auto max-w-screen-2xl md:p-6">
-          <Outlet />
+          {cargandoPermisos ? (
+            <p>Cargando...</p>
+          ) : sinPermiso ? (
+            <Navigate to="/no-autorizado" replace />
+          ) : (
+            <Outlet />
+          )}
         </div>
       </div>
     </div>

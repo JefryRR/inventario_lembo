@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale'; // Para que el calendario aparezca en espa
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type invProdRow = {
     id_inventario: number,
@@ -231,11 +232,13 @@ export default function Inv_prod() {
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 lg:flex-row lg:items-center sm:justify-between">
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                        <Link
-                            to="/invProd/create"
-                            className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                            Nuevo inventario
-                        </Link>
+                        <ConPermiso accion="insertar">
+                            <Link
+                                to="/invProd/create"
+                                className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                Nuevo inventario
+                            </Link>
+                        </ConPermiso>
                         {/* buscador dinámico */}
                         <input
                             value={search}
@@ -449,18 +452,19 @@ export default function Inv_prod() {
                                         </td>
                                         <td className="px-3 py-4 text-center">
                                             <div className="flex flex-col items-center gap-2">
-
-                                                {isEditDisabled(inv_prod.cantidad, inv_prod.nivel_alerta) ? (
-                                                    <span className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
-                                                        Editar
-                                                    </span>
-                                                ) : (
-                                                    <Link
-                                                        to={`/invProd/edit/${inv_prod.id_inventario}`}
-                                                        className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                                                        Editar
-                                                    </Link>
-                                                )}
+                                                <ConPermiso accion="actualizar">
+                                                    {isEditDisabled(inv_prod.cantidad, inv_prod.nivel_alerta) ? (
+                                                        <span className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+                                                            Editar
+                                                        </span>
+                                                    ) : (
+                                                        <Link
+                                                            to={`/invProd/edit/${inv_prod.id_inventario}`}
+                                                            className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+                                                            Editar
+                                                        </Link>
+                                                    )}
+                                                </ConPermiso>
                                                 <Link
                                                     to={`/invProd/report/${inv_prod.id_inventario}`}
                                                     className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gray-600 px-4 text-sm font-medium text-white transition hover:bg-gray-700">

@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale'; // Para que el calendario aparezca en espa
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type VentaPlatosRow = {
 	id_venta_plato: number;
@@ -208,12 +209,14 @@ export default function VentaPlatos() {
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-						<Link
-							to="/venta_platos/crear"
-							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-						>
-							Nueva venta
-						</Link>
+						<ConPermiso accion="insertar">
+							<Link
+								to="/venta_platos/crear"
+								className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+							>
+								Nueva venta
+							</Link>
+						</ConPermiso>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
@@ -319,9 +322,11 @@ export default function VentaPlatos() {
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Fecha de venta
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Acciones
-								</th>
+								<ConPermiso accion="actualizar">
+									<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+										Acciones
+									</th>
+								</ConPermiso>
 							</tr>
 						</thead>
 
@@ -362,12 +367,14 @@ export default function VentaPlatos() {
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(venta.fecha_venta)}</td>
 										<td className="px-5 py-4">
-											<Link
-												to={`/venta_platos/edit/${venta.id_venta_plato}`}
-												className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-											>
-												Editar
-											</Link>
+											<ConPermiso accion="actualizar">
+												<Link
+													to={`/venta_platos/edit/${venta.id_venta_plato}`}
+													className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+												>
+													Editar
+												</Link>
+											</ConPermiso>
 										</td>
 									</tr>
 								))

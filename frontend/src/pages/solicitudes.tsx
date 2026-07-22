@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
+import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type SolicitudRow = {
 	id_solicitud: number;
@@ -156,12 +157,14 @@ export default function Solicitudes() {
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-						<Link
-							to="/solicitud/crear"
-							className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
-						>
-							Nueva solicitud
-						</Link>
+						<ConPermiso accion="insertar">
+							<Link
+								to="/solicitud/crear"
+								className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
+							>
+								Nueva solicitud
+							</Link>
+						</ConPermiso>
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
@@ -209,9 +212,11 @@ export default function Solicitudes() {
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Estado
 								</th>
-								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Acciones
-								</th>
+								<ConPermiso accion="actualizar">
+									<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+										Acciones
+									</th>
+								</ConPermiso>
 							</tr>
 						</thead>
 
@@ -270,19 +275,21 @@ export default function Solicitudes() {
 										</td>
 
 										<td className="px-5 py-4">
-											{solicitud.estado_solicitud?.toLowerCase() === "cancelado" || solicitud.estado_solicitud?.toLowerCase() === "devuelto" ? (
-                    						  <span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
-                    						    Editar
-                    						  </span>
-                    						) : (
-												<div className="flex flex-col items-center gap-2">
-													<Link
-														to={`/solicitud/edit/${solicitud.id_solicitud}`}
-														className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-														Editar
-													</Link>
-												</div>
-											)}
+											<ConPermiso accion="actualizar">
+												{solicitud.estado_solicitud?.toLowerCase() === "cancelado" || solicitud.estado_solicitud?.toLowerCase() === "devuelto" ? (
+												<span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
+													Editar
+												</span>
+												) : (
+													<div className="flex flex-col items-center gap-2">
+														<Link
+															to={`/solicitud/edit/${solicitud.id_solicitud}`}
+															className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
+															Editar
+														</Link>
+													</div>
+												)}
+											</ConPermiso>
 										</td>
 									</tr>
 								))
