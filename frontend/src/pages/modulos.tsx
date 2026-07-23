@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -28,12 +28,24 @@ export default function Modulos() {
     const [pageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     useEffect(() => {
         if (!localStorage.getItem("token")) {
             navigate("/signin");
         }
     }, [navigate]);
+
+    // Debounce: espera 400ms después de que el usuario deja de escribir
+    useEffect(() => {
+        const timeoutId = setTimeout(() => { setDebouncedSearch(search); }, 400);
+        return () => clearTimeout(timeoutId);
+    }, [search]);
+
+    // Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
 
     useEffect(() => {
         let isMounted = true;
@@ -43,12 +55,20 @@ export default function Modulos() {
             setError(null);
 
             try {
-                const data = (await apiFetch(`modulos/all_modules_pag?page=${page}&page_size=${pageSize}`)) as ModulosResponse;
+                const params = new URLSearchParams({
+                    page: String(page),
+                    page_size: String(pageSize),
+                });
 
+                // Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    params.set("search", debouncedSearch.trim());
+                }
+
+                const data = (await apiFetch(`modulos/all_modules_pag?${params.toString()}`)) as ModulosResponse;
                 if (!isMounted) {
                     return;
                 }
-
                 setModulos(Array.isArray(data?.modulos) ? data.modulos : []);
                 setTotal(Number(data?.total_modulos ?? 0));
             } catch (requestError: any) {
@@ -73,27 +93,9 @@ export default function Modulos() {
         return () => {
             isMounted = false;
         };
-    }, [page, pageSize]);
-
-    const filteredModulos = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) {
-            return modulos;
-        }
-
-        return modulos.filter((modulo) => {
-            return [
-                modulo.nombre,
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term);
-        });
-    }, [search, modulos]);
+    }, [page, pageSize, debouncedSearch]);
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    // const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
-    // const endItem = Math.min(page * pageSize, total);
 
     return (
         <>
@@ -147,24 +149,24 @@ export default function Modulos() {
                                         {error}
                                     </td>
                                 </tr>
-                            ) : filteredModulos.length === 0 ? (
+                            ) : modulos.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay módulos para mostrar.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredModulos.map((modulos) => (
-                                    <tr key={modulos.id_modulo} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                                modulos.map((modulo) => (
+                                    <tr key={modulo.id_modulo} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                         <td className="px-5 py-4 text-center">
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">
-                                                {modulos.nombre}
+                                                {modulo.nombre}
                                             </div>
                                         </td>
                                         <td className="px-5 py-4 text-center">
                                             <ConPermiso accion="actualizar">
                                                 <Link
-                                                    to={`/modulos/edit/${modulos.id_modulo}`}
+                                                    to={`/modulos/edit/${modulo.id_modulo}`}
                                                     className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
                                                     Editar
                                                 </Link>
@@ -176,7 +178,6 @@ export default function Modulos() {
                         </tbody>
                     </table>
                 </div>
-
                 <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-center">
                     <div className="flex items-center gap-2">
                         <button

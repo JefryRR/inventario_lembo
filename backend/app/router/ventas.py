@@ -211,6 +211,7 @@ def obtener_ventas_por_rango_fechas(
 def ventas_paginated(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 
@@ -220,7 +221,7 @@ def ventas_paginated(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_ventas.ventas_paginated(db, skip=skip, limit=page_size)
+        data = crud_ventas.ventas_paginated(db, skip=skip, limit=page_size, search=search)
         total = data["total"]  
         ventas = data["ventas"]
         

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks # type: ignore
 from sqlalchemy.orm import Session # type: ignore
 from app.crud.permisos import verify_permissions
@@ -288,6 +288,7 @@ def obtener_solicitud_por_rango_fechas(
 def get_solicitud_paginated(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 
@@ -297,7 +298,7 @@ def get_solicitud_paginated(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_solicitud.get_solicitudes_paginated(db, skip=skip, limit=page_size)
+        data = crud_solicitud.get_solicitudes_paginated(db, skip=skip, limit=page_size, search=search)
         total = data["total"]  
         solicitud = data["solicitudes"]
         

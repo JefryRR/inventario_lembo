@@ -7,14 +7,14 @@ import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type AlimentoRow = {
 	id_alimento: number;
-    lote_id: number;
-    insumo_id: number;
-    fecha_alimento: string;
-    cantidad: number;
-    unid_medida_id: number;
-    nombre_producto: string;
-    simbolo: string;
-    nombre_lote: string;
+	lote_id: number;
+	insumo_id: number;
+	fecha_alimento: string;
+	cantidad: number;
+	unid_medida_id: number;
+	nombre_producto: string;
+	simbolo: string;
+	nombre_lote: string;
 };
 
 type AlimentosResponse = {
@@ -47,12 +47,26 @@ export default function Alimentos() {
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 
 	useEffect(() => {
 		if (!localStorage.getItem("token")) {
 			navigate("/signin");
 		}
 	}, [navigate]);
+
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			setDebouncedSearch(search);
+		}, 400);
+
+		return () => clearTimeout(timeoutId);
+	}, [search]);
+
+	// Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+	useEffect(() => {
+		setPage(1);
+	}, [debouncedSearch]);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -62,7 +76,16 @@ export default function Alimentos() {
 			setError(null);
 
 			try {
-				const data = (await apiFetch(`alimento_prod/paginated?page=${page}&page_size=${pageSize}`)) as AlimentosResponse;
+
+				const params = new URLSearchParams({
+					page: String(page),
+					page_size: String(pageSize),
+				});
+
+				if (debouncedSearch.trim()) {
+					params.append("search", debouncedSearch.trim());
+				}
+				const data = (await apiFetch(`alimento_prod/paginated?${params.toString()}`)) as AlimentosResponse;
 
 				if (!isMounted) {
 					return;
@@ -77,8 +100,8 @@ export default function Alimentos() {
 
 				setError(
 					requestError?.detail ||
-						requestError?.message ||
-						"No se pudieron cargar los alimentos"
+					requestError?.message ||
+					"No se pudieron cargar los alimentos"
 				);
 			} finally {
 				if (isMounted) {
@@ -92,7 +115,7 @@ export default function Alimentos() {
 		return () => {
 			isMounted = false;
 		};
-	}, [page, pageSize]);
+	}, [page, pageSize, debouncedSearch]);
 
 	const filteredAlimentos = useMemo(() => {
 		const term = search.trim().toLowerCase();
@@ -104,7 +127,7 @@ export default function Alimentos() {
 			return [
 				alimento.nombre_lote,
 				alimento.nombre_producto,
-                alimento.simbolo,
+				alimento.simbolo,
 			]
 				.join(" ")
 				.toLowerCase()
@@ -151,14 +174,14 @@ export default function Alimentos() {
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Nombre del alimento
 								</th>
-                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Lote
 								</th>
 								<ConPermiso accion="actualizar">
-                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                        Acciones
-                                    </th>
-                                </ConPermiso>
+									<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+										Acciones
+									</th>
+								</ConPermiso>
 							</tr>
 						</thead>
 
@@ -196,7 +219,7 @@ export default function Alimentos() {
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{alimento.nombre_producto}
 										</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{alimento.nombre_lote}
 										</td>
 										<td className="px-5 py-4 text-center">

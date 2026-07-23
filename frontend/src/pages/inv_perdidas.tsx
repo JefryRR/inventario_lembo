@@ -58,10 +58,7 @@ export default function InvPerd() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
-  const [dateRange, setDateRange] = useState<DateRangeState>({
-    fecha_inicio: "",
-    fecha_fin: "",
-  });
+  const [dateRange, setDateRange] = useState<DateRangeState>({ fecha_inicio: "", fecha_fin: "" });
   
   const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(
     null,
@@ -94,6 +91,7 @@ export default function InvPerd() {
       setActiveDateRange(newRange);
     }
   };
+
 
   useEffect(() => {
     let isMounted = true;

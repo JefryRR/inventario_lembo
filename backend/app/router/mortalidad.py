@@ -246,7 +246,7 @@ def update_mortalidad_by_id( id_mortalidad: int, mortalidad: MortalidadUpdate, d
 def get_all_mortalidad_pag(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
-    search: Optional[str] = Query(None, description="Filtra por lote, sublote, especie, categoría, usuario u observación"),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 

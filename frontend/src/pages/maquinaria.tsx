@@ -59,12 +59,27 @@ export default function Maquinas() {
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState(search);
 
 	useEffect(() => {
 		if (!localStorage.getItem("token")) {
 			navigate("/signin");
 		}
 	}, [navigate]);
+
+	// Debounce: espera 400ms después de que el usuario deja de escribir
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			setDebouncedSearch(search);
+		}, 400);
+
+		return () => clearTimeout(timeoutId);
+	}, [search]);
+
+	// Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+	useEffect(() => {
+		setPage(1);
+	}, [debouncedSearch]);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -74,7 +89,15 @@ export default function Maquinas() {
 			setError(null);
 
 			try {
-				const data = (await apiFetch(`maquinas/paginated-maquinas?page=${page}&page_size=${pageSize}`)) as MaquinasResponse;
+				 const params = new URLSearchParams({
+                    page: String(page),
+                    page_size: String(pageSize),
+                });
+                // Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    params.set("search", debouncedSearch.trim());
+                }
+				const data = (await apiFetch(`maquinas/paginated-maquinas?${params.toString()}`)) as MaquinasResponse;
 
 				if (!isMounted) {
 					return;
@@ -104,7 +127,7 @@ export default function Maquinas() {
 		return () => {
 			isMounted = false;
 		};
-	}, [page, pageSize]);
+	}, [page, pageSize, debouncedSearch]);
 
 	const filteredMaquinas = useMemo(() => {
 		const term = search.trim().toLowerCase();
@@ -135,15 +158,15 @@ export default function Maquinas() {
 	const handleExportarMaquinas = async (formato: "pdf" | "excel") => {
 		setDescargando(formato);
 		try {
-		const extension = formato === "pdf" ? "pdf" : "xlsx";
-		await apiDownload(
-			`maquinas/exportar/${formato}`,
-			`reporte_maquinas.${extension}`,
-		);
+			const extension = formato === "pdf" ? "pdf" : "xlsx";
+			await apiDownload(
+				`maquinas/exportar/${formato}`,
+				`reporte_maquinas.${extension}`,
+			);
 		} catch (err: any) {
-		alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+			alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
 		} finally {
-		setDescargando(null);
+			setDescargando(null);
 		}
 	};
 
@@ -174,14 +197,14 @@ export default function Maquinas() {
 							onClick={() => handleExportarMaquinas("excel")}
 							disabled={descargando !== null}
 							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-							>
+						>
 							{descargando === "excel" ? "Descargando..." : "Exportar Excel"}
-							</button>
-							<button
+						</button>
+						<button
 							onClick={() => handleExportarMaquinas("pdf")}
 							disabled={descargando !== null}
 							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-							>
+						>
 							{descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
 						</button>
 					</div>

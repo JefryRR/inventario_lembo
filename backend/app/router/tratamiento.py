@@ -9,6 +9,7 @@ from app.crud import tratamiento as crud_tratamiento
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from fastapi.responses import StreamingResponse   # type: ignore
 from app.utils.exportar_reportes import generar_excel_reporte_tratamientos, generar_pdf_reporte_tratamientos
+from typing import Optional
 
 router = APIRouter()
 modulo = 16
@@ -136,6 +137,7 @@ def update_tratamiento_by_id( id_tratamiento: int, tratamiento: TratamientoUpdat
 def get_all_tratamientos_pag(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 
@@ -145,7 +147,7 @@ def get_all_tratamientos_pag(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_tratamiento.get_all_tratamientos_pag(db, skip=skip, limit=page_size)
+        data = crud_tratamiento.get_all_tratamientos_pag(db, skip=skip, limit=page_size, search=search)
         total = data["total"]  
         tratamiento = data["tratamientos"]
         

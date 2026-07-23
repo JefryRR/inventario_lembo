@@ -263,6 +263,7 @@ def get_produccion_paginated(
     page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user),
+    search: Optional[str] = None,
     estado: Optional[Literal["vencido", "sin_stock", "critico", "urgente", "vigente"]] = None   
 ): 
     try:
@@ -271,7 +272,7 @@ def get_produccion_paginated(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_produccion.get_produccion_paginated(db, skip=skip, limit=page_size, estado=estado)
+        data = crud_produccion.get_produccion_paginated(db, skip=skip, limit=page_size, estado=estado, search=search)
         total = data["total"]  
         produccion = data["produccion"]
         

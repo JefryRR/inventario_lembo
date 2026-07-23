@@ -46,12 +46,27 @@ export default function Permisos() {
     const [pageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     useEffect(() => {
         if (!localStorage.getItem("token")) {
             navigate("/signin");
         }
     }, [navigate]);
+
+    // Debounce: espera 400ms después de que el usuario deja de escribir
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 400);
+
+        return () => clearTimeout(timeoutId);
+    }, [search]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
+
 
     useEffect(() => {
         let isMounted = true;
@@ -61,14 +76,20 @@ export default function Permisos() {
             setError(null);
 
             try {
-                const data = (await apiFetch(
-                    `permisos/all_permisos-pag?page=${page}&page_size=${pageSize}`
-                )) as PermisosResponse;
+                const params = new URLSearchParams({
+                    page: String(page),
+                    page_size: String(pageSize),
+                });
+                // Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    params.set("search", debouncedSearch.trim());
+                }
+
+                const data = (await apiFetch(`permisos/all_permisos-pag?${params.toString()}`)) as PermisosResponse;
 
                 if (!isMounted) {
                     return;
                 }
-
                 setPermisos(Array.isArray(data?.permisos) ? data.permisos : []);
                 setTotal(Number(data?.total_permisos ?? 0));
             } catch (requestError: any) {
@@ -93,7 +114,7 @@ export default function Permisos() {
         return () => {
             isMounted = false;
         };
-    }, [page, pageSize]);
+    }, [page, pageSize, debouncedSearch]);
 
     const filteredPermisos = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -117,8 +138,6 @@ export default function Permisos() {
     }, [search, permisos]);
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    // const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
-    // const endItem = Math.min(page * pageSize, total);
 
     return (
         <>

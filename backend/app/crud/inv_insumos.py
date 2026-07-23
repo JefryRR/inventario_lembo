@@ -412,7 +412,7 @@ def get_insumos_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los insumos por rango de fechas: {e}")
 
-def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None):
+def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None, search: Optional[str] = None):
     """
     Obtiene insumos con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
@@ -442,11 +442,17 @@ def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: O
                 where_clause = "WHERE i_in.fecha_vencimiento > :hoy_mas_15 AND i_in.cantidad > 0"
                 params["hoy_mas_15"] = hoy + timedelta(days=15)
 
+        if search:
+            where_clause = "WHERE LOWER(i_in.nombre_producto) LIKE LOWER(:search) OR LOWER(t_i.nombre_tipo) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+
         # Total de insumos
         count_query = text(f"""
             SELECT COUNT(i_in.id_insumo) AS total
             FROM inv_insumos AS i_in
-            LEFT JOIN tipo_insumo AS ti ON i_in.tipo_id = ti.id_tipo_insumo
+            LEFT JOIN tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
+            LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
+
             {where_clause}
         """)
 
@@ -457,7 +463,7 @@ def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: O
                         SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
                         i_in.min_stock, i_in.fecha_ingreso, i_in.fecha_vencimiento, i_in.tipo_id, t_i.nombre_tipo, u_m.simbolo
                         FROM inv_insumos AS i_in
-                        INNER JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
+                        LEFT JOIN  tipo_insumo AS t_i ON i_in.tipo_id = t_i.id_tipo_insumo
                         LEFT JOIN unidades_medida AS u_m ON i_in.unid_medida_id = u_m.id_unidad
                         {where_clause}
                         ORDER BY i_in.fecha_vencimiento ASC

@@ -143,26 +143,34 @@ def get_historial_by_id(db: Session, id_lote_p: int):
         logger.error(f"Error al obtener historial por id: {e}")
         raise Exception("Error de base de datos al obtener el historial del lote")
  
-def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
+def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
     """
     Obtiene lotes con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(l_g.nombre_lote) LIKE LOWER(:search) OR LOWER(l_p.sublote) LIKE LOWER(:search) OR LOWER(c.nombre_categoria) LIKE LOWER(:search) OR LOWER(u.nombre_user) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+
         # Total de lotes
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(l_p.id_lote) AS total
             FROM lote_produccion AS l_p
             LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
-            LEFT JOIN especies ON l_p.especie_id = especies.id_especie
-            LEFT JOIN categorias ON l_p.categoria_id = categorias.id_categoria
-            LEFT JOIN users ON l_p.user_id = users.id_user
+            LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
+            LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
+            LEFT JOIN users AS u ON l_p.user_id = u.id_user
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Lotes paginados
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT  l_p.id_lote, l_p.sublote, l_p.fecha_siembra, l_p.fecha_cosecha, l_p.cantidad,
                         l_p.especie_id, l_p.categoria_id, l_p.estado_lote, l_p.user_id, l_p.lote_granj_id,
                         e.nombre_especie, c.nombre_categoria, u.nombre_user, l_g.nombre_lote
@@ -171,17 +179,12 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
                         LEFT JOIN users AS u ON l_p.user_id = u.id_user
                         LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
+                        {where_clause}
                         ORDER BY l_p.fecha_cosecha DESC
                         LIMIT :limit OFFSET :skip
                     """)
 
-        lotes_prod_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        lotes_prod_list = db.execute( data_query, params).mappings().all()
 
         return {
             "total": total_result or 0,

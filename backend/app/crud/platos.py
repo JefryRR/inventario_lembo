@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session # type: ignore
 from sqlalchemy import text # type: ignore
 from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from app.schemas.platos import PlatoCreate, PlatoUpdate
+from typing import Optional
 
 import logging
 
@@ -108,36 +109,39 @@ def change_plato_estado(db: Session, plato_id: int, nuevo_estado: bool):
         logger.error(f"Error al cambiar el estado del plato {plato_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del plato")
 
-def get_platos_paginated(db: Session, skip: int = 0, limit: int = 10):
+def get_platos_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
 
     """
     Obtiene inventario de producción con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(nombre_plato) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+        
         # Total de producción
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(id_plato) AS total
             FROM platos
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Producción paginada
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT id_plato, nombre_plato, estado, fecha_registro
                         FROM platos
+                        {where_clause}
                         ORDER BY fecha_registro DESC
                         LIMIT :limit OFFSET :skip
                     """)
             
-        platos_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        platos_list = db.execute( data_query, params ).mappings().all()
 
         return {
             "total": total_result or 0,
