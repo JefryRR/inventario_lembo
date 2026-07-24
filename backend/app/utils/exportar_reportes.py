@@ -1,22 +1,27 @@
 import io
-from openpyxl import Workbook   # type: ignore
-from openpyxl.styles import Font, PatternFill  # type: ignore
-from reportlab.lib import colors  # type: ignore
-from reportlab.lib.pagesizes import letter, landscape  # type: ignore
-from reportlab.lib.units import cm # type: ignore
-from reportlab.lib.styles import getSampleStyleSheet  # type: ignore
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer # type: ignore
+from openpyxl import Workbook   
+from openpyxl.styles import Font, PatternFill  
+from reportlab.lib import colors  
+from reportlab.lib.pagesizes import letter, landscape  
+from reportlab.lib.units import cm 
+from reportlab.lib.styles import getSampleStyleSheet  
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer 
 from collections import defaultdict
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle
 
+## Estilo para las observaciones en los reportes PDF
 styles = getSampleStyleSheet()
 
 estilo_observaciones = styles["BodyText"].clone("Observaciones")
 estilo_observaciones.fontSize = 6
 estilo_observaciones.leading = 7
 
+# Se definen las funciones para generar reportes en formato Excel y PDF para diferentes tipos de datos, 
+# como pérdidas, lotes de producción, mortalidad y ventas, entre otros. Estas funciones utilizan las bibliotecas openpyxl 
+# y reportlab para crear los archivos de manera estructurada y con estilos personalizados.
 
+# Función para normalizar un reporte de máquina.
 def _normalizar_reporte_maquina(reporte: dict) -> tuple[dict, list[dict]]:
     historial = reporte.get("historial") or reporte.get("movimientos") or []
 
@@ -27,6 +32,7 @@ def _normalizar_reporte_maquina(reporte: dict) -> tuple[dict, list[dict]]:
 
     return encabezado, historial
 
+# -------------------------------- Reporte de pérdidas --------------------------------
 def _calcular_valor_total(perdida: dict) -> float:
     valor_unitario = perdida.get("valor_unitario")
     cantidad = perdida.get("cantidad")
@@ -169,6 +175,7 @@ def generar_pdf_reporte_perdidas(perdidas: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+# ------------------------------- Reporte de lotes de producción --------------------------------
 def generar_excel_reporte_lote_prod(reporte: dict) -> io.BytesIO:
     encabezado = reporte["encabezado"]
     historial = reporte["historial"]
@@ -258,13 +265,11 @@ def generar_pdf_reporte_lotes_prod(reporte: dict) -> io.BytesIO:
     styles = getSampleStyleSheet()
     elementos = []
 
-    # ── Título ───────────────────────────────────────────────────────
     elementos.append(Paragraph(
         f"Informe de lote: {encabezado['nombre_lote']}", styles["Title"]
     ))
     elementos.append(Spacer(1, 12))
 
-    # ── Encabezado general ───────────────────────────────────────────
     datos_enc = [
         ["Especie",            str(encabezado["nombre_especie"])],
         ["Categoría",          str(encabezado["nombre_categoria"])],
@@ -283,7 +288,6 @@ def generar_pdf_reporte_lotes_prod(reporte: dict) -> io.BytesIO:
     elementos.append(tabla_enc)
     elementos.append(Spacer(1, 16))
 
-    # ── Métricas ─────────────────────────────────────────────────────
     elementos.append(Paragraph("Resumen de mortalidad", styles["Heading2"]))
     datos_metricas = [
         ["Cantidad inicial", "Vivos actuales", "Total muertes", "% Mortalidad"],
@@ -352,6 +356,7 @@ def generar_pdf_reporte_lotes_prod(reporte: dict) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+# ------------------------------- Reporte de mortalidad --------------------------------
 def generar_excel_reporte_mortalidad(perdidas: list) -> io.BytesIO:
     wb = Workbook()
     ws = wb.active
@@ -470,6 +475,7 @@ def generar_pdf_reporte_mortalidad(mortalidad: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+# ------------------------------- Reporte de ventas --------------------------------
 def _agrupar_detalles_por_venta(detalles: list) -> dict:
     agrupado = defaultdict(list)
     for d in detalles:
@@ -626,6 +632,7 @@ def generar_pdf_reporte_ventas(ventas: list, detalles: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+# ------------------------------- Reporte de tratamientos --------------------------------
 def generar_excel_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
     wb = Workbook()
     ws = wb.active
@@ -716,6 +723,7 @@ def generar_pdf_reporte_tratamientos(tratamientos: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+# ------------------------------- Reporte de ventas de platos --------------------------------
 def generar_excel_reporte_ventas_platos(venta_platos: list) -> io.BytesIO:
     wb = Workbook()
     ws = wb.active
@@ -795,6 +803,7 @@ def generar_pdf_reporte_ventas_platos(venta_platos: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+# ------------------------------- Reporte de maquinas --------------------------------
 def generar_excel_reporte_maquina(reporte: dict) -> io.BytesIO:
     encabezado, movimientos = _normalizar_reporte_maquina(reporte)
 
@@ -995,6 +1004,7 @@ def generar_pdf_reporte_general_maquina(maquinaria: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+# ------------------------------- Reporte de solicitudes de insumos --------------------------------
 def generar_excel_reporte_soli_insumo(solicitud: list) -> io.BytesIO:
     wb = Workbook()
     ws = wb.active
@@ -1092,6 +1102,7 @@ def generar_pdf_reporte_soli_insumo(solicitud: list) -> io.BytesIO:
     buffer.seek(0)
     return buffer
 
+# ------------------------------- Reporte de comercialización --------------------------------
 def generar_excel_reporte_comercializacion(comercializacion: list) -> io.BytesIO:
     wb = Workbook()
     ws = wb.active

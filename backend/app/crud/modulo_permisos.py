@@ -1,15 +1,13 @@
 from typing import Optional
 import logging
-
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
 from app.schemas.permisos import PermisoCreate, PermisoUpdate
 
 logger = logging.getLogger(__name__)
 
-
+#Crear un nuevo permiso
 def create_permiso(db: Session, permiso: PermisoCreate) -> Optional[bool]:
     try:
         # Verificar si el permiso ya existe
@@ -37,7 +35,7 @@ def create_permiso(db: Session, permiso: PermisoCreate) -> Optional[bool]:
         logger.error(f"Error al crear permiso: {e}")
         raise Exception("Error de base de datos al crear el permiso")
 
-
+# Obtener todos los permisos
 def get_all_permisos(db: Session):
     try:
         query = text("""SELECT p.id_rol, p.id_modulo, p.insertar, p.actualizar, p.seleccionar, p.borrar,
@@ -53,7 +51,7 @@ def get_all_permisos(db: Session):
         logger.error(f"Error al obtener permisos: {e}")
         raise Exception("Error de base de datos al obtener los permisos")
 
-
+# Obtener permisos por rol
 def get_permisos_by_rol(db: Session, id_rol: int):
     try:
         query = text("""
@@ -70,7 +68,7 @@ def get_permisos_by_rol(db: Session, id_rol: int):
         logger.error(f"Error al obtener permisos por rol: {e}")
         raise Exception("Error de base de datos al obtener permisos por rol")
 
-
+# Obtener permisos por su ID
 def get_permiso_by_id(db: Session, id_modulo: int, id_rol: int):
     try:
         query = text("""
@@ -84,10 +82,10 @@ def get_permiso_by_id(db: Session, id_modulo: int, id_rol: int):
         result = db.execute(query, {"modulo": id_modulo, "rol": id_rol}).mappings().first()
         return result
     except SQLAlchemyError as e:
-        logger.error(f"Error al obtener permiso por ids: {e}")
+        logger.error(f"Error al obtener permiso por id: {e}")
         raise Exception("Error de base de datos al obtener el permiso")
 
-
+# Actualizar un permiso por su ID
 def update_permiso(db: Session, id_modulo: int, id_rol: int, permiso: PermisoUpdate) -> Optional[bool]:
     try:
         permiso_data = permiso.model_dump(exclude_unset=True)

@@ -1,13 +1,12 @@
 import io
-from typing import Any
-from openpyxl import Workbook   # type: ignore
-from openpyxl.styles import Font, PatternFill  # type: ignore
-from reportlab.lib import colors  # type: ignore
-from reportlab.lib.pagesizes import letter, landscape  # type: ignore
-from reportlab.lib.units import cm # type: ignore
-from reportlab.lib.styles import getSampleStyleSheet  # type: ignore
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer # type: ignore
-
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.units import cm
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.enums import TA_CENTER
 
 styles = getSampleStyleSheet()
 
@@ -15,7 +14,7 @@ estilo_observaciones = styles["BodyText"].clone("Observaciones")
 estilo_observaciones.fontSize = 6
 estilo_observaciones.leading = 7
 
-
+# ------------------------------- Reporte de insumos --------------------------------
 def generar_excel_reporte_insumo(reporte: dict) -> io.BytesIO:
     encabezado = reporte["encabezado"]
     movimientos = reporte["movimientos"]

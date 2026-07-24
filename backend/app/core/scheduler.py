@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 scheduler = BackgroundScheduler()
 
-
+# Agregar tareas programadas, en este caso, la tarea de registrar vencidos cada 30 minutos.
 def job_registrar_vencidos():
     """
     Recorre producción, insumos y comercialización, y registra
@@ -31,7 +31,7 @@ def job_registrar_vencidos():
     finally:
         db.close()
 
-
+# Inicia el scheduler para ejecutar la tarea de registrar vencidos cada 30 minutos.
 def iniciar_scheduler():
     scheduler.add_job(
         job_registrar_vencidos,

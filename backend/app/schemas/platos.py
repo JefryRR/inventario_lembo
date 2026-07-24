@@ -2,6 +2,8 @@ import datetime
 from pydantic import BaseModel, Field
 from typing import Optional
 
+# Aquí se define el schema para los platos, incluyendo la creación, actualización y salida de datos.
+
 class PlatoBase(BaseModel):
     nombre_plato: str = Field(max_length=100)
     estado: bool = Field(default=True)

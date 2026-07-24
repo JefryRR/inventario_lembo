@@ -1,12 +1,13 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from fastapi import HTTPException
 from app.schemas.ingredientes import IngredienteCreate, IngredienteUpdate
 import logging
 
 logger = logging.getLogger(__name__)
 
+#Crear un ingrediente
 def create_ingrediente(db: Session, ingredientes: IngredienteCreate):
     try:
 
@@ -16,7 +17,8 @@ def create_ingrediente(db: Session, ingredientes: IngredienteCreate):
                         :plato_id, :origen_inv, :inventario_id, :cant_inv, :cant_conv_inv, :unid_med_id, :fecha_registro
                         )
                     """)
-        
+
+        # Obtener la conversión de la unidad de medida del producto y del inventario
         conv_prod = db.execute(text("""
             SELECT conversion FROM unidades_medida
             WHERE id_unidad = :unid_medida_id
@@ -64,6 +66,7 @@ def create_ingrediente(db: Session, ingredientes: IngredienteCreate):
         logger.error(f"Error al crear el ingrediente: {e}")
         raise Exception("Error de base de datos al crear el ingrediente")
 
+# Obtener un ingrediente por su ID
 def get_ingrediente_by_id(db: Session, id: int):
     try:
         query = text("""
@@ -95,7 +98,8 @@ def get_ingrediente_by_id(db: Session, id: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener ingrediente por ID: {e}")
         raise Exception("Error de base de datos al obtener el ingrediente")
-    
+
+# Actualizar un ingrediente por su ID
 def update_ingrediente_by_id(db: Session, ingrediente_id: int, ingrediente: IngredienteUpdate):
     try:
         ingrediente_data = ingrediente.model_dump(exclude_unset=True)
@@ -172,7 +176,8 @@ def update_ingrediente_by_id(db: Session, ingrediente_id: int, ingrediente: Ingr
                     )
         logger.error(f"Error al actualizar el ingrediente {ingrediente_id}: {e}")
         raise Exception("Error de base de datos al actualizar el ingrediente")
-    
+
+# Eliminar un ingrediente por su ID
 def delete_ingrediente_by_id(db: Session, id: int):
     try:
         # 1. Obtener el ingrediente antes de eliminarlo
@@ -256,6 +261,7 @@ def delete_ingrediente_by_id(db: Session, id: int):
         logger.error(f"Error al eliminar el ingrediente {id}: {e}")
         raise Exception("Error de base de datos al eliminar el ingrediente")
 
+# Obtener ingredientes por rango de fechas
 def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene los ingredientes cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -295,6 +301,7 @@ def get_ingredientes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: st
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los ingredientes por rango de fechas: {e}")
 
+# Obtener todos los ingredientes
 def all_ingredientes(db: Session):
     try:
         query = text("""SELECT 
@@ -326,6 +333,7 @@ def all_ingredientes(db: Session):
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas los ingredientes")
 
+# Obtener ingredientes con paginación
 def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
 
     """

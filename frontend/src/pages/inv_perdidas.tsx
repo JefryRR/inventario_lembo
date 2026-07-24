@@ -225,7 +225,7 @@ export default function InvPerd() {
                 to="/invPerd/create"
                 className="inline-flex h-12 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700"
               >
-                Registrar pérdida
+                Nueva pérdida
               </Link>
             </ConPermiso>
             <button

@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field # type: ignore
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+
+# Aquí se define el schema para el inventario de producción, incluyendo la creación, actualización y salida de datos.
 
 class ProduccionBase(BaseModel):
     nombre_producto: str = Field(min_length=3, max_length=50)
@@ -11,7 +13,6 @@ class ProduccionBase(BaseModel):
     lote_id: int
     valor_unitario: float
    
-
 class ProduccionCreate(ProduccionBase):
     pass
 

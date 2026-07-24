@@ -8,6 +8,7 @@ from app.schemas.users import UserCreate, UserUpdate, UserEstado
 
 logger = logging.getLogger(__name__)
 
+# Crear un nuevo usuario
 def create_user(db: Session, user: UserCreate) -> Optional[bool]:
     try:
         pass_encript = get_hashed_password(user.pass_hash)
@@ -31,6 +32,7 @@ def create_user(db: Session, user: UserCreate) -> Optional[bool]:
       logger.error(f"Error al crear usuario: {e}")
       raise Exception("Error de base de datos al crear el usuario")
 
+# Obtener un usuario por su correo electrónico para login
 def get_user_by_email_for_login(db: Session, email: str):
    try:
        query = text("""SELECT id_user, nombre_user, documento, rol_id, tipo_documento,
@@ -44,6 +46,7 @@ def get_user_by_email_for_login(db: Session, email: str):
        logger.error(f"Error al obtener usuario por email: {e}")
        raise Exception("Error de base de datos al obtener el usuario")
 
+# Obtener un usuario por su correo electrónico
 def get_user_by_email(db: Session, email: str):
   try:
       query = text("""SELECT *
@@ -54,7 +57,8 @@ def get_user_by_email(db: Session, email: str):
   except SQLAlchemyError as e:
       logger.error(f"Error al obtener usuario por email: {e}")
       raise Exception("Error de base de datos al obtener el usuario")
-  
+
+# Obtener un correo por id de usuario 
 def get_email_by_user_id(db: Session, user_id: int) -> Optional[str]:
     try:
         query = text("SELECT correo FROM users WHERE id_user = :id_user")
@@ -63,7 +67,7 @@ def get_email_by_user_id(db: Session, user_id: int) -> Optional[str]:
         logger.error(f"Error al obtener correo de usuario {user_id}: {e}")
         raise Exception("Error de base de datos al obtener el correo del usuario")
 
-
+# Obtener un correo electrónico dependeindo del rol, esta función se usa para enviar correos en las solicitudes
 def get_emails_by_rol_id(db: Session, rol_id: int) -> list[str]:
     """
     Trae los correos de todos los usuarios activos que tengan un rol_id determinado.
@@ -81,6 +85,7 @@ def get_emails_by_rol_id(db: Session, rol_id: int) -> list[str]:
         logger.error(f"Error al obtener correos por rol_id {rol_id}: {e}")
         raise Exception("Error de base de datos al obtener correos por rol")
 
+# Obtener todos los usuarios excepto los administradores
 def get_all_user_except_admins(db: Session):
     try:
         query = text("""SELECT u.id_user, u.rol_id, u.nombre_user, u.documento, u.tipo_documento, u.correo, 
@@ -95,6 +100,7 @@ def get_all_user_except_admins(db: Session):
         logger.error(f"Error al obtener los usuarios: {e}")
         raise Exception("Error de base de datos al obtener los usuarios")
 
+# Obtener un usuario por su ID
 def get_user_by_id(db: Session, id: int):
     try:
         query = text("""SELECT u.id_user, u.rol_id, u.nombre_user, u.documento, u.tipo_documento, u.correo, 
@@ -108,7 +114,8 @@ def get_user_by_id(db: Session, id: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener usuario por id: {e}")
         raise Exception("Error de base de datos al obtener el usuario")
-    
+
+# Obtener un usuario por su número de documento
 def get_user_by_document_number(db: Session, document: str):
     try:
         query = text("""SELECT u.id_user, u.rol_id, u.nombre_user, u.documento, u.tipo_documento, u.correo, 
@@ -123,8 +130,7 @@ def get_user_by_document_number(db: Session, document: str):
         logger.error(f"Error al obtener usuario por su documento: {e}")
         raise Exception("Error de base de datos al obtener el usuario")
     
-
-
+# Actualizar un usuario por su ID
 def update_user_by_id(db: Session, user_id: int, user: UserUpdate) -> Optional[bool]:
     try:
     # Solo los campos enviados por el cliente
@@ -148,7 +154,7 @@ def update_user_by_id(db: Session, user_id: int, user: UserUpdate) -> Optional[b
             logger.error(f"Error al actualizar usuario {user_id}: {e}")
             raise Exception("Error de base de datos al actualizar el usuario")
     
-
+# Cambiar el estado de un usuario (activo/inactivo)
 def change_status_user(db: Session, user_id: int, estado: UserEstado) -> Optional[bool]:
     try:
         sentencia = text("""
@@ -164,7 +170,7 @@ def change_status_user(db: Session, user_id: int, estado: UserEstado) -> Optiona
         logger.error(f"Error al cambiar estado del usuario {user_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del usuario")
 
-
+# Obtener todos los usuarios con paginación
 def get_all_users_pag(db: Session, skip: int = 0, limit: int = 10):
     """
     Obtiene usuarios con paginación.
@@ -211,6 +217,4 @@ def get_all_users_pag(db: Session, skip: int = 0, limit: int = 10):
 
         raise Exception(
             "Error de base de datos al obtener los usuarios"
-        )
-        
-        
+        )  

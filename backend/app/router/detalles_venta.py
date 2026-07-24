@@ -1,16 +1,19 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query 
+from sqlalchemy.orm import Session 
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.detalle_venta import DetalleVentaCreate, DetalleVentaUpdate, DetalleVentaOut, EstadoVenta
 from app.schemas.users import UserOut
 from app.crud import detalle_venta as crud_detalles
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
 
 router = APIRouter()
 modulo = 8
+
+# Aquí se definen las rutas para el CRUD de detalles de venta, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_detalle_venta(
@@ -179,7 +182,8 @@ def get_detalles_venta_paginated(
         }
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
-    
+
+# Endpoint para eliminar un detalle de venta por su ID, asegurando que la venta no esté en estado "Vendido" o "Anulado"
 @router.delete("/delete_by_id/{id}", status_code=status.HTTP_200_OK)
 def delete_detalle_venta_by_id(
     id: int,

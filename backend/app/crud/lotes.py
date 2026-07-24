@@ -1,13 +1,13 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text        # type: ignore
-from sqlalchemy.exc import SQLAlchemyError   # type: ignore
-from app.core.security import get_hashed_password
+from sqlalchemy.orm import Session
+from sqlalchemy import text       
+from sqlalchemy.exc import SQLAlchemyError  
 from typing import Optional
 import logging
-from app.schemas.lotes_prod import LoteCreate, LoteUpdate, LoteEstado
+from app.schemas.lotes_prod import LoteCreate, LoteUpdate
 
 logger = logging.getLogger(__name__)
 
+# FUnción para crear el lote base de donde se pueden tener varios lotes de producción.
 def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
     try:
         query = text("""
@@ -25,6 +25,7 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
       logger.error(f"Error al crear lote: {e}")
       raise Exception("Error de base de datos al crear el lote")
 
+# Función para obtener todos los lotes de producción
 def get_all_lotes(db: Session):
     try:
         query = text("""
@@ -36,6 +37,7 @@ def get_all_lotes(db: Session):
         logger.error(f"Error al obtener lotes: {e}")
         raise Exception("Error de base de datos al obtener los lotes")
 
+# Función para obtener un lote por su ID
 def get_lote_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_lote_g, nombre_lote, ubicacion, latitud, longitud FROM lotes_granja WHERE id_lote_g = :id """)
@@ -46,6 +48,7 @@ def get_lote_by_id(db: Session, id: int):
         logger.error(f"Error al obtener lote por id: {e}")
         raise Exception("Error de base de datos al obtener el lote")
 
+# Función para actualizar un lote por su ID
 def update_lote_by_id(db: Session, lote_id_g: int, lote: LoteUpdate) -> Optional[bool]:
     try:
     # Solo los campos enviados por el cliente
@@ -69,6 +72,7 @@ def update_lote_by_id(db: Session, lote_id_g: int, lote: LoteUpdate) -> Optional
             logger.error(f"Error al actualizar lote {lote_id_g}: {e}")
             raise Exception("Error de base de datos al actualizar el lote")
 
+# Función para obtener lotes con paginación
 def get_all_lotes_granja_pag(db: Session, skip: int = 0, limit: int = 10):
     """
     Obtiene lotes con paginación.

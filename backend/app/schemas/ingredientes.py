@@ -1,6 +1,8 @@
-from pydantic import BaseModel   #type: ignore
+from pydantic import BaseModel
 from typing import Optional
 from datetime import date
+
+# Aquí se define el schema para los ingredientes, incluyendo la creación, actualización y salida de datos.
 
 class IngredienteBase(BaseModel):
     plato_id: int

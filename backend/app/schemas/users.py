@@ -2,6 +2,8 @@ from app.schemas.permisos import List
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
+# Aquí se define el schema para los usuarios, incluyendo la creación, actualización y salida de datos.
+
 class UserBase(BaseModel):
     nombre_user: str = Field(max_length=25)
     documento: int

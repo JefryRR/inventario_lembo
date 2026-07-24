@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from typing import Optional
-
 from app.schemas.users import UserOut
+
+# Aquí se define el schema para la autenticación.
 
 class ResponseLoggin(BaseModel):
    user: UserOut

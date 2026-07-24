@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field # type: ignore
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+
+# Aquí se define el schema para las ventas, incluyendo la creación, actualización y salida de datos.
 
 class VentasBase(BaseModel):
     nombre_comprador: str = Field(default=None, min_length=3, max_length=25)

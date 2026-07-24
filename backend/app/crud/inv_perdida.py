@@ -1,7 +1,7 @@
 from datetime import date
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from typing import Optional
 from app.schemas.inv_perdida import PerdidaCreate, PerdidaUpdate, PerdidaOut
 
@@ -9,6 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear una nueva pérdida
 def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optional[bool]:
     try:
 
@@ -20,9 +21,11 @@ def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optiona
             AND origen = :origen                                    
         """), {"inv_prod_id": perdida.inv_prod_id, "fecha_reporte": perdida.fecha_reporte, "motivo": perdida.motivo, "origen": perdida.origen}).scalar()
 
+        # Validación de duplicados
         if duplicado and duplicado > 0:
             raise Exception("Ya existe una pérdida registrada para este producto, si desea modificarla, informe al administrador.")
-        
+
+        # Validación de existencia y cantidad según origen
         if perdida.origen == "produccion":
             disponible = db.execute(text("""
                 SELECT cantidad
@@ -30,9 +33,11 @@ def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optiona
                 WHERE id_inventario = :inv_prod_id
             """), {"inv_prod_id": perdida.inv_prod_id}).mappings().first()
 
+            # Validación de existencia y cantidad
             if not disponible:
                 raise ValueError("Producto no encontrado en inventario de producción")
 
+            # Validación de cantidad
             if float(disponible["cantidad"] or 0) <= 0:
                 raise ValueError("No se puede descontar la pérdida porque el inventario de producción está en 0")
             
@@ -93,7 +98,7 @@ def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optiona
             if float(comercializacion_disp["cantidad"] or 0) <= 0:
                 raise ValueError("No se puede descontar la pérdida porque el inventario de comercialización está en 0")
             
-
+        # Obtener la conversión de la unidad de medida
         conv = db.execute(text("""
             SELECT conversion FROM unidades_medida
             WHERE id_unidad = :unid_medida_id
@@ -102,6 +107,7 @@ def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optiona
         if not conv:
             raise Exception("Unidad de medida no encontrada")
 
+        # Insertar la pérdida en la base de datos
         query = text("""
             INSERT INTO inv_perdidas (
                 inv_prod_id, cantidad, origen, motivo, fecha_reporte, 
@@ -125,7 +131,8 @@ def create_perdida(db: Session, perdida: PerdidaCreate, user_id: int) -> Optiona
         db.rollback()
         logger.error(f"Error al crear la pérdida: {e}")
         raise Exception("Error de base de datos al crear la pérdida")
-           
+
+# Obtener una pérdida por su ID    
 def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
     try:
         result = db.execute(text("""
@@ -163,7 +170,8 @@ def get_perdida_by_id(db: Session, id: int) -> Optional[PerdidaOut]:
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener pérdida por id: {e}")
         raise Exception("Error de base de datos al obtener la pérdida")
-    
+
+# Actualizar una pérdida por su ID
 def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
     try:
     # Solo los campos enviados por el usuario
@@ -186,7 +194,8 @@ def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
                 
                 if not perdida_actual:
                     return False # La pérdida no existe
-                
+
+                # Rellenamos los valores faltantes
                 if cantidad is None:
                     cantidad = perdida_actual.cantidad
                 if unid_med_id is None:
@@ -221,7 +230,8 @@ def update_perdida_by_id(db: Session, id: int, perdida_update: PerdidaUpdate):
         db.rollback()
         logger.error(f"Error al actualizar pérdida {id}: {e}")
         raise Exception("Error de base de datos al actualizar la pérdida")
-     
+
+# Obtener todas las pérdidas
 def all_perdidas(db: Session) -> list[PerdidaOut]:
     try:
         query = text("""
@@ -255,6 +265,7 @@ def all_perdidas(db: Session) -> list[PerdidaOut]:
         logger.error(f"Error al obtener todas las pérdidas: {e}")
         raise Exception("Error de base de datos al obtener las pérdidas")
 
+# Obtener pérdidas por rango de fechas
 def get_perdidas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str, origen: Optional[str] = None):
     """
     Obtiene las tareas cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -298,6 +309,7 @@ def get_perdidas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str, o
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los perdidas por rango de fechas: {e}")
 
+# Obtener pérdidas con paginación
 def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
     try:
         count_query = text("""

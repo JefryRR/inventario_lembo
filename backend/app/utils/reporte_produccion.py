@@ -1,12 +1,12 @@
 import io
-from openpyxl import Workbook   # type: ignore
-from openpyxl.styles import Font, PatternFill  # type: ignore
-from reportlab.lib import colors  # type: ignore
-from reportlab.lib.pagesizes import letter, landscape  # type: ignore
-from reportlab.lib.units import cm # type: ignore
-from reportlab.lib.styles import getSampleStyleSheet  # type: ignore
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer # type: ignore
-from reportlab.platypus import Paragraph  # type: ignore
+from openpyxl import Workbook   
+from openpyxl.styles import Font, PatternFill  
+from reportlab.lib import colors  
+from reportlab.lib.pagesizes import letter, landscape  
+from reportlab.lib.units import cm 
+from reportlab.lib.styles import getSampleStyleSheet  
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer 
+from reportlab.platypus import Paragraph  
 from typing import Union
 from datetime import datetime, date
 
@@ -16,6 +16,7 @@ estilo_observaciones = styles["BodyText"].clone("Observaciones")
 estilo_observaciones.fontSize = 6
 estilo_observaciones.leading = 7
 
+# ------------------------------- Reporte de producción --------------------------------
 def _formatear_fecha_hora(valor) -> Paragraph:
     if valor in (None, "-", ""):
         return Paragraph("-", estilo_observaciones)

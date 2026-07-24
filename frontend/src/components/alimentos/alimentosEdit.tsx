@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el formulario y las opciones de select
 type AlimentoFormState = {
     lote_id: number;
     insumo_id: number;
@@ -36,6 +37,7 @@ type UnidadOption = {
     tipo_unidad: string;
 };
 
+// Estado inicial del formulario
 const emptyState: AlimentoFormState = {
     lote_id: 0,
     insumo_id: 0,
@@ -63,6 +65,7 @@ function toDatetimeLocal(value?: string | null): string {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+// Componente principal para editar un alimento
 export default function AlimentoEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -80,12 +83,14 @@ export default function AlimentoEdit() {
     useEffect(() => {
         if (!id) return;
 
+        // Variable para controlar si el componente sigue montado
         let mounted = true;
         const load = async () => {
             setLoading(true);
             setError(null);
 
             try {
+                // Cargar los datos del alimento, lotes, insumos y unidades de medida en paralelo
                 const [alimentoData, lotesData, insumosData, unidadesData] = await Promise.all([
                     apiFetch(`alimento_prod/by-id?id_alimento=${id}`),
                     apiFetch("lotes_prod/all-lotes_prod"),
@@ -95,6 +100,7 @@ export default function AlimentoEdit() {
 
                 if (!mounted) return;
 
+                // Normalizar los datos de lotes y insumos para asegurarse de que sean arrays
                 const loteList = Array.isArray(lotesData?.lotes)
                     ? lotesData.lotes
                     : Array.isArray(lotesData)
@@ -107,12 +113,24 @@ export default function AlimentoEdit() {
                         ? insumosData
                         : [];
 
+                // Filtrar los insumos para mostrar solo los alimentos vigentes (tipo_id === 2 y fecha de vencimiento no pasada)
                 const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
                     const esAlimento = insumo.tipo_id === 2;
                     const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
                     return esAlimento && noVencido;
                 });
 
+                // Si el insumo actual del registro no está en la lista filtrada, lo agregamos igual
+                const insumoActual = insumoList.find(
+                    (insumo: InsumoOption) => insumo.id_insumo === Number(alimentoData?.insumo_id)
+                );
+
+                // Crear una lista de insumos para mostrar, incluyendo el insumo actual si no está en la lista filtrada
+                const insumosParaMostrar = insumoActual && !alimentosVigentes.some((i: InsumoOption) => i.id_insumo === insumoActual.id_insumo)
+                    ? [...alimentosVigentes, insumoActual]
+                    : alimentosVigentes;
+
+                // Filtrar los lotes para mostrar solo los que están activos o en cuarentena
                 const Lotesvisibles = loteList.filter((lote: LoteOption) => {
                     const estado = lote.estado_lote === "activo" || lote.estado_lote === "cuarentena";
                     return estado;
@@ -131,6 +149,7 @@ export default function AlimentoEdit() {
                 setLotes(Lotesvisibles);
                 setInsumos(alimentosVigentes);
                 setUnidades(medidasVigentes);
+                setInsumos(insumosParaMostrar); // Actualizamos la lista de insumos para mostrar
 
                 // Traer los valores del formulario almacenados en la tabla de alimento
                 setForm({
@@ -210,6 +229,7 @@ export default function AlimentoEdit() {
 
     return (
         <>
+             {/* Componente PageMeta para establecer el título y la descripción de la página */}
             <PageMeta title="Editar alimento | Inventario Lembo" description="Editar alimento" />
 
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">

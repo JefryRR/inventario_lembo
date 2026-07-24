@@ -1,6 +1,4 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import Optional, List
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
@@ -12,6 +10,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
 modulo = 18
+
+# Aquí se definen las rutas para el CRUD de unidades de medida, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 # Endpoint para crear una nueva unid de medida 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
@@ -31,7 +32,6 @@ def create_unid_medida(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener un rol por su ID  
 @router.get("/get_by-id",  response_model=Unid_medOut)
 def get_unid_medida_by_id(id: int, db: Session = Depends(get_db),
               user_token: UserOut = Depends(get_current_user)
@@ -69,7 +69,6 @@ def get_all_unid_medida(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para actualizar un rol por su ID   
 @router.put("/by_id/{id_unid_medida}")
 def update_unid_medida_by_id(id_unid_medida: int, unid_medida: Unid_medUpdate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)

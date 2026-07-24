@@ -1,13 +1,14 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text        # type: ignore
-from sqlalchemy.exc import SQLAlchemyError   # type: ignore
-from app.core.security import datetime, get_hashed_password, timezone
+from sqlalchemy.orm import Session
+from sqlalchemy import text       
+from sqlalchemy.exc import SQLAlchemyError  
+from app.core.security import datetime, timezone
 from typing import Optional
 import logging
 from app.schemas.lotes_prod import LoteCreate, LoteUpdate, LoteEstado
 
 logger = logging.getLogger(__name__)
 
+# Crear un nuevo lote de producción
 def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
     try:
         query = text("""
@@ -27,7 +28,8 @@ def create_lote(db: Session, lote: LoteCreate) -> Optional[bool]:
       db.rollback()
       logger.error(f"Error al crear lote: {e}")
       raise Exception("Error de base de datos al crear el lote")
-    
+
+# Obtener todos los lotes de producción, con opción de filtrar por estado
 def get_all_lotes(db: Session, estado: Optional[str] = None):
     try:
         # Si viene estado, filtra por ese estado; si no, trae todos
@@ -54,6 +56,7 @@ def get_all_lotes(db: Session, estado: Optional[str] = None):
         logger.error(f"Error al obtener lotes: {e}")
         raise Exception("Error de base de datos al obtener los lotes")
 
+# Obtener un lote de producción por su ID
 def get_lote_by_id(db: Session, id: int):
     try:
         query = text("""
@@ -74,6 +77,7 @@ def get_lote_by_id(db: Session, id: int):
         logger.error(f"Error al obtener lote por id: {e}")
         raise Exception("Error de base de datos al obtener el lote")
 
+# Actualizar un lote de producción por su ID
 def update_lote_by_id(db: Session, lote_id: int, lote: LoteUpdate) -> Optional[bool]:
     try:
     # Solo los campos enviados por el cliente
@@ -97,6 +101,7 @@ def update_lote_by_id(db: Session, lote_id: int, lote: LoteUpdate) -> Optional[b
             logger.error(f"Error al actualizar lote {lote_id}: {e}")
             raise Exception("Error de base de datos al actualizar el lote")
 
+# Cambiar el estado de un lote de producción
 def change_status_lote(db: Session, lote_id: int, estado: LoteEstado, usuario_id: int) -> Optional[bool]:
     try:
         # 1. Actualizar el estado
@@ -126,6 +131,7 @@ def change_status_lote(db: Session, lote_id: int, estado: LoteEstado, usuario_id
         logger.error(f"Error al cambiar estado del lote {lote_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del lote")
 
+# Obtener el historial de cambios de estado de un lote por su ID
 def get_historial_by_id(db: Session, id_lote_p: int):
     try:
         query = text("""
@@ -142,7 +148,8 @@ def get_historial_by_id(db: Session, id_lote_p: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener historial por id: {e}")
         raise Exception("Error de base de datos al obtener el historial del lote")
- 
+
+# Obtener todos los lotes de producción con paginación
 def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
     """
     Obtiene lotes con paginación.
@@ -193,6 +200,4 @@ def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
 
         raise Exception(
             "Error de base de datos al obtener los lotes"
-        )
-        
-        
+        )   

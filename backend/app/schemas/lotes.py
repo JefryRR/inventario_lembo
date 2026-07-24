@@ -2,6 +2,8 @@ from app.schemas.permisos import List
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
+# Aquí se define el schema para los lotes de la granja (lotes base), incluyendo la creación, actualización y salida de datos.
+
 class LoteBase(BaseModel):
     nombre_lote: str = Field(max_length=25)
     ubicacion: str = Field(max_length=50)

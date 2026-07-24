@@ -1,12 +1,12 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from app.schemas.ventas import VentasCreate, VentasUpdate
-
 import logging
 
 logger = logging.getLogger(__name__)
 
+#Crear una nueva venta, aquí solo se crean los datos de la persona que realiza la compra, el detalle de la venta se crea en otro endpoint
 def create_venta(db: Session, venta: VentasCreate, user_id: int):
     try:
         query = text("""INSERT INTO ventas 
@@ -22,7 +22,8 @@ def create_venta(db: Session, venta: VentasCreate, user_id: int):
         db.rollback()
         logger.error(f"Error al crear venta: {e}")
         raise Exception("Error de base de datos al crear la venta")
-    
+
+# Obtener una venta por su ID
 def get_venta_by_id(db: Session, id: int):
     try:
         query = text("""SELECT v.id_venta, v.nombre_comprador, v.id_comprador, 
@@ -40,7 +41,8 @@ def get_venta_by_id(db: Session, id: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener venta por ID: {e}")
         raise Exception("Error de base de datos al obtener la venta")
-    
+
+# Obtener todas las ventas
 def all_ventas(db: Session):
     try:
         query = text("""SELECT v.id_venta, v.nombre_comprador, v.id_comprador, 
@@ -58,6 +60,7 @@ def all_ventas(db: Session):
         logger.error(f"Error al obtener todas las ventas: {e}")
         raise Exception("Error de base de datos al obtener todas las ventas")
 
+# Actualizar una venta por su ID
 def update_venta(db: Session, venta_id: int, venta: VentasUpdate):
     try:
         venta_data = venta.model_dump(exclude_unset=True)
@@ -79,7 +82,8 @@ def update_venta(db: Session, venta_id: int, venta: VentasUpdate):
         db.rollback()
         logger.error(f"Error al actualizar venta: {e}")
         raise Exception("Error de base de datos al actualizar la venta")
-    
+
+# Obtener ventas por usuario
 def ventas_by_user(db: Session, user_id: int):
     try:
         query = text("""SELECT v.id_venta, v.nombre_comprador, v.id_comprador, 
@@ -93,7 +97,8 @@ def ventas_by_user(db: Session, user_id: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener ventas por usuario: {e}")
         raise Exception("Error de base de datos al obtener ventas por usuario")
-    
+
+# Obtener ventas por rango de fechas
 def get_ventas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene las ventas cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -119,7 +124,8 @@ def get_ventas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
 
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las ventas por rango de fechas: {e}")
-                     
+
+# Obtener ventas con paginación              
 def ventas_paginated(db: Session, skip: int = 0, limit: int = 10):
     """
     Obtiene ventas con paginación.

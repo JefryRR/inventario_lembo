@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
+# Aquí se define el schema para la mortalidad, incluyendo la creación, actualización y salida de datos.
 
 class MortalidadBase(BaseModel):
     lote_id: int
@@ -18,7 +19,6 @@ class MortalidadUpdate(BaseModel):
     cantidad: Optional[int] = None
     observacion: Optional[str] = Field(default=None, max_length=255)
     foto_url: Optional[str] = None
-
 
 class MortalidadOut(MortalidadBase):
    id_mortalidad: int

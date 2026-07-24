@@ -4,9 +4,9 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 
-
 logger = logging.getLogger(__name__)
 
+# Verificar si un rol tiene permisos para realizar una acción en un módulo  
 def verify_permissions(db: Session, id_rol: int, id_modulo: int, accion: str):
     try:
         query = text("""SELECT insertar, actualizar, seleccionar, borrar
@@ -36,6 +36,7 @@ def verify_permissions(db: Session, id_rol: int, id_modulo: int, accion: str):
         logger.error(f"Error al obtener permisos: {e}")
         raise Exception("Error de base de datos al obtener permisos")
 
+# Obtener los permisos dependiendo del rol, este se usa para hacer las vistas en el front-end dependiendo del rol del usuario
 def get_permisos_by_rol(db: Session, id_rol: int):
     query = text("""
         SELECT m.id_modulo, m.nombre AS modulo, p.insertar, p.actualizar, p.seleccionar, p.borrar

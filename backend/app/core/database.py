@@ -32,7 +32,6 @@ engine = create_engine(
   poolclass=QueuePool  # Clase de pool para manejo eficiente de conexiones
 )
 
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Declarar la base para los modelos ORM
@@ -69,7 +68,6 @@ def get_db() -> Generator:
      db.close() # Cierra la sesión de base de datos y libera los recursos asociados.
      # Esto es esencial para evitar fugas de memoria y conexiones abiertas.
 
-
 def check_database_connection() -> bool:
  """
  Verifica la conexión a la base de datos.
@@ -84,7 +82,3 @@ def check_database_connection() -> bool:
  except (OperationalError, DisconnectionError) as e:
      logger.error(f"Error de conexión a la base de datos: {str(e)}")
      return False
-
-# if __name__ == "__main__":
-#     resultado = check_database_connection()
-#     print("¿Conexión exitosa?:", resultado)

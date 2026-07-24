@@ -1,15 +1,13 @@
 from typing import List
-
-from app.schemas.venta_platos import VentaPlatosPaginated
-from fastapi import APIRouter, Depends, HTTPException, status, Query   #type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query   
+from sqlalchemy.orm import Session 
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.prog_platos import ProgramacionCreate, ProgramacionUpdate, ProgramacionOut, ProgramacionPaginated
 from app.schemas.users import UserOut
 from app.crud import prog_platos as crud_prog_platos
-from sqlalchemy.exc import SQLAlchemyError #type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
 
 router = APIRouter()
 modulo = 22
@@ -69,45 +67,6 @@ def get_all_prog_platos(
         
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/rango-fechas", response_model=ProgramacionPaginated)
-def obtener_ventas_por_rango_fechas(
-    fecha_inicio: str = Query(..., description="Fecha inicial en formato YYYY-MM-DD"),
-    fecha_fin: str = Query(..., description="Fecha final en formato YYYY-MM-DD"),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(10, ge=1, le=100),
-    db: Session = Depends(get_db),
-    user_token: UserOut = Depends(get_current_user)
-):
-    try:
-        id_rol = user_token.rol_id
-        if not verify_permissions(db, id_rol, modulo, "seleccionar"):
-            raise HTTPException(status_code=401, detail="Usuario no autorizado")
-        
-        ventas = crud_prog_platos.get_programaciones_by_date_range(db, fecha_inicio, fecha_fin)
-
-        if not ventas:
-            raise HTTPException(status_code=404, detail="No hay registro(s) de programaciones en ese rango de fechas")
-
-        # Aplicar paginación manualmente a los resultados filtrados
-        total = len(ventas)
-        skip = (page - 1) * page_size
-        end_index = skip + page_size
-        
-        # Obtener solo la página solicitada
-        ventas_paginadas = ventas[skip:end_index]
-        
-        return ProgramacionPaginated(
-            page=page,
-            page_size=page_size,
-            total_programaciones=total,
-            total_pages=(total + page_size - 1) // page_size,
-            programaciones=ventas_paginadas
-        )
-
-    except SQLAlchemyError as e:
-        raise HTTPException(status_code=500, detail=f"Error al obtener los registros de las programaciones: {e}")
-
 
 # Endpoint para actualizar un rol por su ID   
 @router.put("/by_id/{id_programacion}", status_code=status.HTTP_200_OK)

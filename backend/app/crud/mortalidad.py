@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from app.core.security import get_hashed_password
 from typing import Optional
 import logging
 from app.schemas.mortalidad import MortalidadCreate,MortalidadUpdate
@@ -20,6 +19,7 @@ _SEARCH_WHERE = """
     )
 """
 
+#Crear un nuevo registro de mortalidad
 def create_mortalidad(db: Session, mortalidad: MortalidadCreate, user_id: int) -> Optional[bool]:
     try:
         query = text("""
@@ -40,6 +40,7 @@ def create_mortalidad(db: Session, mortalidad: MortalidadCreate, user_id: int) -
         error_msg = orig.args[1] if orig and len(orig.args) > 1 else str(e)
         raise Exception(error_msg)
 
+# Obtener todos los registros de mortalidad
 def get_all_mortalidad(db: Session):
     try:
         query = text("""
@@ -60,6 +61,7 @@ def get_all_mortalidad(db: Session):
         logger.error(f"Error al obtener mortalidad: {e}")
         raise Exception("Error de base de datos al obtener los registros de mortalidad")
 
+# Obtener un registro de mortalidad por su ID
 def get_mortalidad_by_id(db: Session, id: int):
     try:
         query = text("""
@@ -80,7 +82,8 @@ def get_mortalidad_by_id(db: Session, id: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener mortalidad por id: {e}")
         raise Exception("Error de base de datos al obtener la mortalidad")
-    
+
+# Obtener todos los registros de mortalidad por lote
 def get_mortalidad_by_lote(db: Session, lote_id: int):
     try:
         query = text("""
@@ -102,6 +105,7 @@ def get_mortalidad_by_lote(db: Session, lote_id: int):
         logger.error(f"Error al obtener mortalidad por lote: {e}")
         raise Exception("Error de base de datos al obtener la mortalidad del lote")
 
+# Actualizar un registro de mortalidad por su ID
 def update_mortalidad_by_id(db: Session, id_mortalidad: int, mortalidad: MortalidadUpdate) -> Optional[bool]:
     try:
     # Solo los campos enviados por el cliente
@@ -128,6 +132,7 @@ def update_mortalidad_by_id(db: Session, id_mortalidad: int, mortalidad: Mortali
         error_msg = orig.args[1] if orig and len(orig.args) > 1 else str(e)
         raise Exception(error_msg)
 
+# Ontener los datos de mortalidad por un rango de fechas
 def get_mortalidad_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str, search: Optional[str] = None):
     """
     Obtiene los registros de mortalidad cuya fecha de reporte esté dentro de un rango de fechas.
@@ -161,7 +166,7 @@ def get_mortalidad_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str,
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los insumos por rango de fechas: {e}")
 
-
+# Función para obtener todos los registros de mortalidad haciendo uso de la paginación
 def get_all_mortalidad_prod_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
     """
     Obtiene los registros de mortalidad con paginación.

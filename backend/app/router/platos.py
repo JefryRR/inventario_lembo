@@ -12,7 +12,9 @@ from sqlalchemy.exc import SQLAlchemyError
 router = APIRouter()
 modulo = 20
 
-# Endpoint para crear un nuevo rol
+# Aquí se definen las rutas para el CRUD de platos, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
+
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_plato(
     plato: PlatoCreate, 
@@ -30,7 +32,6 @@ def create_plato(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener un rol por su ID  
 @router.get("/by-id",  response_model=PlatoOut)
 def get_plato_by_id(id: int, db: Session = Depends(get_db),
               user_token: UserOut = Depends(get_current_user)
@@ -47,7 +48,6 @@ def get_plato_by_id(id: int, db: Session = Depends(get_db),
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener todos los platos
 @router.get("/all-platos", response_model=List[PlatoOut])
 def get_all_platos(
     db: Session = Depends(get_db),
@@ -68,7 +68,6 @@ def get_all_platos(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para actualizar un rol por su ID   
 @router.put("/by_id/{id_plato}")
 def update_plato_by_id(id_plato: int, plato: PlatoUpdate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)

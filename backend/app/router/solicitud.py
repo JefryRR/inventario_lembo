@@ -1,6 +1,6 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks 
+from sqlalchemy.orm import Session 
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
@@ -10,13 +10,16 @@ from app.crud import inv_insumos as crud_insumos
 from app.crud import users as crud_users
 from app.crud.users import get_email_by_user_id, get_emails_by_rol_id
 from app.schemas.users import UserOut
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from fastapi.responses import StreamingResponse  #type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
+from fastapi.responses import StreamingResponse 
 from app.utils.exportar_reportes import generar_excel_reporte_soli_insumo, generar_pdf_reporte_soli_insumo
 from app.services.email import send_solicitud_creada_email, send_solicitud_estado_email
 
 router = APIRouter()
 modulo = 19
+
+# Aquí se definen las rutas para el CRUD de solicitudes de insumos, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 ESTADOS_NOTIFICABLES = {"autorizado", "cancelado", "entregado", "devuelto"}
 
@@ -42,6 +45,7 @@ def create_solicitud(
         detalle = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
         encargados = crud_users.get_emails_by_rol_id(db, 9)
 
+        # Enviar correos electrónicos a los encargados en segundo plano (solo hecho para gmail)
         for email in encargados:
             background_tasks.add_task(
                 send_solicitud_creada_email,
@@ -122,6 +126,7 @@ def update_solicitud(
             detalle = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
             solicitante_email = crud_users.get_email_by_user_id(db, detalle.user_id)
 
+            # Enviar correo electrónico al solicitante en segundo plano (solo hecho para gmail)
             if solicitante_email:
                 fecha_relevante = None
                 if nuevo_estado == "entregado":
@@ -215,6 +220,7 @@ def change_status_solicitud(
         # --- Notificación por correo al solicitante, solo si quedó autorizado ---
         if estado == SolicitudStatus.autorizado:
             detalle = crud_solicitud.get_solicitud_by_id(db, solicitud_id)
+            # Obtener el correo electrónico del solicitante
             solicitante_email = crud_users.get_email_by_user_id(db, detalle.solicitante)
 
             if solicitante_email:

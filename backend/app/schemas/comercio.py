@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field  # type: ignore
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
 
+# Aquí se define el schema para las comercializaciones, incluyendo la creación, actualización y salida de datos.
 
 class ComercializacionBase(BaseModel):
 	producto_id: int

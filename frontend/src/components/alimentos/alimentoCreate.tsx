@@ -17,6 +17,7 @@ type AlimentoFormState = {
     nombre_lote: string;
 };
 
+// Tipos para las opciones de lotes, insumos y unidades
 type LoteOption = {
     id_lote: number;
     nombre_lote: string;
@@ -50,6 +51,7 @@ const initialState: AlimentoFormState = {
     nombre_lote: ""
 };
 
+// Componente principal para crear un alimento
 export default function AlimentoCreate() {
   const navigate = useNavigate();
   const [form, setForm] = useState<AlimentoFormState>(initialState);
@@ -74,6 +76,7 @@ export default function AlimentoCreate() {
       setLoadingUnidad(true);
 
       try {
+        // Cargar los datos de lotes, insumos y unidades en paralelo
         const [lotesData, insumosData, unidadesData] = await Promise.all([
           apiFetch("lotes_prod/all-lotes_prod"),
           apiFetch("inv_insumos/all_insumos"),
@@ -82,12 +85,14 @@ export default function AlimentoCreate() {
 
         if (!mounted) return;
 
+        // Asegurarse de que los datos sean arrays antes de filtrarlos
         const LoteList = Array.isArray(lotesData?.lotes)
           ? lotesData.lotes
           : Array.isArray(lotesData)
             ? lotesData
             : [];
-          // Filtrar los lotes que estén activos o en cuarentena
+
+        // Filtrar los lotes que estén activos o en cuarentena
         const Lotesvisibles = LoteList.filter((lote: LoteOption) => {
           const estado = lote.estado_lote === "activo" || lote.estado_lote === "cuarentena";
           return estado;
@@ -117,9 +122,11 @@ export default function AlimentoCreate() {
           return esAlimento;
         });
 
+        // Actualizar los estados con los datos filtrados
         setLotes(Lotesvisibles);
         setInsumos(alimentosVigentes);
         setUnidades(medidasVigentes);
+        
       } catch (requestError: any) {
         if (!mounted) return;
         setError(requestError?.detail || requestError?.message || "No se pudieron cargar los lotes");

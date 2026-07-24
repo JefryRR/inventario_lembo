@@ -12,7 +12,10 @@ from fastapi.responses import StreamingResponse
 from app.utils import exportar_reportes
 
 router = APIRouter()
-modulo = 5 # ID del módulo de lotes para verificar permisos
+modulo = 5 
+
+# Aquí se definen las rutas para el CRUD de lotes de producción, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_lote(lote: LoteCreate, db: Session = Depends(get_db),
@@ -63,6 +66,7 @@ def get_lote_by_id(lote_id: int, db: Session = Depends(get_db),
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
 
+#Ruta para obtener el historial de un lote de producción por su ID
 @router.get("/history_by-id")
 def get_historial_by_id(id_lote_p: int, db: Session = Depends(get_db),
             user_token: UserOut = Depends(get_current_user)
@@ -78,7 +82,8 @@ def get_historial_by_id(id_lote_p: int, db: Session = Depends(get_db),
         return history_status
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
-    
+
+# Ruta para exportar el reporte de lotes de producción en formato PDF
 @router.get("/exportar/pdf")
 def exportar_lotes_prod_pdf(
     db: Session = Depends(get_db),
@@ -104,6 +109,7 @@ def exportar_lotes_prod_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para obtener el reporte de un lote en especifico y exportarlo en formato PDF o Excel
 @router.get("/reporte/{lote_id}/{formato}")
 def exportar_reporte_lote(
     lote_id: int,

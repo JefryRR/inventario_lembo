@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
+# Aquí se define el schema para el inventario de insumos, incluyendo la creación, actualización y salida de datos.
+
 class InsumoBase(BaseModel):
     nombre_producto: str = Field(min_length=1, max_length=100)
     cantidad: float

@@ -1,6 +1,6 @@
-from pydantic_settings import BaseSettings #type: ignore
+from pydantic_settings import BaseSettings 
 import os
-from dotenv import load_dotenv #type: ignore
+from dotenv import load_dotenv 
 
 # librería en Python que permite cargar variables de entorno
 load_dotenv()

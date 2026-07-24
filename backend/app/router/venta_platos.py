@@ -8,11 +8,14 @@ from app.schemas.venta_platos import VentaPlatoCreate, VentaPlatoUpdate, VentaPl
 from app.schemas.users import UserOut
 from app.crud import venta_platos as crud_ventas_plato
 from sqlalchemy.exc import SQLAlchemyError
-from fastapi.responses import StreamingResponse   # type: ignore
+from fastapi.responses import StreamingResponse  
 from app.utils.exportar_reportes import generar_excel_reporte_ventas_platos, generar_pdf_reporte_ventas_platos
 
 router = APIRouter()
 modulo = 23
+
+# Aquí se definen las rutas para el CRUD de ventas de platos, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 # Endpoint para crear una nueva venta de plato
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
@@ -32,7 +35,6 @@ def create_ventaPlato(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener un rol por su ID  
 @router.get("/by-id", response_model=VentaPlatoOut)
 def get_ventaPlato_by_id(id: int, db: Session = Depends(get_db),
               user_token: UserOut = Depends(get_current_user)
@@ -69,7 +71,8 @@ def get_all_venta_platos(
         
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+# Ruta para exportar los registros de ventas de platos a Excel 
 @router.get("/exportar/excel")
 def exportar_ventas_platos_excel(
     db: Session = Depends(get_db),
@@ -95,6 +98,7 @@ def exportar_ventas_platos_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para exportar los registros de ventas de platos a PDF
 @router.get("/exportar/pdf")
 def exportar_ventas_platos_pdf(
     db: Session = Depends(get_db),
@@ -120,7 +124,6 @@ def exportar_ventas_platos_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para actualizar un rol por su ID   
 @router.put("/by_id/{id_venta_plato}", status_code=status.HTTP_200_OK)
 def update_ventaPlato_by_id(id_venta_plato: int, ventaPlato: VentaPlatoUpdate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)
@@ -175,7 +178,6 @@ def obtener_ventas_por_rango_fechas(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener los registros de las ventas: {e}")
 
-
 @router.get("/venta_platos_paginated", response_model=VentaPlatosPaginated)
 def get_paginated_prog_platos(
      page: int = Query(1, ge=1),
@@ -204,4 +206,3 @@ def get_paginated_prog_platos(
         
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-  

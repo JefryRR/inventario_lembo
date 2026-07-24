@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field  # type: ignore
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+
+# Aquí se define el schema para los tratamientos, incluyendo la creación, actualización y salida de datos.
 
 class TratamientoBase(BaseModel):
     lote_id: int = Field(gt=0)

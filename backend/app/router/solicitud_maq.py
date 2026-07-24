@@ -1,18 +1,20 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query 
+from sqlalchemy.orm import Session 
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.solicitud_maq import SolicitudMaqCreate, SolicitudMaqUpdate, SolicitudMaqOut, PaginatedSolicitudes, EstadoSolicitud
 from app.crud import solicitud_maq as crud_sol_maquinas
 from app.schemas.users import UserOut
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from fastapi.responses import StreamingResponse  #type: ignore
-# from app.utils.exportar_reportes import generar_excel_reporte_maquina, generar_pdf_reporte_maquina
+from sqlalchemy.exc import SQLAlchemyError 
+from fastapi.responses import StreamingResponse 
 
 router = APIRouter()
 modulo = 25
+
+# Aquí se definen las rutas para el CRUD de solicitudes de máquinas, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_solicitud(
@@ -148,80 +150,6 @@ def change_status_solicitud(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
- 
-
-# @router.get("/reporte/{inv_prod_id}")
-# def get_reporte_maquina(
-#     inv_prod_id: int,
-#     db: Session = Depends(get_db),
-#     user_token: UserOut = Depends(get_current_user)
-# ):
-#     try:
-#         id_rol = user_token.rol_id
-#         if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
-#             raise HTTPException(status_code=401, detail='Usuario no autorizado')
-
-#         reporte = crud_maquinas.get_reporte_maquina_detallado(db, inv_prod_id)
-#         if not reporte:
-#             raise HTTPException(status_code=404, detail="Producción no encontrada")
-#         return reporte
-#     except HTTPException:
-#         raise
-#     except SQLAlchemyError as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# @router.get("/reporte/{inv_prod_id}/excel")
-# def exportar_reporte_maquina_excel(
-#     inv_prod_id: int,
-#     db: Session = Depends(get_db),
-#     user_token: UserOut = Depends(get_current_user)
-# ):
-#     try:
-#         id_rol = user_token.rol_id
-#         if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
-#             raise HTTPException(status_code=401, detail='Usuario no autorizado')
-
-#         reporte = crud_maquinas.get_reporte_maquina_detallado(db, inv_prod_id)
-#         if not reporte:
-#             raise HTTPException(status_code=404, detail="Producción no encontrada")
-
-#         buffer = generar_excel_reporte_maquina(reporte)
-#         return StreamingResponse(
-#             buffer,
-#             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-#             headers={"Content-Disposition": f'attachment; filename="reporte_maquina_{inv_prod_id}.xlsx"'}
-#         )
-#     except HTTPException:
-#         raise
-#     except SQLAlchemyError as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# @router.get("/reporte/{inv_prod_id}/pdf")
-# def exportar_reporte_maquina_pdf(
-#     inv_prod_id: int,
-#     db: Session = Depends(get_db),
-#     user_token: UserOut = Depends(get_current_user)
-# ):
-#     try:
-#         id_rol = user_token.rol_id
-#         if not verify_permissions(db, id_rol, modulo, 'seleccionar'):
-#             raise HTTPException(status_code=401, detail='Usuario no autorizado')
-
-#         reporte = crud_maquinas.get_reporte_maquina_detallado(db, inv_prod_id)
-#         if not reporte:
-#             raise HTTPException(status_code=404, detail="Producción no encontrada")
-
-#         buffer = generar_pdf_reporte_maquina(reporte)
-#         return StreamingResponse(
-#             buffer,
-#             media_type="application/pdf",
-#             headers={"Content-Disposition": f'attachment; filename="reporte_maquina_{inv_prod_id}.pdf"'}
-#         )
-#     except HTTPException:
-#         raise
-#     except SQLAlchemyError as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/paginated-solicitudes", response_model=PaginatedSolicitudes)
 def get_solicitud_paginated(

@@ -2,6 +2,8 @@ import datetime
 from pydantic import BaseModel
 from typing import Optional
 
+# Aquí se define el schema para la venta de platos, incluyendo la creación, actualización y salida de datos.
+
 class VentaPlatoBase(BaseModel):
     plato_id: int
     cantidad: int

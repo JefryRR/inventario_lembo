@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
 
+# Aquí se define el schema para la solicitud de maquinaria, incluyendo la creación, actualización y salida de datos.
+
 class EstadoSolicitud(str, Enum):
     pendiente = 'pendiente'
     autorizada = 'autorizada'

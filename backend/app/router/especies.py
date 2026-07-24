@@ -12,7 +12,9 @@ from sqlalchemy.exc import SQLAlchemyError
 router = APIRouter()
 modulo = 7
 
-# Endpoint para crear un nuevo rol
+# Aquí se definen las rutas para el CRUD de especies, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
+
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_especie(
     especies: EspecieCreate, 
@@ -30,7 +32,6 @@ def create_especie(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener un rol por su ID  
 @router.get("/by-id",  response_model=EspecieOut)
 def get_especie_by_id(id_especie: int, db: Session = Depends(get_db),
               user_token: UserOut = Depends(get_current_user)
@@ -47,7 +48,6 @@ def get_especie_by_id(id_especie: int, db: Session = Depends(get_db),
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener todos los especies
 @router.get("/all-especies", response_model=List[EspecieOut])
 def get_all_especies(
     db: Session = Depends(get_db),
@@ -67,7 +67,6 @@ def get_all_especies(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para actualizar un rol por su ID   
 @router.put("/by_id/{id_especie}")
 def update_especies_by_id(id_especie: int, especie: EspecieUpdate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)

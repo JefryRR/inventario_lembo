@@ -236,7 +236,7 @@ export default function Inv_prod() {
                             <Link
                                 to="/invProd/create"
                                 className="inline-flex h-11 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition hover:bg-green-700">
-                                Nuevo inventario
+                                Nueva producción
                             </Link>
                         </ConPermiso>
                         {/* buscador dinámico */}

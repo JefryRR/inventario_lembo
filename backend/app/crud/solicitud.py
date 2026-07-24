@@ -5,13 +5,14 @@ from typing import Optional
 from sqlalchemy.exc import SQLAlchemyError 
 from fastapi import HTTPException
 from app.schemas.solicitud import SolicitudCreate, SolicitudUpdate, SolicitudStatus
-
 import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear una solicitud de insumos
 def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
     try:
+        #Obtenemos la conversión de la unidad de medida
         conv = db.execute(text("""
             SELECT conversion FROM unidades_medida
             WHERE id_unidad = :unid_med_id
@@ -59,6 +60,7 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
         logger.error(f"Error al registrar la solicitud: {e}")
         raise
 
+# Obtener una solicitud de insumos por su ID
 def get_solicitud_by_id(db: Session, solicitud_id: int):
     try:
         query = text("""SELECT sol.id_solicitud, sol.solicitante, sol.ficha, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
@@ -76,6 +78,7 @@ def get_solicitud_by_id(db: Session, solicitud_id: int):
         logger.error(f"Error al obtener el solicitud por id: {e}")
         raise
 
+# Obtener todas las solicitudes de insumos
 def get_all_solicitudes(db: Session):
     try:
         query = text("""SELECT sol.id_solicitud, sol.solicitante, sol.ficha, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
@@ -94,6 +97,7 @@ def get_all_solicitudes(db: Session):
         logger.error(f"Error al obtener todas las solicitudses: {e}")
         raise
 
+# Actualizar una solicitud de insumos por su ID
 def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudUpdate, user_id: int):
     try:
         solicitud_data = solicitud.model_dump(exclude_unset=True)
@@ -171,8 +175,10 @@ def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudU
         solicitud_data["id_solicitud"] = solicitud_id
         result = db.execute(sentencia, solicitud_data)
 
+        # Obtenemos el estado de la solicitud después de la actualización
         nuevo_estado = solicitud_data.get("estado_solicitud")
-        
+
+        # Si el estado ha cambiado, insertamos un registro en el historial
         if nuevo_estado and nuevo_estado != estado_actual:
             historial_query = text("""
                 INSERT INTO h_solicitud_insumo(
@@ -203,7 +209,8 @@ def update_solicitud_by_id(db: Session, solicitud_id: int, solicitud: SolicitudU
         db.rollback()
         logger.error(f"Error al actualizar solicitud {solicitud_id}: {e}")
         raise Exception("Error de base de datos al actualizar la solicitud")
-    
+
+# Cambiar el estado de una solicitud de insumos
 def change_status_solicitud(db: Session, solicitud_id: int, estado: SolicitudStatus) -> Optional[bool]:
     try:
         sentencia = text("""
@@ -219,6 +226,7 @@ def change_status_solicitud(db: Session, solicitud_id: int, estado: SolicitudSta
         logger.error(f"Error al cambiar estado de la solicitud {solicitud_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado de la solicitud")
 
+# Obtener el historial de una solicitud de insumos
 def get_historial_solicitud(db: Session, id_solicitud: int | None = None, skip: int = 0, limit: int = 10):
     try:
         where_clause = "WHERE h.solicitud_ins_id = :id_solicitud" if id_solicitud is not None else ""
@@ -261,6 +269,7 @@ def get_historial_solicitud(db: Session, id_solicitud: int | None = None, skip: 
         logger.error(f"Error al obtener el historial de las solicitudes de insumo: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener el historial de las solicitudes de insumo")
 
+# Obtener solicitudes por rango de fechas
 def get_solicitud_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene las solicitudes cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -289,6 +298,7 @@ def get_solicitud_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las solicitudes por rango de fechas: {e}")
 
+# Obtener solicitudes con paginación
 def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
     """
     Obtiene solicitudes con paginación.

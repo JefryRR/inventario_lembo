@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from enum import Enum
 
+# Aquí se define el schema para la programación de platos, incluyendo la creación, actualización y salida de datos.
+
 class tipoComida(str, Enum):
     desayuno = "desayuno"
     almuerzo = "almuerzo"

@@ -4,13 +4,16 @@ from sqlalchemy.orm import Session
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
-from app.schemas.modulos import ModuloCreate, ModuloUpdate, ModuloOut, PaginatedModulos
+from app.schemas.modulos import ModuloCreate, ModuloUpdate, ModuloOut
 from app.schemas.users import UserOut
 from app.crud import modulos as crud_modulo
 from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
 modulito = 4
+
+# Aquí se definen las rutas para el CRUD de módulos del sistema, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 # Endpoint para crear un nuevo módulo
 @router.post("/crear", status_code=status.HTTP_201_CREATED)

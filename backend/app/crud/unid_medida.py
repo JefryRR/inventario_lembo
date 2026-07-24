@@ -1,12 +1,13 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from typing import Optional, List
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
+from typing import Optional
 from app.schemas.unid_medidas import  Unid_medCreate, Unid_medUpdate
 import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear unidades de medida que serán usadas en los diferentes inventarios
 def create_unid_medida(db: Session, unid_medida: Unid_medCreate):
     try:
         query = text("""INSERT INTO unidades_medida (
@@ -22,6 +23,7 @@ def create_unid_medida(db: Session, unid_medida: Unid_medCreate):
         logger.error(f"Error al crear la unidad de medida: {e}")
         raise Exception("Error de base de datos al crear la unidad de medida")
 
+# Obtener una unidad de medida por su ID
 def get_unid_medida_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_unidad, unidad, simbolo, conversion, tipo_unidad
@@ -35,6 +37,7 @@ def get_unid_medida_by_id(db: Session, id: int):
         logger.error(f"Error al obtener unidad de medida por id: {e}")
         raise Exception("Error de base de datos al obtener la unidad de medida")
 
+# Obtener todas las unidades de medida
 def get_all_unid_medidas(db: Session):
     try:
         query = text("""SELECT * FROM unidades_medida""")
@@ -44,6 +47,7 @@ def get_all_unid_medidas(db: Session):
         logger.error(f"Error al obtener las unidades de medida: {e}")
         raise Exception("Error de base de datos al obtener las unidades de medida")
 
+# Actualizar una unidad de medida por su ID
 def update_unid_medida_by_id(db: Session, id_unid_medida: int, unid_medida: Unid_medUpdate) -> Optional[bool]:
     try:
         unid_medida_data = unid_medida.model_dump(exclude_unset=True)
@@ -68,4 +72,3 @@ def update_unid_medida_by_id(db: Session, id_unid_medida: int, unid_medida: Unid
         db.rollback()
         logger.error(f"Error al actualizar la unidad de medida {id_unid_medida}: {e}")
         raise Exception("Error de base de datos al actualizar la unidad de medida")
-    

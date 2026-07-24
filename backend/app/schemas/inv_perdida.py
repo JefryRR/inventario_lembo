@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field # type: ignore
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from enum import Enum
+
+# Aquí se define el schema para el inventario de pérdidas, incluyendo la creación, actualización y salida de datos.
 
 class TipoPerdida(str, Enum):
     contaminacion = "contaminacion"
@@ -11,6 +13,7 @@ class TipoPerdida(str, Enum):
     daño_fisico = "daño_fisico"
     muerte = "muerte animal"
 
+# Se define un Enum para los tipos de origen de la pérdida, que puede ser insumo, producción o comercialización.
 class TipoOrigen(str, Enum):
     insumo = "insumo"
     produccion = "produccion"
@@ -46,7 +49,6 @@ class PerdidaOut(PerdidaBase):
     nombre_lote: Optional[str] = None
     simbolo: Optional[str] = None
     
-
 class PaginatedPerdidas(BaseModel):
     page: int
     page_size: int

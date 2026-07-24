@@ -3,13 +3,14 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
 
+# Aquí se define el schema para las maquinarias, incluyendo la creación, actualización y salida de datos.
+
 class estadoMaquinaria(str, Enum):
     operativa = 'operativa'
     mantenimiento = 'mantenimiento'
     dañada = 'dañada'
     de_baja = 'de_baja'
    
-
 class MaquinariaBase(BaseModel):
     nombre_maq: str 
     tipo_maq: str 

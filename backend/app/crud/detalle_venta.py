@@ -1,13 +1,14 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from typing import Optional
 from app.schemas.detalle_venta import DetalleVentaCreate, DetalleVentaUpdate, DetalleVentaOut, EstadoVenta
 import logging
 
 logger = logging.getLogger(__name__)
 
+#Función para crear un detalle de venta
 def create_detalle_venta(db: Session, detalle: DetalleVentaCreate):
     try:
         query_conversion = text("""
@@ -64,7 +65,8 @@ def create_detalle_venta(db: Session, detalle: DetalleVentaCreate):
             
         logger.error(f"Error al registrar la venta: {e}")
         raise
-    
+
+#Función para obtener un detalle de venta por su id
 def get_detalle_venta_by_id(db: Session, id: int) -> Optional[DetalleVentaOut]:
     try:
         query = text("""
@@ -88,6 +90,7 @@ def get_detalle_venta_by_id(db: Session, id: int) -> Optional[DetalleVentaOut]:
         logger.error(f"Error al obtener detalle de venta por id: {e}")
         raise Exception("Error de base de datos al obtener el detalle de venta")
 
+#Función para obtener detalles de venta por id_venta
 def get_det_venta_by_id_venta(db: Session, id_venta: int):
     try:
         query = text("""
@@ -111,6 +114,7 @@ def get_det_venta_by_id_venta(db: Session, id_venta: int):
         logger.error(f"Error al obtener detalle de venta por id: {e}")
         raise Exception("Error de base de datos al obtener el detalle de venta")
 
+#Función para obtener todos los detalles de venta
 def get_all_detalles_venta(db: Session) -> list[DetalleVentaOut]:
     try:
         query = text("""
@@ -128,7 +132,8 @@ def get_all_detalles_venta(db: Session) -> list[DetalleVentaOut]:
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todos los detalles de venta: {e}")
         raise Exception("Error de base de datos al obtener los detalles de venta")
-    
+
+#Función para actualizar un detalle de venta por su id
 def update_detalle_venta_by_id(db: Session, id: int, detalle_update: DetalleVentaUpdate):
     try:
         detalle_data = detalle_update.model_dump(exclude_unset=True)
@@ -204,6 +209,7 @@ def update_detalle_venta_by_id(db: Session, id: int, detalle_update: DetalleVent
         logger.error(f"Error al actualizar detalle de venta {id}: {e}")
         raise Exception("Error de base de datos al actualizar el detalle de venta")
 
+#Función para cambiar el estado de un detalle de venta
 def change_status_det_venta(db: Session, id_det_venta: int, estado: EstadoVenta) -> Optional[bool]:
     try:
         actual = db.execute(
@@ -241,6 +247,7 @@ def change_status_det_venta(db: Session, id_det_venta: int, estado: EstadoVenta)
         logger.error(f"Error al cambiar estado del detalle de venta {id_det_venta}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del detalle de venta")
 
+#Función para obtener detalles de venta con paginación
 def get_detalles_venta_paginated(db: Session, skip: int = 0, limit: int = 10):
     """
     Obtiene detalles de venta con paginación.
@@ -284,6 +291,7 @@ def get_detalles_venta_paginated(db: Session, skip: int = 0, limit: int = 10):
         logger.error( f"Error al obtener los detalles de venta: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener los detalles de venta")
 
+#Función para eliminar un detalle de venta por su id
 def delete_detalle_venta_by_id(db: Session, id: int):
     try:
         result = db.execute(
