@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 // @ts-ignore
 import { apiFetch } from "@/services/api";
 
+//Aquí se va a almacenar la imagen de la factura, la fecha de compra y el nombre del usuario que registró la factura
 type FacturaData = {
     factura_url: string;
     fecha_compra: string;
@@ -14,6 +15,7 @@ type Props = {
     onClose: () => void;
 };
 
+// Componente modal para mostrar la factura de un insumo
 export default function FacturaModal({ insumo_id, onClose }: Props) {
     const [factura, setFactura] = useState<FacturaData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -37,6 +39,7 @@ export default function FacturaModal({ insumo_id, onClose }: Props) {
         loadFactura();
     }, [insumo_id]);
 
+    // Verificamos si la URL de la factura corresponde a una imagen (jpg, jpeg, png)
     const esImagen = factura ? /\.(jpg|jpeg|png)$/i.test(factura.factura_url) : false;
 
     return (

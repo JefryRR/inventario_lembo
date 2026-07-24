@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Esta gráfica muestra una gráfica de barras con el número de ventas por mes del año actual, 
+// considerando solo las ventas que tienen al menos un detalle con estado "Vendido".
+//Segunda gráfica que aparece en el dashboard, pero solo de produccion.
+
 type VentaOut = {
   id_venta: number;
   fecha_venta: string;
@@ -14,6 +18,7 @@ type DetalleVentaOut = {
   estado_venta: "Vendido" | "Separado" | "Anulado";
 };
 
+// Componente principal para mostrar la gráfica de ventas mensuales
 export default function MonthlySalesChart() {
   const [ventasPorMes, setVentasPorMes] = useState<number[]>(Array(12).fill(0));
   const [loading, setLoading] = useState(false);
@@ -80,6 +85,7 @@ export default function MonthlySalesChart() {
     };
   }, []);
 
+  // Configuración de la gráfica de barras usando ApexCharts
   const options: ApexOptions = {
     colors: ["#007832"],
     chart: {
@@ -131,6 +137,7 @@ export default function MonthlySalesChart() {
     },
   };
 
+  // Definir la serie de datos para la gráfica, que representa las ventas por mes
   const series = [{ name: "Ventas", data: ventasPorMes }];
 
   return (

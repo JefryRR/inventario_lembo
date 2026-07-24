@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore
 import { apiFetch } from "@/services/api";
 
+// Tipos de datos para el formulario de insumo y factura
 type Inv_insumoFormState = {
     id_insumo: string;
     nombre_producto: string;
@@ -33,6 +34,7 @@ type Unid_medOption = {
     tipo: string;
 };
 
+// Estado inicial para el formulario de insumo y factura
 const initialState: Inv_insumoFormState = {
     id_insumo: "",
     nombre_producto: "",
@@ -52,6 +54,7 @@ const initialFacturaState: FacturaFormState = {
     archivo: null,
 };
 
+// Componente principal para crear un nuevo insumo
 export default function UsersCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<Inv_insumoFormState>(initialState);
@@ -106,13 +109,13 @@ export default function UsersCreate() {
         return () => { mounted = false; };
     }, []);
 
+    // Handlers para actualizar el estado del formulario de insumo y factura
     const handleChange =
         (field: keyof Inv_insumoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
                 setForm((current) => ({ ...current, [field]: event.target.value }));
             };
 
-    // 👇 Handlers de factura separados y correctos
     const handleFacturaDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFacturaState((prev) => ({ ...prev, fecha_compra: e.target.value }));
     };

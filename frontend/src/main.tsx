@@ -7,6 +7,7 @@ import App from "./App.tsx";
 import { AppWrapper } from "./components/common/PageMeta.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 
+// Renderiza la aplicación principal dentro del elemento con id "root" en el DOM
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>

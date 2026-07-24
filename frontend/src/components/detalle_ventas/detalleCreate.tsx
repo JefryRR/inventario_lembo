@@ -5,6 +5,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Tipos de datos para el formulario y las opciones de selección
 type EstadoVenta = "Vendido" | "Separado" | "Anulado";
 
 type DetalleFormState = {
@@ -47,13 +48,14 @@ type ItemCarrito = {
     simbolo: string;
 };
 
-
+// Opciones de estado de venta para el select
 const ESTADO_OPTIONS: Array<{ value: EstadoVenta; label: string }> = [
     { value: "Vendido", label: "Vendido" },
     { value: "Separado", label: "Separado" },
     { value: "Anulado", label: "Anulado" },
 ];
 
+// Estado inicial del formulario
 const initialState: DetalleFormState = {
     cantidad: "" as string | number,
     unid_medida_id: 0,
@@ -63,6 +65,7 @@ const initialState: DetalleFormState = {
     estado_venta: "Separado",
 };
 
+// Función para obtener la fecha local en formato YYYY-MM-DD
 function fechaLocal(fecha: Date): string {
     const year = fecha.getFullYear();
     const month = String(fecha.getMonth() + 1).padStart(2, "0");
@@ -70,6 +73,7 @@ function fechaLocal(fecha: Date): string {
     return `${year}-${month}-${day}`;
 }
 
+// Componente principal para crear un detalle de venta
 export default function DetalleCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<DetalleFormState>(initialState);
@@ -160,6 +164,7 @@ export default function DetalleCreate() {
         };
     }, []);
 
+    // Manejador de cambios en los campos del formulario
     const handleChange =
         (field: keyof DetalleFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -179,6 +184,7 @@ export default function DetalleCreate() {
                 }));
             };
 
+    // Función para agregar un producto al carrito y limpiar el formulario para agregar otro
     const guardarYAgregarOtro = () => {
         setError(null);
         setSuccess(null);
@@ -204,6 +210,7 @@ export default function DetalleCreate() {
             return;
         }
 
+        // Buscar el producto y la unidad de medida seleccionados para obtener sus nombres y símbolos
         const producto = productos.find(
             p => p.id_inventario === Number(form.inv_prod_id)
         );
@@ -212,6 +219,7 @@ export default function DetalleCreate() {
             u => u.id_unidad === Number(form.unid_medida_id)
         );
 
+        // Crear un nuevo objeto ItemCarrito con los datos del formulario y la información del producto y unidad
         const nuevoProducto: ItemCarrito = {
             cantidad: Number(form.cantidad),
             unid_medida_id: Number(form.unid_medida_id),
@@ -249,8 +257,6 @@ export default function DetalleCreate() {
         0
     );
 
-    // FastAPI devuelve los errores 422 como { detail: [{ loc, msg, type }, ...] }.
-    // Sin esto, requestError.detail es un array y se mostraba como texto ilegible.
     const extraerMensajeError = (requestError: any): string => {
         const detail = requestError?.detail ?? requestError?.body?.detail;
 
@@ -268,6 +274,7 @@ export default function DetalleCreate() {
         return requestError?.message || "No se pudo confirmar la venta.";
     };
 
+    // Función para confirmar la venta enviando los productos del carrito a la API
     const confirmarVenta = async () => {
         setError(null);
         setSuccess(null);

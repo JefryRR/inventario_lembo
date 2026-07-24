@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
-
 import {
   ArrowDownIcon,
   DollarLineIcon as DollarIcon,
@@ -9,6 +8,10 @@ import {
 } from "../../icons";
 import Badge from "../ui/badge/Badge";
 
+// Aquí se visualizan las métricas de ecommerce, donde se pueden ver las ventas y pérdidas mensuales 
+// (La primera gráfica que aparece en el dashboard) pero solo de produccion.
+
+// Tipos de datos para las ventas, detalles de ventas y pérdidas
 type VentaOut = {
   id_venta: number;
   fecha_venta: string;
@@ -29,6 +32,7 @@ type PerdidaOut = {
   valor_unitario?: number | null;
 };
 
+// Componente principal para mostrar las métricas de ventas y pérdidas mensuales
 export default function EcommerceMetrics() {
   const [totalMensual, setTotalMensual] = useState<number>(0);
   const [totalPerdidas, setTotalPerdidas] = useState<number>(0);
@@ -99,6 +103,7 @@ export default function EcommerceMetrics() {
         // Comparar "YYYY-MM" como string evita el desfase UTC vs Colombia (UTC-5)
         const mesAnioActual = `${anioActual}-${String(mesActual + 1).padStart(2, "0")}`;
 
+        // Calcular el total de pérdidas del mes actual, filtrando por fecha y origen "produccion"
         const totalPerdidasMes = perdidas
           .filter((p) => p.fecha_reporte?.slice(0, 7) === mesAnioActual && p.origen === "produccion")
           .reduce((acc, p) => acc + p.cantidad * (p.valor_unitario ?? 0), 0);
@@ -124,6 +129,7 @@ export default function EcommerceMetrics() {
     };
   }, []);
 
+  // Formatear los totales a formato de moneda colombiana
   const totalFormateado = totalMensual.toLocaleString("es-CO", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -134,6 +140,7 @@ export default function EcommerceMetrics() {
     maximumFractionDigits: 2,
   });
 
+  // Calcular el porcentaje de pérdidas respecto a las ventas mensuales
   const porcentajePerdida =
     totalMensual > 0
       ? ((totalPerdidas / totalMensual) * 100).toFixed(2)

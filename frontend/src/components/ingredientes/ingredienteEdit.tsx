@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición del estado del formulario para editar un ingrediente
 type IngredienteFormState = {
     plato_id: number;
     origen_inv: number;
@@ -61,6 +62,7 @@ type IngredienteResponse = {
     simbolo?: string;
 };
 
+// Estado inicial del formulario para editar un ingrediente
 const initialState: IngredienteFormState = {
     plato_id: 0,
     origen_inv: 0,
@@ -69,6 +71,7 @@ const initialState: IngredienteFormState = {
     unid_med_id: 0,
 };
 
+// Componente principal para editar un ingrediente
 export default function IngredienteEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -135,12 +138,14 @@ export default function IngredienteEdit() {
                         ? insumosData
                         : [];
                 
+                // Filtramos los insumos para obtener solo los alimentos vigentes (tipo_id === 2 y fecha de vencimiento no pasada)
                 const alimentosVigentes = insumoList.filter((insumo: InsumoOption) => {
                     const esAlimento = insumo.tipo_id === 2;
                     const noVencido = new Date(insumo.fecha_vencimiento) >= new Date();
                     return esAlimento && noVencido;
                 });
 
+                // Filtramos las comercializaciones para obtener solo las que no están vencidas
                 const comercioNoVencido = comercializacionList.filter((comercio: ComercializacionOption) => {
                     const fechaVencimiento = new Date(comercio.fecha_vencimiento);
                     return fechaVencimiento >= new Date();
@@ -183,6 +188,7 @@ export default function IngredienteEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario
     const handleChange =
         (field: keyof IngredienteFormState) =>
         (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -198,6 +204,7 @@ export default function IngredienteEdit() {
                 return;
             }
 
+            // Para los campos de cantidad, unidad de medida, inventario y plato, actualizamos el estado del formulario
             if (
                 field === "cant_inv" ||
                 field === "unid_med_id" ||
@@ -212,6 +219,7 @@ export default function IngredienteEdit() {
             }
         };
 
+    // Función para manejar el envío del formulario y actualizar el ingrediente
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!id) return;

@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
 
+// Tipos de datos para el reporte de inventario de insumos
 type MovimientoReporte = {
     tipo: string;
     id_registro: number;
@@ -14,8 +15,6 @@ type MovimientoReporte = {
     motivo: string;
     simbolo: string;
 };
-
-
 
 type ReporteProduccion = {
     encabezado: {
@@ -34,6 +33,7 @@ type ReporteProduccion = {
     movimientos: MovimientoReporte[];
 };
 
+// Componente principal para mostrar el informe de inventario de insumos
 export default function InformesInsumo() {
     const { id_insumo } = useParams();
     const [reporte, setReporte] = useState<ReporteProduccion | null>(null);
@@ -85,6 +85,7 @@ export default function InformesInsumo() {
         };
     }, [id_insumo]);
 
+    // Funciones auxiliares para formatear fechas, moneda y cantidades
     const formatearFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
         const fecha = new Date(fechaString);
@@ -125,11 +126,13 @@ export default function InformesInsumo() {
         return mapaMotivos[motivo] ?? motivo;
     };
 
-
+    // Extraemos el encabezado del reporte para mostrar los datos principales
     const encabezado = reporte?.encabezado;
 
+    // Estado de descarga para los botones de exportación
     const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
 
+    // Función para manejar la exportación del reporte en PDF o Excel
     const handleExportar = async (formato: "pdf" | "excel") => {
         if (!id_insumo) return;
 
@@ -159,6 +162,7 @@ export default function InformesInsumo() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    { /* Botones de exportación y enlace de regreso */}
                     <button
                         type="button"
                         onClick={() => handleExportar("pdf")}
@@ -319,6 +323,7 @@ export default function InformesInsumo() {
                         </div>
                     </div>
 
+                    { /* Tabla de movimientos del inventario */ }
                     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
                             <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">Movimientos</h2>

@@ -3,16 +3,19 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para la edición del formulario de platos
 type PlatosFormState = {
     nombre_plato: string;
     estado: boolean;
 };
 
+// Estado inicial del formulario para editar un plato
 const emptyState: PlatosFormState = {
     nombre_plato: "",
     estado: true,
 };
 
+// Componente principal para editar un plato existente
 export default function PlatosEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -55,6 +58,7 @@ export default function PlatosEdit() {
         };
     }, [id_plato]);
 
+    // Función para manejar los cambios en los campos del formulario de edición de platos
     const handleChange =
         (field: keyof PlatosFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -62,6 +66,7 @@ export default function PlatosEdit() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de platos
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id_plato) return;

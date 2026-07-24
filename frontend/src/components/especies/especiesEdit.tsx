@@ -3,16 +3,19 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Componente para editar una especie existente
 type EspeciesFormState = {
     nombre_especie: string;
     descripcion: string;
 };
 
+// Estado inicial del formulario de edición de especies
 const emptyState: EspeciesFormState = {
     nombre_especie: "",
     descripcion: "",
 };
 
+// Componente principal para editar una especie
 export default function EspeciesEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -55,6 +58,7 @@ export default function EspeciesEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario
     const handleChange =
         (field: keyof EspeciesFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -62,6 +66,7 @@ export default function EspeciesEdit() {
                 setForm((prev) => ({ ...prev, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de especies
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

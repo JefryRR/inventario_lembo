@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de ventas de platos
 type VentasPlatosFormState = {
     plato_id: number;
     cantidad: string | number;
@@ -26,6 +27,7 @@ type VentasPlatosResponse = {
     nombre_plato?: string;
 };
 
+// Estado inicial del formulario para editar una venta de plato
 const initialState: VentasPlatosFormState = {
     plato_id: 0,
     cantidad: 0,
@@ -33,6 +35,7 @@ const initialState: VentasPlatosFormState = {
     fecha_venta: "",
 };
 
+// Componente principal para editar una venta de plato existente
 export default function VentasPlatosEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -99,6 +102,7 @@ export default function VentasPlatosEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario de edición de ventas de platos
     const handleChange =
         (field: keyof VentasPlatosFormState) =>
         (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -113,6 +117,7 @@ export default function VentasPlatosEdit() {
             }
         };
 
+    // Función para manejar el envío del formulario de edición de ventas de platos
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!id) return;
@@ -123,6 +128,7 @@ export default function VentasPlatosEdit() {
 
         const cantidadValue = parseFloat(String(form.cantidad));
 
+        // Validación del campo de cantidad para asegurarse de que sea un número mayor a 0
         if (isNaN(cantidadValue) || cantidadValue <= 0) {
             setError("La cantidad debe ser un número mayor a 0");
             setSaving(false);

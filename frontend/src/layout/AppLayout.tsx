@@ -6,11 +6,13 @@ import AppSidebar from "./AppSidebar";
 import { useAuth } from "../context/AuthContext";
 import { getModuloPorRuta } from "../config/rutasModulos";
 
+// Componente que representa el contenido principal del layout de la aplicación
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const { tienePermiso, cargandoPermisos } = useAuth();
   const location = useLocation();
 
+  // Determinar el módulo correspondiente a la ruta actual y verificar si el usuario tiene permiso para acceder a él
   const modulo = getModuloPorRuta(location.pathname);
   const sinPermiso = !cargandoPermisos && modulo && !tienePermiso(modulo, "seleccionar");
 

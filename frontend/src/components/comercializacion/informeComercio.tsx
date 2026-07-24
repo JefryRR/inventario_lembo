@@ -1,5 +1,6 @@
 import { Link, useLocation, useParams, useNavigate } from "react-router";
 
+// Definimos el tipo de datos que esperamos recibir en el state de navegación
 type ComercioRow = {
     id_comercializacion: number;
     producto_id: number;
@@ -19,6 +20,7 @@ type ComercioRow = {
     observacion: string | null;
 };
 
+// Función para formatear la fecha en formato "dd/mm/yyyy"
 function formatDate(value: string): string {
     if (!value) return "-";
 
@@ -29,6 +31,7 @@ function formatDate(value: string): string {
     return `${day}/${month}/${year}`;
 }
 
+// Componente principal que muestra el informe de comercialización
 export default function InformeComercio() {
     const { id_comercializacion } = useParams();
     const navigate = useNavigate();
@@ -38,6 +41,7 @@ export default function InformeComercio() {
     // desde el listado (Comercios) a través del state de navegación.
     const comercializacion = (location.state as { comercializacion?: ComercioRow } | null)?.comercializacion ?? null;
 
+    // Calculamos la cantidad vendida y el porcentaje de no vendido
     const cantidadVendida =
         comercializacion && comercializacion.cant_no_vendida != null
             ? comercializacion.cantidad - comercializacion.cant_no_vendida
@@ -60,6 +64,7 @@ export default function InformeComercio() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {/* Botón para imprimir o exportar a PDF. */}
                     <button
                         type="button"
                         onClick={() => window.print()}
@@ -123,6 +128,7 @@ export default function InformeComercio() {
                         </div>
 
                         <div
+                            // Estado de la comercialización: si vendió todo o no, con colores y mensajes distintos
                             className={`rounded-2xl border p-5 shadow-sm ${
                                 comercializacion.vendio_todo
                                     ? "border-green-100 bg-green-50 dark:border-green-500/20 dark:bg-green-500/10"

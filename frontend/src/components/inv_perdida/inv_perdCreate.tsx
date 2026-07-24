@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Tipos de datos para el formulario del inventario de perdidas
 type Inv_perdFormState = {
     id_perdida: number
     inv_prod_id: number
@@ -57,6 +58,7 @@ type ComercioOption = {
     fecha_vencimiento: Date;
 };
 
+// Opciones de motivos y origen para el formulario de inventario de perdidas
 const motivoOptions: MotivoOption[] = [
     { value: "contaminacion", label: "Contaminación" },
     { value: "extravio", label: "Extravio" },
@@ -65,12 +67,14 @@ const motivoOptions: MotivoOption[] = [
     { value: "daño_fisico", label: "Dañado" },
 ];
 
+// Opciones de origen para el formulario de inventario de perdidas
 const origenOptions: MotivoOption[] = [
     { value: "produccion", label: "Producción" },
     { value: "insumo", label: "Insumo" },
     { value: "comercializacion", label: "Comercialización" },
 ];
 
+// Estado inicial para el formulario de inventario de perdidas
 const initialState: Inv_perdFormState = {
     id_perdida: 0,
     inv_prod_id: 0,
@@ -88,7 +92,7 @@ const initialState: Inv_perdFormState = {
     origen: ""
 };
 
-
+// Componente principal para crear una nueva perdida de inventario
 export default function InvPerdCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<Inv_perdFormState>(initialState);
@@ -187,6 +191,7 @@ export default function InvPerdCreate() {
 
         loadInvInsumo();
 
+        // Cargar los datos de comercializaciones disponibles
         const loadComercio = async () => {
             setLoadingComercio(true);
             try {
@@ -220,6 +225,7 @@ export default function InvPerdCreate() {
         };
     }, []);
 
+    // Handlers para actualizar el estado del formulario de perdida
     const handleChange =
         (field: keyof Inv_perdFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -230,12 +236,14 @@ export default function InvPerdCreate() {
                 }));
             };
 
+    // Función para obtener la fecha y hora local en formato ISO
     const getLocalISODateTime = () => {
         const now = new Date();
         const offsetMs = now.getTimezoneOffset() * 60000;
         return new Date(now.getTime() - offsetMs).toISOString().slice(0, 19);
     };
 
+    // Función para manejar el envío del formulario de perdida
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

@@ -2,14 +2,14 @@ import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { Link } from "react-router";
 import { UserCircleIcon as UserIcon } from "../../icons";
+// @ts-ignore: api helper is a JS module without generated declarations
 import { logout } from "@/services/api"; 
 
+// Definición del tipo de usuario logueado
 type LoggedUser = {
   nombre_user?: string;
   correo?: string;
 };
-
-
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);

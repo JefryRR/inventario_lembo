@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
 
+// Tipos de datos para el reporte de producción
 type MovimientoReporte = {
     tipo: string;
     id_registro: number;
@@ -33,6 +34,7 @@ type ReporteProduccion = {
     movimientos: MovimientoReporte[];
 };
 
+// Componente principal para mostrar el informe de producción
 export default function InformesProd() {
     const { id_inventario } = useParams();
     const [reporte, setReporte] = useState<ReporteProduccion | null>(null);
@@ -84,6 +86,7 @@ export default function InformesProd() {
         };
     }, [id_inventario]);
 
+    // Función para formatear la fecha en formato local
     const formatearFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
         const fecha = new Date(fechaString);
@@ -97,6 +100,7 @@ export default function InformesProd() {
         });
     };
 
+    // Función para formatear monedas en pesos colombianos
     const formatearMoneda = (valor: number | string) => {
         const numero = Number(valor ?? 0);
         return new Intl.NumberFormat("es-CO", {
@@ -106,11 +110,13 @@ export default function InformesProd() {
         }).format(numero);
     };
 
+    // Función para formatear cantidades con su unidad correspondiente
     const formatearCantidad = (cantidad: number | string, simbolo?: string) => {
         const unidad = simbolo?.trim() || "-";
         return `${cantidad ?? 0} ${unidad}`;
     };
 
+    // Función para mapear los motivos de perdida a un texto más amigable
     const formatearMotivo = (motivo: string) => {
         const mapaMotivos: Record<string, string> = {
             daño_fisico: "En mal estado",
@@ -124,10 +130,11 @@ export default function InformesProd() {
         return mapaMotivos[motivo] ?? motivo;
     };
 
+    // Función para exportar el reporte en PDF o Excel
     const encabezado = reporte?.encabezado;
 
     const totalVenta = reporte?.movimientos
-        .filter((m) => m.tipo === "venta"  && m.estado === "Vendido") // ajusta el string según lo que devuelve tu API
+        .filter((m) => m.tipo === "venta"  && m.estado === "Vendido")
         .reduce((acc, m) => acc + (Number(m.cantidad ?? 0) * Number(m.valor ?? 0)), 0) ?? 0;
 
     const perdidaGanancia = (totalVenta - (encabezado?.total_perdido ?? 0) * (encabezado?.valor_unitario ?? 0));
@@ -351,6 +358,7 @@ export default function InformesProd() {
 
                                     </tr>
                                 </thead>
+                                {/* Aquí muestra la tabla de movimientos del inventario */}
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {reporte.movimientos.length === 0 ? (
                                         <tr>

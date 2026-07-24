@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de ventas
 type VentasFormState = {
     nombre_comprador: string;
     id_comprador: string;
@@ -23,6 +24,7 @@ type VentaDetail = {
     total_venta: number | null;
 };
 
+// Estado inicial del formulario para editar una venta
 const emptyState: VentasFormState = {
     nombre_comprador: "",
     id_comprador: "",
@@ -32,6 +34,7 @@ const emptyState: VentasFormState = {
     total_venta: 0,
 };
 
+// Función para convertir una fecha en formato ISO a un formato compatible con el input de tipo datetime-local
 function toDatetimeLocal(value?: string | null): string {
     if (!value) return "";
     const date = new Date(value);
@@ -47,6 +50,7 @@ function toDatetimeLocal(value?: string | null): string {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+// Componente principal para editar una venta existente
 export default function VentasEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -95,6 +99,7 @@ export default function VentasEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario de edición de ventas
     const handleChange =
         (field: keyof VentasFormState) =>
         (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -104,6 +109,7 @@ export default function VentasEdit() {
             }));
         };
 
+    // Función para manejar el envío del formulario de edición de ventas
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!id) return;

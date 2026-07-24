@@ -3,14 +3,17 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de tipos de insumos
 type TypeFormState = {
     nombre_tipo: string;
 };
 
+// Estado inicial del formulario para crear un nuevo tipo de insumo
 const initialState: TypeFormState = {
     nombre_tipo: "",
 };
 
+// Componente principal para crear un nuevo tipo de insumo
 export default function TypesCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<TypeFormState>(initialState);
@@ -18,6 +21,7 @@ export default function TypesCreate() {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Función para manejar los cambios en los campos del formulario de creación de tipos de insumos
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

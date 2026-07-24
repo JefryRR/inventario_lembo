@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado de la máquina
 type estadoMaquina = "operativa" | "dañada" | "mantenimiento" | "de_baja";
 
 type MaquinaFormState = {
@@ -19,7 +20,7 @@ type MaquinaFormState = {
     fecha_de_baja: string
 };
 
-
+// Estado inicial del formulario para la edición de máquina
 const emptyState: MaquinaFormState = {
     id_maquina: 0,
     nombre_maq: "",
@@ -34,6 +35,7 @@ const emptyState: MaquinaFormState = {
     fecha_de_baja:""
 };
 
+// Función para convertir una fecha en formato ISO a un valor compatible con input type="datetime-local"
 function toDatetimeLocal(value?: string | null): string {
   if (!value) return "";
 
@@ -46,6 +48,7 @@ function toDatetimeLocal(value?: string | null): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
+  // Formatear la fecha a "YYYY-MM-DDTHH:mm"
   const pad = (n: number) => String(n).padStart(2, "0");
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
@@ -56,6 +59,7 @@ function toDatetimeLocal(value?: string | null): string {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+// Componente principal para editar una máquina
 export default function MaquinaEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -85,6 +89,7 @@ export default function MaquinaEdit() {
                 const MaquinaData = await apiFetch(`maquinas/by-id?id=${id}`);
                 if (!mounted) return;
 
+                // Actualizar el estado del formulario con los datos de la máquina obtenidos
                 setForm({
                     id_maquina: MaquinaData?.id_maquina || 0,
                     nombre_maq: MaquinaData?.nombre_maq || "",
@@ -112,6 +117,7 @@ export default function MaquinaEdit() {
         };
     }, [id]);
 
+    // Función para manejar cambios en los campos del formulario
     const handleChange =
         (field: keyof MaquinaFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -119,6 +125,7 @@ export default function MaquinaEdit() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de máquina
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

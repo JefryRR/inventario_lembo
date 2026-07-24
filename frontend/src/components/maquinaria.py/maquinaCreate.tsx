@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado de la máquina
 type estadoMaquina = "operativa" | "dañada" | "mantenimiento" | "de_baja";
 
 type MaquinaFormState = {
@@ -18,7 +19,7 @@ type MaquinaFormState = {
     observaciones: string
 };
 
-
+// Estado inicial del formulario para crear una máquina
 const initialState: MaquinaFormState = {
     id_maquina: 0,
     nombre_maq: "",
@@ -32,6 +33,7 @@ const initialState: MaquinaFormState = {
     observaciones: ""
 };
 
+// Componente principal para crear una máquina
 export default function MaquinaCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<MaquinaFormState>(initialState);

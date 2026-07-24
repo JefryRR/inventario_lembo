@@ -247,6 +247,7 @@ export default function AlimentoEdit() {
                     </Link>
                 </div>
 
+                {/* Formulario para editar el alimento */}
                 <form onSubmit={handleSubmit} className="p-5 lg:p-6">
                     {loading ? (
                         <div className="p-6 text-center text-sm text-gray-500">Cargando alimento...</div>

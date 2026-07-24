@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definimos el estado del formulario de permisos para la edición.
 type PermissionFormState = {
     insertar: boolean;
     actualizar: boolean;
@@ -25,6 +26,7 @@ const parseBool = (v: unknown): boolean => {
     return false;
 };
 
+// Campos booleanos del formulario, para iterar sobre ellos y generar los selects.
 const BOOL_FIELDS: (keyof PermissionFormState)[] = [
     "insertar",
     "actualizar",
@@ -32,6 +34,7 @@ const BOOL_FIELDS: (keyof PermissionFormState)[] = [
     "borrar",
 ];
 
+// Estado inicial del formulario para la edición de permisos
 const EMPTY_FORM: PermissionFormState = {
     insertar: false,
     actualizar: false,
@@ -39,8 +42,7 @@ const EMPTY_FORM: PermissionFormState = {
     borrar: false,
 };
 
-// ─── Componente ───────────────────────────────────────────────────────────────
-
+// Componente principal para editar un permiso existente
 export default function PermisosEdit() {
     const navigate = useNavigate();
     const { moduloId, rolId } = useParams();

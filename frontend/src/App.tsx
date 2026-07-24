@@ -1,3 +1,4 @@
+// Configuración de las rutas de cada módulo.
 import { AuthProvider } from "./context/AuthContext";
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
@@ -101,6 +102,7 @@ import ComercioReport from "./components/comercializacion/informeComercio";
 import MovimientosComercio from "./pages/movimientosComercio";
 import Home from "./pages/Dashboard/Home";
 
+// Componente principal de la aplicación que configura las rutas y el layout
 export default function App() {
   return (
     <>

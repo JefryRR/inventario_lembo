@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Tipos de datos para los selectores y el formulario para la creación de ingredientes
 type PlatoOption = {
     id_plato: number;
     nombre_plato: string;
@@ -58,6 +59,7 @@ type ItemFormState = {
     unid_med_id: number;
 };
 
+// Estado inicial del formulario para un ingrediente
 const initialItemForm: ItemFormState = {
     origen_inv: 0,
     inventario_id: 0,
@@ -65,11 +67,13 @@ const initialItemForm: ItemFormState = {
     unid_med_id: 0,
 };
 
+// Función para obtener la fecha actual en formato ISO (YYYY-MM-DD) para enviarla al backend
 const getLocalISODate = () => {
     const now = new Date();
     return now.toISOString().split("T")[0]; // Envía "YYYY-MM-DD"
 };
 
+// Componente principal para crear un nuevo ingrediente
 export default function IngredienteCreate() {
     const navigate = useNavigate();
 
@@ -158,15 +162,17 @@ export default function IngredienteCreate() {
                     return noVencido && conStock;
                 });
 
+                // Filtramos los insumos para que solo queden los que no estén vencidos, tengan stock y sean del tipo "insumo" (tipo_id === 2)
                 const insumosVigentes = insumoList.filter((i: InsumoOption) => {
                     const noVencido = i.fecha_vencimiento
                         ? i.fecha_vencimiento.slice(0, 10) > fecha_actual
                         : true;
                     const conStock = i.cantidad > 0;
-                    const esTipoInsumo = i.tipo_id === 2; // Filtrar solo insumos (tipo_id === 1)
+                    const esTipoInsumo = i.tipo_id === 2;
                     return noVencido && conStock && esTipoInsumo;
                 });
 
+                // Filtramos las comercializaciones para que solo queden las que no estén vencidas y tengan stock
                 const comercializacionesVigentes = comercializacionList.filter((c: ComercializacionOption) => {
                     const noVencido = c.fecha_vencimiento
                         ? c.fecha_vencimiento.slice(0, 10) > fecha_actual
@@ -201,6 +207,7 @@ export default function IngredienteCreate() {
         };
     }, []);
 
+    // Función para manejar los cambios en los campos del formulario de ingrediente
     const handleItemChange =
         (field: keyof ItemFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -236,6 +243,7 @@ export default function IngredienteCreate() {
             .filter((item) => item.origen_inv === origenInv && item.inventario_id === inventarioId)
             .reduce((total, item) => total + item.cantidad, 0);
 
+    // Función para agregar un ingrediente a la lista de ingredientes pendientes de guardar
     const handleAddItem = () => {
         setError(null);
 
@@ -254,12 +262,14 @@ export default function IngredienteCreate() {
             return;
         }
 
+        // Validamos que la cantidad sea un número mayor a 0
         const cantidadValue = parseFloat(String(itemForm.cant_inv));
         if (Number.isNaN(cantidadValue) || cantidadValue <= 0) {
             setError("La cantidad debe ser un número mayor a 0");
             return;
         }
 
+        // Decidimos cuál es el producto/insumo/comercialización seleccionado según el origen
         const origenSeleccionado =
             itemForm.origen_inv === 1
                 ? productos.find((producto) => producto.id_inventario === itemForm.inventario_id)
@@ -274,6 +284,7 @@ export default function IngredienteCreate() {
                     ? Number((origenSeleccionado as ComercializacionOption).cant_no_vendida || 0)
                     : Number((origenSeleccionado as any).cantidad || 0);
 
+            // Verificamos que la cantidad que el usuario quiere agregar no supere la cantidad disponible en inventario
             const disponible = cantidadBase - cantidadYaAgregada(itemForm.origen_inv, itemForm.inventario_id);
 
             if (cantidadValue > disponible) {
@@ -294,8 +305,10 @@ export default function IngredienteCreate() {
             }
         }
 
+        // Buscamos la unidad de medida seleccionada para obtener su símbolo
         const medidaSeleccionada = medidas.find((medida) => medida.id_unidad === itemForm.unid_med_id);
 
+        // Creamos un nuevo item de ingrediente con un id temporal (clientId) para poder eliminarlo de la lista si el usuario lo desea
         const nuevoItem: ItemIngrediente = {
             clientId: crypto.randomUUID(),
             origen_inv: itemForm.origen_inv,
@@ -311,10 +324,12 @@ export default function IngredienteCreate() {
         setItemForm(initialItemForm);
     };
 
+    // Función para eliminar un ingrediente de la lista de ingredientes pendientes de guardar
     const handleRemoveItem = (clientId: string) => {
         setItems((current) => current.filter((item) => item.clientId !== clientId));
     };
 
+    // Función para enviar los ingredientes al backend y crear el nuevo registro
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
@@ -472,7 +487,7 @@ export default function IngredienteCreate() {
                                                     ? "Cargando comercialización..."
                                                     : "Selecciona un producto"}
                                 </option>
-
+                                {/* Renderizamos las opciones según el origen seleccionado */}
                                 {itemForm.origen_inv === 1 && productos.map((producto) => (
                                     <option className="dark:text-black/90" key={producto.id_inventario} value={producto.id_inventario}>
                                         {producto.nombre_producto} cantidad: {producto.cantidad} {producto.simbolo}

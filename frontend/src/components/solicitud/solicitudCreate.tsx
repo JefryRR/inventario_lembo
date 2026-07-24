@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de solicitudes de insumos
 type SolicitudEstado =
   | "pendiente"
   | "entregado"
@@ -44,6 +45,7 @@ type MedidaOption = {
   simbolo: string;
 };
 
+// Estado inicial del formulario para crear una nueva solicitud de insumo
 const initialState: SolicitudFormState = {
   solicitante: "",
   ficha: "",
@@ -59,7 +61,7 @@ const initialState: SolicitudFormState = {
   user_id: 0,
   nombre_user: "",
 };
-
+// Opciones de estado para la solicitud de insumo
 const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "pendiente", label: "Pendiente" },
   { value: "entregado", label: "Entregado" },
@@ -67,6 +69,7 @@ const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "devuelto", label: "Devuelto" },
 ];
 
+// Componente principal para crear una nueva solicitud de insumo
 export default function SolicitudCreate() {
   const navigate = useNavigate();
   const [form, setForm] = useState<SolicitudFormState>(initialState);
@@ -135,13 +138,14 @@ export default function SolicitudCreate() {
     };
   }, []);
 
+  // Actualiza el tipo de insumo automáticamente cuando se selecciona un insumo en el formulario
   useEffect(() => {
     if (form.insumo_id && form.insumo_id !== 0) {
       const insumoEncontrado = inventarios.find(
         (item) => item.id_insumo === Number(form.insumo_id)
       );
 
-      // 3. Si lo encuentra, extraemos su tipo y lo guardamos automáticamente en el formulario
+      // Si lo encuentra, extraemos su tipo y lo guardamos automáticamente en el formulario
       if (insumoEncontrado && insumoEncontrado.tipo_id) {
         setForm((current) => ({
           ...current,
@@ -151,6 +155,7 @@ export default function SolicitudCreate() {
     }
   }, [form.insumo_id, inventarios]);
 
+  // Maneja los cambios en los campos del formulario de creación de solicitudes de insumos
   const handleChange =
     (field: keyof SolicitudFormState) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -178,6 +183,7 @@ export default function SolicitudCreate() {
         }));
       };
 
+  // Función para manejar el envío del formulario de creación de solicitudes de insumos
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);

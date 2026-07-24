@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Tipos para el estado del formulario de comercialización
 type ComercializacionFormState = {
   producto_id: number;
   lote_id: number;
@@ -36,6 +37,7 @@ type LoteOption = {
   sublote: string;
 };
 
+// Tipo para los detalles de la comercialización obtenidos del backend
 type ComercializacionDetail = {
   id_comercializacion: number;
   producto_id: number;
@@ -52,6 +54,7 @@ type ComercializacionDetail = {
   simbolo?: string | null;
 };
 
+// Función para obtener la fecha local en formato YYYY-MM-DD
 const getLocalISODate = () => {
   const now = new Date();
   const offset = now.getTimezoneOffset();
@@ -59,6 +62,7 @@ const getLocalISODate = () => {
   return localDate.toISOString().slice(0, 10); // "2026-08-11"
 };
 
+// Función para convertir una fecha en formato ISO a la fecha local en formato YYYY-MM-DD
 const toDateValue = (value?: string | null) => {
   if (!value) return getLocalISODate();
   const date = new Date(value);
@@ -67,6 +71,7 @@ const toDateValue = (value?: string | null) => {
   return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 10);
 };
 
+// Estado inicial del formulario de comercialización
 const initialState: ComercializacionFormState = {
   producto_id: 0,
   lote_id: 0,
@@ -79,6 +84,7 @@ const initialState: ComercializacionFormState = {
   cant_no_vendida: 0,
 };
 
+// Componente para editar una comercialización
 export default function ComercioEdit() {
   const navigate = useNavigate();
   const params = useParams();
@@ -97,6 +103,7 @@ export default function ComercioEdit() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // useEffect para redirigir al usuario a la página de inicio de sesión si no hay token en el localStorage
   useEffect(() => {
     if (!localStorage.getItem("token")) {
       navigate("/signin");
@@ -152,7 +159,10 @@ export default function ComercioEdit() {
               ? lotesData
               : [];
 
+        // Creamos un mapa de lotes por id para poder obtener el sublote correspondiente a cada producto
         const lotesPorId = new Map(loteList.map((lote: LoteOption) => [lote.id_lote, lote.sublote]));
+
+        // Agregamos el sublote a cada producto, si tiene lote_id
         const productosConLote = productoList.map((producto: ProductoOption) => ({
           ...producto,
           sublote: producto.sublote || (producto.lote_id ? lotesPorId.get(producto.lote_id) || "" : ""),
@@ -162,6 +172,8 @@ export default function ComercioEdit() {
         setMedidas(medidaList);
         setLotes(loteList);
         setRecord(comercioData);
+
+        // Inicializamos el formulario con los datos de la comercialización obtenidos del backend
         setForm({
           producto_id: Number(comercioData?.producto_id ?? 0),
           lote_id: Number(comercioData?.lote_id ?? 0),
@@ -193,6 +205,7 @@ export default function ComercioEdit() {
     };
   }, [id]);
 
+  // Función para manejar los cambios en los campos del formulario
   const handleChange =
     (field: keyof ComercializacionFormState) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -236,6 +249,7 @@ export default function ComercioEdit() {
     }));
   };
 
+  // Función para manejar el envío del formulario
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -250,6 +264,7 @@ export default function ComercioEdit() {
 
     const cantidadValue = Number(form.cantidad);
 
+    // Validaciones de campos obligatorios y cantidad
     if (Number.isNaN(cantidadValue) || cantidadValue <= 0) {
       setError("La cantidad debe ser un número mayor a 0");
       setSaving(false);
@@ -322,6 +337,7 @@ export default function ComercioEdit() {
           </Link>
         </div>
 
+        {/* Formulario para editar la comercialización */}
         <form onSubmit={handleSubmit} className="p-5 lg:p-6">
           {loadingData ? (
             <div className="p-6 text-center text-sm text-gray-500">Cargando comercialización...</div>
@@ -501,6 +517,7 @@ export default function ComercioEdit() {
                 </div>
               )}
 
+              { /* Botones de acción para guardar o cancelar la edición de la comercialización */ }
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
                   type="submit"

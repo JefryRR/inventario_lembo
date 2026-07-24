@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Tipos de datos para el formulario y las opciones de productos y medidas
 type EstadoVenta = "Vendido" | "Separado" | "Anulado";
 
 type DetalleFormState = {
@@ -32,6 +33,7 @@ type MedidaOption = {
 	simbolo: string;
 };
 
+// Tipo de respuesta esperada al obtener un detalle de venta por ID
 type DetalleVentaResponse = {
 	id_detalle_venta: number;
 	cantidad: number;
@@ -46,12 +48,14 @@ type DetalleVentaResponse = {
 	simbolo?: string;
 };
 
+// Opciones de estado de venta para el select
 const ESTADO_OPTIONS: Array<{ value: EstadoVenta; label: string }> = [
 	{ value: "Vendido", label: "Vendido" },
 	{ value: "Separado", label: "Separado" },
 	{ value: "Anulado", label: "Anulado" },
 ];
 
+// Estado inicial del formulario
 const initialState: DetalleFormState = {
 	cantidad: 0,
 	unid_medida_id: 0,
@@ -65,6 +69,7 @@ const initialState: DetalleFormState = {
 	cant_convertida: 0,
 };
 
+// Componente principal para editar un detalle de venta
 export default function DetalleEdit() {
 	const navigate = useNavigate();
 	const params = useParams();
@@ -120,7 +125,10 @@ export default function DetalleEdit() {
 				setProductos(productoList);
 				setMedidas(medidaList);
 
+				// Determinar el estado del detalle de venta, usando "Separado" como valor predeterminado si no está definido
 				const estadoDetalle = detalle?.estado_venta ?? "Separado";
+
+				// Establecer el estado inicial del formulario con los datos obtenidos
 				setForm({
 					cantidad: Number(detalle?.cantidad ?? 0),
 					unid_medida_id: Number(detalle?.unid_medida_id ?? 0),
@@ -152,6 +160,7 @@ export default function DetalleEdit() {
 		};
 	}, [id]);
 
+	// Función para manejar cambios en los campos del formulario
 	const handleChange =
 		(field: keyof DetalleFormState) =>
 		(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -171,6 +180,7 @@ export default function DetalleEdit() {
 			}));
 		};
 
+	// Función para manejar el envío del formulario y actualizar el detalle de venta
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		if (!id) return;
@@ -187,16 +197,20 @@ export default function DetalleEdit() {
 				inv_prod_id: Number(form.inv_prod_id),
 			};
 
+			// Verificar si el estado de venta ha cambiado y si el estado original o el estado destino están bloqueados
 			const estadoCambiado = originalEstado !== null && originalEstado !== form.estado_venta;
 			const estadoBloqueado = originalEstado === "Vendido" || originalEstado === "Anulado";
 			const estadoDestinoBloqueado = form.estado_venta === "Vendido" || form.estado_venta === "Anulado";
 
+			// Si el estado ha cambiado y el estado original estaba bloqueado, actualizar primero el estado de venta
 			if (estadoCambiado && estadoBloqueado) {
 				await apiFetch(`detalles-venta/estado/${id}?estado=${encodeURIComponent(form.estado_venta)}`, {
 					method: "PUT",
 				});
 			}
 
+			// Si el estado no ha cambiado o si el estado original y el estado destino no están bloqueados, 
+			// actualizar los demás campos del detalle de venta
 			if (!(estadoCambiado && estadoBloqueado && estadoDestinoBloqueado)) {
 				const data = await apiFetch(`detalles-venta/update/detalle/${id}`, {
 					method: "PUT",

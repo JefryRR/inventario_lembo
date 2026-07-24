@@ -3,10 +3,10 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-// Ajusta esto según cómo esté configurada tu apiFetch/baseURL real,
 // se usa solo para armar la URL completa de la foto servida como StaticFiles.
 const API_BASE_URL: string = (import.meta as any)?.env?.VITE_API_URL || "http://localhost:8000";
 
+// Definición de tipos para el estado del formulario de mortalidad
 type MortalidadFormState = {
   lote_id: number;
   fecha_reporte: string; // mostrado como readonly
@@ -26,6 +26,7 @@ type UserOption = {
   nombre_user: string;
 };
 
+// Estado inicial del formulario para editar un registro de mortalidad
 const emptyState: MortalidadFormState = {
   lote_id: 0,
   fecha_reporte: "",
@@ -34,6 +35,7 @@ const emptyState: MortalidadFormState = {
   user_id: 0,
 };
 
+// Función para convertir una fecha en formato ISO a un string compatible con <input type="datetime-local">
 function toDatetimeLocal(value?: string | null): string {
   if (!value) return "";
   const date = new Date(value);
@@ -49,12 +51,14 @@ function toDatetimeLocal(value?: string | null): string {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+// Función para resolver la URL completa de la foto, considerando si es relativa o absoluta
 function resolveFotoUrl(fotoUrl?: string | null): string | null {
   if (!fotoUrl) return null;
   if (fotoUrl.startsWith("http://") || fotoUrl.startsWith("https://")) return fotoUrl;
   return `${API_BASE_URL}${fotoUrl}`;
 }
 
+// Componente principal para editar un registro de mortalidad
 export default function MortalidadEdit() {
   const navigate = useNavigate();
   const params = useParams();
@@ -142,6 +146,7 @@ export default function MortalidadEdit() {
     };
   }, [id]);
 
+  // Función para manejar los cambios en los campos del formulario
   const handleChange =
     (field: keyof MortalidadFormState) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -159,6 +164,7 @@ export default function MortalidadEdit() {
         setForm((current) => ({ ...current, [field]: value }));
       };
 
+  // Función para manejar el envío del formulario de edición de mortalidad
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!id) return;
@@ -187,8 +193,6 @@ export default function MortalidadEdit() {
         user_id: Number(form.user_id),
       };
 
-      // La ruta del backend ya usa {id_mortalidad}, coincidiendo con el
-      // parámetro real de la función — no hace falta duplicar el id como query param.
       await apiFetch(`mortalidad/by-id/${id}`, {
         method: "PUT",
         body: payload,

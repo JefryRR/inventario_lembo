@@ -10,6 +10,10 @@ import Badge from "../ui/badge/Badge";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// En esta tabla se muestran las últimas 5 ventas registradas en el sistema, con información del producto, 
+// comprador, cantidad, precio unitario y estado de la venta (La tercera gráfica del dashboard).
+
+// Definición de la interfaz para representar los detalles de venta
 interface DetalleVenta {
   id_detalle_venta: number;
   nombre_producto: string;
@@ -20,6 +24,7 @@ interface DetalleVenta {
   estado_venta: "Vendido" | "Separado" | "Anulado";
 }
 
+// Componente principal para mostrar las ventas recientes
 export default function RecentOrders() {
   const [ventas, setVentas] = useState<DetalleVenta[]>([]);
   const [loading, setLoading] = useState(false);

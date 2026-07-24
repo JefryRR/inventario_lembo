@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
+// Definición de tipos para el contexto del sidebar
 type SidebarContextType = {
   isExpanded: boolean;
   isMobileOpen: boolean;
@@ -13,8 +14,10 @@ type SidebarContextType = {
   toggleSubmenu: (item: string) => void;
 };
 
+// Creación del contexto del sidebar
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
+// Hook personalizado para acceder al contexto del sidebar
 export const useSidebar = () => {
   const context = useContext(SidebarContext);
   if (!context) {
@@ -23,6 +26,7 @@ export const useSidebar = () => {
   return context;
 };
 
+// Componente proveedor del contexto del sidebar
 export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -42,6 +46,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
+    // Ejecutar la función de manejo de redimensionamiento al montar el componente y agregar el event listener
     handleResize();
     window.addEventListener("resize", handleResize);
 
@@ -50,10 +55,12 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
+  // Funciones para manejar la expansión del sidebar, la apertura del sidebar en dispositivos móviles y la apertura/cierre de submenús
   const toggleSidebar = () => {
     setIsExpanded((prev) => !prev);
   };
 
+  // Función para alternar la apertura del sidebar en dispositivos móviles
   const toggleMobileSidebar = () => {
     setIsMobileOpen((prev) => !prev);
   };

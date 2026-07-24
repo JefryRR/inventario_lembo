@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-
+// Definición de tipos para el estado del formulario de lotes 
 type LoteFormState = {
   nombre_lote: string;
   ubicacion: string;
@@ -11,6 +11,7 @@ type LoteFormState = {
   longitud: string;
 };
 
+// Estado inicial del formulario de lotes
 const initialState: LoteFormState = {
   nombre_lote: "",
   ubicacion: "",
@@ -18,7 +19,7 @@ const initialState: LoteFormState = {
   longitud: "",
 };
 
-
+// Componente principal para crear un lote
 export default function LotesCreate() {
   const navigate = useNavigate();
   const [form, setForm] = useState<LoteFormState>(initialState);
@@ -26,17 +27,19 @@ export default function LotesCreate() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-      const handleChange =
-        (field: keyof LoteFormState) =>
-            (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-                const value = event.target.value;
+  // Función para manejar cambios en los campos del formulario
+  const handleChange =
+    (field: keyof LoteFormState) =>
+        (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+            const value = event.target.value;
 
-                setForm((current) => ({
-                    ...current,
-                    [field]: value,
-                }));
-            };
+            setForm((current) => ({
+                ...current,
+                [field]: value,
+            }));
+        };
 
+  // Función para manejar el envío del formulario y crear un nuevo lote
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
