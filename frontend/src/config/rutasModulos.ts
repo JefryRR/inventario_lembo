@@ -1,3 +1,6 @@
+// Este archivo contiene la configuración de rutas y módulos para la aplicación. 
+// Se define un objeto `rutasModulos` que mapea las rutas de la aplicación a sus nombres de módulo correspondientes. 
+// Además, se proporciona una función `getModuloPorRuta` que permite obtener el nombre del módulo basado en la ruta actual.
 export const rutasModulos: Record<string, string> = {
   "/users": "Usuarios",
   "/permisos": "Permisos",
@@ -28,6 +31,7 @@ export const rutasModulos: Record<string, string> = {
   "/detalle-ventas": "Detalle ventas",
 };
 
+// Función que recibe una ruta y devuelve el nombre del módulo correspondiente.
 export function getModuloPorRuta(pathname: string): string | null {
   const match = Object.keys(rutasModulos)
     .filter((prefix) => pathname.startsWith(prefix))

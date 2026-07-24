@@ -6,18 +6,24 @@ import { ApexOptions } from "apexcharts";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Esta gráfica muestra una gráfica de líneas con el valor total de producción y el valor total de pérdidas por mes del año actual, 
+// considerando solo las pérdidas que tienen origen "producción" (Cuarta gráfica del dashboard).
+
+// Definición de las interfaces para representar los datos de producción
 interface ProduccionItem {
   fecha_ingreso: string;
   cantidad: number;
   valor_unitario: number;
 }
 
+// Definición de la interfaz para representar los datos de pérdidas
 interface PerdidaItem {
   fecha_reporte: string;
   cantidad: number;
   valor_unitario?: number | null;
 }
 
+// Definición de la interfaz para representar la respuesta paginada de la API
 interface PaginatedResponse {
   page: number;
   page_size: number;
@@ -25,6 +31,7 @@ interface PaginatedResponse {
   [key: string]: any;
 }
 
+// Definición de la interfaz para representar los datos de ventas
 const MESES = [
   "Ene", "Feb", "Mar", "Abr", "May", "Jun",
   "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
@@ -57,6 +64,7 @@ async function fetchTodasLasPaginas<T>(
   return items;
 }
 
+// Función para agrupar los valores por mes, sumando el valor total de cada item
 function agruparValorPorMes(
   items: { fecha: string; cantidad: number; valor_unitario?: number | null }[]
 ): number[] {
@@ -69,6 +77,7 @@ function agruparValorPorMes(
   return totales;
 }
 
+// Componente principal para mostrar la gráfica de estadísticas
 export default function StatisticsChart() {
   const [seriesData, setSeriesData] = useState<{ name: string; data: number[] }[]>([
     { name: "Valor producción", data: new Array(12).fill(0) },
@@ -107,6 +116,7 @@ export default function StatisticsChart() {
           }),
         ]);
 
+        // Agrupar los valores por mes y calcular el valor total de producción y pérdidas
         const valorProduccionPorMes = agruparValorPorMes(
           produccion.map((p) => ({
             fecha: p.fecha_ingreso,
@@ -114,6 +124,7 @@ export default function StatisticsChart() {
             valor_unitario: p.valor_unitario,
           }))
         );
+
         const valorPerdidasPorMes = agruparValorPorMes(
           perdidas.map((p) => ({
             fecha: p.fecha_reporte,
@@ -136,6 +147,7 @@ export default function StatisticsChart() {
     cargarDatos();
   }, []);
 
+  // Configuración de la gráfica de líneas usando ApexCharts
   const options: ApexOptions = {
     legend: {
       show: true,

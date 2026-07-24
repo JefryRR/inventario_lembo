@@ -4,14 +4,17 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de tipos de insumos
 type TipoInsumoFormState = {
     nombre_tipo: string;
 };
 
+// Estado inicial del formulario para editar un tipo de insumo
 const emptyState: TipoInsumoFormState = {
     nombre_tipo: "",
 };
 
+// Componente principal para editar un tipo de insumo
 export default function TipoInsumoEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -53,6 +56,7 @@ export default function TipoInsumoEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario de edición de tipos de insumos
     const handleChange =
         (field: keyof TipoInsumoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -60,6 +64,7 @@ export default function TipoInsumoEdit() {
                 setForm((prev) => ({ ...prev, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de tipos de insumos
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

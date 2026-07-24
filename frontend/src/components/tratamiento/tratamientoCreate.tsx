@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de tratamientos
 type TratamientoFormState = {
   lote_id: number;
   medicina_id: number;
@@ -40,6 +41,7 @@ type MedidaOption = {
   simbolo: string;
 };
 
+// Estado inicial del formulario para crear un nuevo tratamiento
 const initialState: TratamientoFormState = {
   lote_id: 0,
   sublote: "",
@@ -57,6 +59,7 @@ const initialState: TratamientoFormState = {
   nombre_user: "",
 };
 
+// Componente principal para crear un nuevo tratamiento
 export default function TratamientoCreate() {
   const navigate = useNavigate();
   const [form, setForm] = useState<TratamientoFormState>(initialState);
@@ -134,6 +137,7 @@ export default function TratamientoCreate() {
     };
   }, []);
 
+  // Función para manejar los cambios en los campos del formulario de creación de tratamientos
   const handleChange =
     (field: keyof TratamientoFormState) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -152,6 +156,7 @@ export default function TratamientoCreate() {
         setForm((current) => ({ ...current, [field]: value }));
       };
 
+  // Función para manejar el envío del formulario de creación de tratamientos
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);

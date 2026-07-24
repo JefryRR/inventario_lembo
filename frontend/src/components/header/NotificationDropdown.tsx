@@ -5,6 +5,10 @@ import { Link } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Este componente se encarga de mostrar un dropdown con notificaciones de alertas de productos por vencer o insumos que necesitan ser provisionados
+// o están agotados. Se obtiene la información desde el backend y se filtra para mostrar solo las alertas relevantes.
+
+// Definición de tipos para las alertas de producción e insumos
 type ProduccionAlert = {
   id_inventario: number;
   nombre_producto: string;
@@ -20,6 +24,7 @@ type InsumoAlert = {
   minima: number;
 };
 
+// Definición de tipos de estados por los que se generan las alertas
 type TipoAlerta = "vencimiento" | "provisionar" | "agotado";
 
 type AlertCard = {
@@ -33,9 +38,10 @@ type AlertCard = {
   message: string;
 };
 
+// Componente principal para mostrar el dropdown de notificaciones
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifying, setNotifying] = useState(false);// El estado acepta ambos tipos
+  const [notifying, setNotifying] = useState(false);  // El estado acepta ambos tipos
   const [alerts, setAlerts] = useState<((ProduccionAlert & { origen: "produccion", tipo: "vencimiento" }) | (InsumoAlert & { origen: "insumo"; tipo: TipoAlerta }))[]>([]);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
   const [alertsError, setAlertsError] = useState<string | null>(null);
@@ -43,6 +49,7 @@ export default function NotificationDropdown() {
   useEffect(() => {
     let mounted = true;
 
+    // Función para cargar las alertas desde el backend y filtrarlas según los criterios establecidos
     const loadAlerts = async () => {
       setLoadingAlerts(true);
       setAlertsError(null);
@@ -66,6 +73,7 @@ export default function NotificationDropdown() {
             ? dataInsumo.insumos
             : [];
 
+        // Filtrar alertas de producción e insumos por fecha de vencimiento y nivel de alerta
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -95,7 +103,7 @@ export default function NotificationDropdown() {
               (item) => item.nivelAlerta === "Provisionar" || item.nivelAlerta === "Agotado"
             );
 
-
+        // Combinar y mapear las alertas filtradas para su visualización en el dropdown
         const produccionFiltrada = filtrarPorVencimiento(list).map((item: ProduccionAlert) => ({
           ...item,
           origen: "produccion" as const,
@@ -136,6 +144,7 @@ export default function NotificationDropdown() {
     };
   }, []);
 
+  // Mapear las alertas a un formato adecuado para su visualización en el dropdown
   const notificationItems: AlertCard[] = alerts.map((item) => {
     const rawId = item.origen === "produccion" ? item.id_inventario : item.id_insumo;
     const id = `${item.origen}-${item.tipo}-${rawId}`;
@@ -173,6 +182,7 @@ export default function NotificationDropdown() {
     };
   });
 
+  // Función para manejar el clic en el botón de notificaciones, alternando la visibilidad del dropdown y reseteando el estado de notificación
   const handleClick = () => {
     setIsOpen((current) => !current);
     setNotifying(false);

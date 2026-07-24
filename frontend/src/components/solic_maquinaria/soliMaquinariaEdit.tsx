@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de solicitudes de maquinaria
 type SolicitudEstado = "pendiente" | "entregada" | "cancelada" | "devuelta";
 
 type SolicitudFormState = {
@@ -22,6 +23,7 @@ type MaquinariaOption = {
   tipo_maq: string;
 };
 
+// Estado inicial del formulario para editar una solicitud de maquinaria
 const emptyState: SolicitudFormState = {
   maquinaria_id: 0,
   fecha_entrega: "",
@@ -33,6 +35,7 @@ const emptyState: SolicitudFormState = {
   observaciones: "",
 };
 
+// Opciones de estado para el select en el formulario de edición de solicitudes
 const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "pendiente", label: "Pendiente" },
   { value: "entregada", label: "Entregada" },
@@ -40,15 +43,14 @@ const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "devuelta", label: "Devuelta" },
 ];
 
+// Componente principal para editar una solicitud de maquinaria existente
 export default function SolicitudEdit() {
   const navigate = useNavigate();
   const params = useParams();
   const id = params.id || params.id_solicitud || params.solicitud_id;
 
   const [form, setForm] = useState<SolicitudFormState>(emptyState);
-  const [originalEstado, setOriginalEstado] = useState<SolicitudEstado | null>(
-    null,
-  );
+  const [originalEstado, setOriginalEstado] = useState<SolicitudEstado | null>(null);
   const [maquina, setMaquina] = useState<MaquinariaOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -112,6 +114,7 @@ export default function SolicitudEdit() {
     };
   }, [id]);
 
+  // Función para manejar los cambios en los campos del formulario de edición de solicitudes
   const handleChange =
     (field: keyof SolicitudFormState) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -135,6 +138,7 @@ export default function SolicitudEdit() {
       setForm((current) => ({ ...current, [field]: value }));
     };
 
+  // Función para manejar el envío del formulario de edición de solicitudes
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!id) return;

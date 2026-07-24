@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Tipos de datos para el formulario de edición de insumos
 type Inv_insumoFormState = {
     id_insumo: string;
     nombre_producto: string;
@@ -26,6 +27,7 @@ type Unid_medOption = {
     simbolo: string;
 };
 
+// Estado inicial para el formulario de edición de insumos
 const emptyState: Inv_insumoFormState = {
     id_insumo: "",
     nombre_producto: "",
@@ -39,6 +41,7 @@ const emptyState: Inv_insumoFormState = {
     simbolo: "",
 };
 
+// Componente principal para editar un insumo existente
 export default function Inv_insumoEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -80,6 +83,7 @@ export default function Inv_insumoEdit() {
                 const tipoInsList = Array.isArray(tipoInsData?._id_tipo_insumo) ? tipoInsData._id_tipo_insumo :
                     Array.isArray(tipoInsData) ? tipoInsData : [];
 
+                // Actualizamos el estado del formulario con los datos del insumo y las listas de opciones
                 setForm({
                     id_insumo: invInsumoData?.id_insumo || "",
                     nombre_producto: invInsumoData?.nombre_producto || "",
@@ -108,6 +112,7 @@ export default function Inv_insumoEdit() {
         };
     }, [id]);
 
+    // Handler para actualizar el estado del formulario de edición de insumos
     const handleChange =
         (field: keyof Inv_insumoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -115,6 +120,7 @@ export default function Inv_insumoEdit() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Handler para enviar el formulario de edición de insumos
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

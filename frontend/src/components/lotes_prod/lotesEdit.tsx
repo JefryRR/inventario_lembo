@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de lote
 type LoteEstado =
   | "activo"
   | "finalizado"
@@ -36,6 +37,7 @@ type UserOption = {
   nombre_user: string;
 };
 
+// Estado inicial del formulario para la edición de lote
 const emptyState: LoteFormState = {
   nombre_lote: "",
   sublote: "",
@@ -48,6 +50,7 @@ const emptyState: LoteFormState = {
   user_id: 0,
 };
 
+// Opciones de estado del lote con sus etiquetas correspondientes
 const ESTADO_OPTIONS: Array<{ value: LoteEstado; label: string }> = [
   { value: "activo", label: "Activo" },
   { value: "finalizado", label: "Finalizado" },
@@ -55,6 +58,7 @@ const ESTADO_OPTIONS: Array<{ value: LoteEstado; label: string }> = [
   { value: "listo_cosecha", label: "Listo para cosechar" },
 ];
 
+// Función para convertir una fecha en formato ISO a un valor compatible con input type="datetime-local"
 function toDatetimeLocal(value?: string | null): string {
   if (!value) return "";
   const date = new Date(value);
@@ -70,6 +74,7 @@ function toDatetimeLocal(value?: string | null): string {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+// Componente principal para editar un lote de producción
 export default function LotesEdit() {
   const navigate = useNavigate();
   const params = useParams();
@@ -152,6 +157,7 @@ export default function LotesEdit() {
     };
   }, [id]);
 
+  // Función para manejar cambios en los campos del formulario
   const handleChange =
     (field: keyof LoteFormState) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -179,6 +185,7 @@ export default function LotesEdit() {
       }));
     };
 
+  // Función para manejar el envío del formulario de edición de lote
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!id) return;

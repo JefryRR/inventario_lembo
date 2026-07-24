@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para la edición del estado del formulario
 type Inv_prodFormState = {
     nombre_producto: string,
     cantidad: string,
@@ -29,6 +30,7 @@ type Unid_medOption = {
     simbolo: string;
 };
 
+// Estado inicial del formulario para la edición del inventario de producción
 const emptyState: Inv_prodFormState = {
     nombre_producto: "",
     cantidad: "",
@@ -44,6 +46,7 @@ const emptyState: Inv_prodFormState = {
     simbolo: ""
 };
 
+// Componente principal para editar un inventario de producción
 export default function Inv_prodEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -85,7 +88,6 @@ export default function Inv_prodEdit() {
                 const unidMedList = Array.isArray(UnidMedidasData?.unid_medidas) ? UnidMedidasData.unid_medidas :
                     Array.isArray(UnidMedidasData) ? UnidMedidasData : [];
 
-                console.log("invProdData completo:", invProdData);
                 setForm({
                     nombre_producto: invProdData?.nombre_producto || "",
                     cantidad: String(invProdData?.cantidad ?? ""),
@@ -117,6 +119,7 @@ export default function Inv_prodEdit() {
         };
     }, [id]);
 
+    // Función para manejar cambios en los campos del formulario
     const handleChange =
         (field: keyof Inv_prodFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -124,6 +127,7 @@ export default function Inv_prodEdit() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario y actualizar el producto
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

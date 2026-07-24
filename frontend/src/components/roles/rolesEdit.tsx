@@ -3,18 +3,21 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de roles
 type RolFormState = {
     nombre_rol: string;
     descripcion: string;
     estado: boolean;
 };
 
+// Estado inicial del formulario para editar un rol
 const emptyState: RolFormState = {
     nombre_rol: "",
     descripcion: "",
     estado: true,
 };
 
+// Componente principal para editar un rol existente
 export default function RolesEdit() {
     const params = useParams();
     const id_rol = params.id_rol;
@@ -32,6 +35,7 @@ export default function RolesEdit() {
         const load = async () => {
             setLoading(true);
             setError(null);
+
             try {
                 const rolesData = await apiFetch(`roles/by-id?id=${id_rol}`) as RolFormState;
                 if (!mounted) return;
@@ -56,6 +60,7 @@ export default function RolesEdit() {
         };
     }, [id_rol]);
 
+    // Función para manejar los cambios en los campos del formulario de edición de roles
     const handleChange =
         (field: keyof RolFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -63,6 +68,7 @@ export default function RolesEdit() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de roles
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id_rol) return;

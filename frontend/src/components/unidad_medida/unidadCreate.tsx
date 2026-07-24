@@ -5,6 +5,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de unidades de medida
 type UnidadFormState = {
     unidad: string;
     simbolo: string;
@@ -12,6 +13,7 @@ type UnidadFormState = {
     tipo?: string;
 };
 
+// Estado inicial del formulario para crear una nueva unidad de medida
 const initialState = {
     unidad: "",
     simbolo: "",
@@ -19,6 +21,7 @@ const initialState = {
     tipo:"inventario",
 };
 
+// Componente principal para crear una nueva unidad de medida
 export default function UnidadesCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<UnidadFormState>(initialState);
@@ -26,12 +29,14 @@ export default function UnidadesCreate() {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Función para manejar el envío del formulario de creación de unidades de medida
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
         setError(null);
         setSuccess(null);
 
+        // Validación del campo de conversión para asegurarse de que sea un número mayor a 0
         const conversionValue = parseFloat(String(form.conversion));
 
         if (isNaN(conversionValue) || conversionValue <= 0) {

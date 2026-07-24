@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de ventas de platos
 type VentasPlatosFormState = {
     plato_id: number;
     cantidad: string | number;
@@ -17,6 +18,7 @@ type PlatoOption = {
     nombre_plato: string;
 };
 
+// Estado inicial del formulario para crear una nueva venta de plato
 const initialState: VentasPlatosFormState = {
     plato_id: 0,
     cantidad: "" as string | number,
@@ -25,6 +27,7 @@ const initialState: VentasPlatosFormState = {
     nombre_plato: "",
 };
 
+// Componente principal para crear una nueva venta de plato
 export default function VentasPlatosCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<VentasPlatosFormState>(initialState);
@@ -72,6 +75,7 @@ export default function VentasPlatosCreate() {
         };
     }, []);
 
+    // Función para manejar los cambios en los campos del formulario de creación de ventas de platos
     const handleChange =
         (field: keyof VentasPlatosFormState) =>
         (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -86,17 +90,20 @@ export default function VentasPlatosCreate() {
             }
         };
 
+    // Función para obtener la fecha actual en formato local (YYYY-MM-DD)
     const getLocalISODate = () => {
         const now = new Date();
         return now.toISOString().split('T')[0];
     };
 
+    // Función para manejar el envío del formulario de creación de ventas de platos
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
         setError(null);
         setSuccess(null);
 
+        // Validación del campo de cantidad para asegurarse de que sea un número mayor a 0
         const cantidadValue = parseFloat(String(form.cantidad));
 
         if (isNaN(cantidadValue) || cantidadValue <= 0) {

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de mortalidad
 type MortalidadFormState = {
 	lote_id: number;
 	fecha_reporte: string;
@@ -18,8 +19,10 @@ type LoteOption = {
 	nombre_categoria?: string;
 };
 
+// Definimos los tipos de archivo permitidos para la foto
 const ALLOWED_FOTO_TYPES = ["image/jpeg", "image/png"];
 
+// Estado inicial del formulario para crear un registro de mortalidad
 const initialState: MortalidadFormState = {
 	lote_id: 0,
 	fecha_reporte: "",
@@ -27,6 +30,7 @@ const initialState: MortalidadFormState = {
 	observacion: null,
 };
 
+// Componente principal para crear un registro de mortalidad
 export default function MortalidadCreate() {
 	const navigate = useNavigate();
 	const [form, setForm] = useState<MortalidadFormState>(initialState);
@@ -40,6 +44,7 @@ export default function MortalidadCreate() {
 	useEffect(() => {
 		let mounted = true;
 
+		// Función para cargar los lotes disponibles desde la API
 		const loadLotes = async () => {
 			setLoadingLotes(true);
 
@@ -49,6 +54,7 @@ export default function MortalidadCreate() {
 
 			const resultados: LoteOption[] = [];
 
+			// Intentamos cargar los lotes en diferentes estados (activo, cuarentena, listo_cosecha)
 			try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=activo"))); } catch { }
 			try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=cuarentena"))); } catch { }
 			try { resultados.push(...extractLotes(await apiFetch("lotes_prod/all-lotes_prod?estado=listo_cosecha"))); } catch { }
@@ -66,6 +72,7 @@ export default function MortalidadCreate() {
 		};
 	}, []);
 
+	// Función para manejar los cambios en los campos del formulario
 	const handleChange =
 		(field: keyof MortalidadFormState) =>
 			(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -85,6 +92,7 @@ export default function MortalidadCreate() {
 				setForm((current) => ({ ...current, [field]: value }));
 			};
 
+	// Función para validar el tipo de archivo de la foto.
 	const handleFotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0] ?? null;
 
@@ -99,6 +107,7 @@ export default function MortalidadCreate() {
 		setFoto(file);
 	};
 
+	// Función para manejar el envío del formulario de creación de mortalidad
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setLoading(true);
@@ -111,6 +120,7 @@ export default function MortalidadCreate() {
 			return;
 		}
 
+		// Validamos que la cantidad sea un número mayor a cero
 		const cantidadNum = Number(form.cantidad);
 		if (!form.cantidad || Number.isNaN(cantidadNum) || cantidadNum <= 0) {
 			setError("La cantidad debe ser mayor a cero");

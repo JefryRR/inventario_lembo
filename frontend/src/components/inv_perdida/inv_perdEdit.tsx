@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Tipos de datos para la edición del formulario del inventario de perdidas
 type Inv_perdFormState = {
     id_perdida: number
     cantidad: number
@@ -24,6 +25,7 @@ type MotivoOption = {
     label: string;
 };
 
+// Opciones de motivos para el formulario de inventario de perdidas
 const motivoOptions: MotivoOption[] = [
     { value: "contaminacion", label: "Contaminación" },
     { value: "extravio", label: "Extravio" },
@@ -32,6 +34,7 @@ const motivoOptions: MotivoOption[] = [
     { value: "daño_fisico", label: "Dañado" },
 ];
 
+// Estado inicial para el formulario de edición del inventario de perdidas
 const emptyState: Inv_perdFormState = {
     id_perdida: 0,
     cantidad: 0,
@@ -44,6 +47,7 @@ const emptyState: Inv_perdFormState = {
 
 };
 
+// Componente principal para editar una perdida de inventario
 export default function Inv_perdEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -100,6 +104,7 @@ export default function Inv_perdEdit() {
         };
     }, [id]);
 
+    // Handler para actualizar el estado del formulario de perdida
     const handleChange =
         (field: keyof Inv_perdFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -107,6 +112,7 @@ export default function Inv_perdEdit() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de perdida
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

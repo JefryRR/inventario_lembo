@@ -3,14 +3,17 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario del módulo
 type ModuleFormState = {
     nombre: string;
 };
 
+// Estado inicial del formulario para editar un módulo
 const emptyState: ModuleFormState = {
     nombre: "",
 };
 
+// Componente principal para editar un módulo
 export default function ModuleEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -52,6 +55,7 @@ export default function ModuleEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario
     const handleChange =
         (field: keyof ModuleFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -59,6 +63,7 @@ export default function ModuleEdit() {
                 setForm((prev) => ({ ...prev, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de módulo
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

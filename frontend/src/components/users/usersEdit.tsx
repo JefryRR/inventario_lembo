@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de usuarios
 type UserFormState = {
     nombre_user: string;
     documento: string;
@@ -20,6 +21,7 @@ type RoleOption = {
     nombre_rol: string;
 };
 
+// Estado inicial del formulario para editar un usuario
 const emptyState: UserFormState = {
     nombre_user: "",
     documento: "",
@@ -32,6 +34,7 @@ const emptyState: UserFormState = {
     estado: true,
 };
 
+// Componente principal para editar un usuario existente
 export default function UsersEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -90,6 +93,7 @@ export default function UsersEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario de edición de usuarios
     const handleChange =
         (field: keyof UserFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -97,6 +101,7 @@ export default function UsersEdit() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de usuarios
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

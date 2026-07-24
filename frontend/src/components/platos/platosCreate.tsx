@@ -3,18 +3,21 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de platos
 type PlatoFormState = {
     nombre_plato: string;
     estado: boolean;
     fecha_registro: string;
 };
 
+// Estado inicial del formulario para crear un nuevo plato
 const initialState: PlatoFormState = {
     nombre_plato: "",
     estado: true,
     fecha_registro: new Date().toISOString(),
 };
 
+// Componente principal para crear un nuevo plato
 export default function PlatosCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<PlatoFormState>(initialState);
@@ -22,7 +25,7 @@ export default function PlatosCreate() {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    
+    // Función para manejar los cambios en los campos del formulario de creación de platos
     const handleChange =
         (field: keyof PlatoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -34,6 +37,7 @@ export default function PlatosCreate() {
                 }));
             };
 
+    // Función para manejar el envío del formulario de creación de platos
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

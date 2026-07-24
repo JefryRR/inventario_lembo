@@ -1,5 +1,7 @@
+// Definición de la URL base de la API
 const API_URL = "http://localhost:8000";
 
+// Función para normalizar los detalles de error recibidos desde la API
 function normalizeErrorDetail(errData) {
   const detail = errData?.detail ?? errData?.message;
 

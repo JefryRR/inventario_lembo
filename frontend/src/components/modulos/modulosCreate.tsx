@@ -3,14 +3,17 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de módulo
 type ModuleFormState = {
     nombre: string;
 };
 
+// Estado inicial del formulario para crear un módulo
 const initialState: ModuleFormState = {
     nombre: "",
 };
 
+// Componente principal para crear un módulo
 export default function ModulosCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<ModuleFormState>(initialState);
@@ -18,6 +21,7 @@ export default function ModulosCreate() {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Función para manejar el envío del formulario de creación de módulo
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

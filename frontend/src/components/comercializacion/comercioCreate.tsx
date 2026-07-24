@@ -4,6 +4,8 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is un module JS sin tipos generados
 import { apiFetch } from "@/services/api";
 
+// Tipos de datos para manejar el formulario de comercialización, que vienen de la tabla de productos, unidades de medida y lotes del backend. 
+// Se usan para llenar los selectores.
 type ProductoOption = {
   id_inventario: number;
   nombre_producto: string;
@@ -24,10 +26,9 @@ type LoteOption = {
   sublote: string;
 };
 
-
 // Un producto que el usuario ya agregó a la lista, listo para enviarse al backend
 type ItemComercializacion = {
-  clientId: string; // id temporal solo para el frontend (key de React y para poder eliminarlo)
+  clientId: string; // id temporal (key de React y para poder eliminarlo)
   producto_id: number;
   lote_id: number;
   nombre_producto: string;
@@ -49,6 +50,7 @@ type ProductoFormState = {
   cant_no_vendida: number;
 };
 
+// Función para obtener la fecha y hora local en formato ISO (YYYY-MM-DDTHH:mm) para usarla como valor inicial del input de fecha
 const getLocalISODateTime = () => {
   const now = new Date();
   const offset = now.getTimezoneOffset();
@@ -56,6 +58,7 @@ const getLocalISODateTime = () => {
   return localDate.toISOString().slice(0, 16);
 };
 
+// Estado inicial del formulario para un producto que se está agregando a la lista
 const initialProductoForm: ProductoFormState = {
   producto_id: 0,
   cantidad: 0,
@@ -65,6 +68,7 @@ const initialProductoForm: ProductoFormState = {
   cant_no_vendida: 0,
 };
 
+// Componente para crear una nueva comercialización
 export default function ComercioCreate() {
   const navigate = useNavigate();
 
@@ -124,7 +128,10 @@ export default function ComercioCreate() {
             ? lotesData
             : [];
 
+        // Creamos un mapa de lotes por id para poder buscar el sublote correspondiente a cada producto
         const lotesPorId = new Map(lotesList.map((lote: LoteOption) => [lote.id_lote, lote.sublote]));
+
+        // Filtramos los productos que tienen cantidad > 0 y les agregamos el sublote correspondiente (si existe)
         const productosActivos = productoList
           .filter((producto: ProductoOption) => Number(producto.cantidad || 0) > 0)
           .map((producto: ProductoOption) => ({
@@ -132,6 +139,7 @@ export default function ComercioCreate() {
             sublote: producto.sublote || (producto.lote_id ? lotesPorId.get(producto.lote_id) || "" : ""),
           }));
 
+        // Función para obtener la fecha local en formato YYYY-MM-DD para comparar con la fecha de vencimiento de los productos
         const getFechaLocalISO = () => {
           const now = new Date();
           const year = now.getFullYear();
@@ -140,6 +148,7 @@ export default function ComercioCreate() {
           return `${year}-${month}-${day}`;
         };
 
+        // Filtramos los productos que no están vencidos (o que no tienen fecha de vencimiento)
         const productosNoVencidos = productosActivos.filter((producto: ProductoOption) => {
           if (!producto.fecha_vencimiento) return true;
           const fecha_actual = getFechaLocalISO();
@@ -167,6 +176,7 @@ export default function ComercioCreate() {
     };
   }, []);
 
+  // Función para manejar los cambios en los campos del formulario de producto
   const handleProductoChange =
     (field: keyof ProductoFormState) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -192,9 +202,12 @@ export default function ComercioCreate() {
       .filter((item) => item.producto_id === productoId)
       .reduce((total, item) => total + item.cantidad, 0);
 
+  // Función para agregar un producto a la lista de comercialización, antes de enviarlo a la base de datos. 
+  // Valida que los campos estén completos y que la cantidad no exceda el stock disponible.
   const handleAddProducto = () => {
     setError(null);
 
+    // Validaciones de campos obligatorios y cantidad
     if (!productoForm.producto_id) {
       setError("Selecciona un producto para agregarlo a la lista");
       return;
@@ -216,6 +229,7 @@ export default function ComercioCreate() {
       return;
     }
 
+    // Buscamos el producto seleccionado en la lista de productos cargados desde el backend
     const productoSeleccionado = productos.find((producto) => producto.id_inventario === productoForm.producto_id);
 
     if (productoSeleccionado) {
@@ -228,6 +242,7 @@ export default function ComercioCreate() {
 
     const medidaSeleccionada = medidas.find((medida) => medida.id_unidad === productoForm.unid_medida_id);
 
+    // Creamos un nuevo item de comercialización con un id temporal (clientId) para poder eliminarlo de la lista si el usuario lo desea
     const nuevoItem: ItemComercializacion = {
       clientId: crypto.randomUUID(),
       producto_id: productoForm.producto_id,
@@ -265,7 +280,6 @@ export default function ComercioCreate() {
     const errores: string[] = [];
 
     // Enviamos un producto a la vez porque el backend registra una comercialización por producto.
-    // Si tu endpoint llega a aceptar un arreglo completo, aquí se reemplazaría este for por un solo POST.
     for (const item of items) {
       try {
         const payload = {
@@ -471,6 +485,7 @@ export default function ComercioCreate() {
             </div>
           </div>
 
+          {/* Botón para agregar el producto a la lista (aún no se almacena en la base de datos) */}
           <div className="mt-4">
             <button
               type="button"

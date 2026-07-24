@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de permisos
 type PermissionFormState = {
     id_modulo: number;
     id_rol: number;
@@ -24,6 +25,7 @@ type ModuleOption = {
     nombre: string;
 };
 
+// Estado inicial del formulario para crear un nuevo permiso
 const initialState: PermissionFormState = {
     id_modulo: 0,
     id_rol: 0,
@@ -35,6 +37,7 @@ const initialState: PermissionFormState = {
     nombre_rol: "",
 };
 
+// Componente principal para crear un nuevo permiso
 export default function UsersCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<PermissionFormState>(initialState);
@@ -100,6 +103,7 @@ export default function UsersCreate() {
         };
     }, []);
 
+    // Función para manejar los cambios en los campos del formulario de permisos
     const handleChange =
         (field: keyof PermissionFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -116,6 +120,7 @@ export default function UsersCreate() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de creación de permisos
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

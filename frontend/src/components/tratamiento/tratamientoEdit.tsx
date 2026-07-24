@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de tratamientos
 type TratamientoFormState = {
     lote_id: number;
     medicina_id: number;
@@ -38,6 +39,7 @@ type MedidaOption = {
     simbolo: string;
 };
 
+// Estado inicial del formulario para editar un tratamiento
 const emptyState: TratamientoFormState = {
     lote_id: 0,
     nombre_lote: "",
@@ -54,6 +56,7 @@ const emptyState: TratamientoFormState = {
     simbolo: "",
 };
 
+// Función para convertir una fecha a formato compatible con input de tipo datetime-local
 function toDatetimeLocal(value?: string | null): string {
     if (!value) return "";
     const date = new Date(value);
@@ -69,6 +72,7 @@ function toDatetimeLocal(value?: string | null): string {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+// Componente principal para editar un tratamiento
 export default function TratamientoEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -161,6 +165,7 @@ export default function TratamientoEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario de edición de tratamientos
     const handleChange =
         (field: keyof TratamientoFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -179,6 +184,7 @@ export default function TratamientoEdit() {
                 setForm((current) => ({ ...current, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de tratamientos
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!id) return;

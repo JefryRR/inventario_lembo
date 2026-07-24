@@ -22,6 +22,7 @@ export default function SignInForm() {
     e?.preventDefault();
     setError(null);
 
+    // Limpiar espacios en blanco al inicio y al final
     const cleanEmail = email.trim();
     const cleanPassword = password.trim();
 

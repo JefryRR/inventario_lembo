@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-
 import {
   CalenderIcon,
   ChevronDownIcon,
@@ -18,6 +17,7 @@ import { getModuloPorRuta } from "../config/rutasModulos";
 import { useAuth } from "../context/AuthContext";
 import { useMemo } from "react";
 
+// Definición de tipos para los elementos de navegación del sidebar
 type NavItem = {
   name: string;
   icon: React.ReactNode;
@@ -25,6 +25,7 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
+// Definición de los elementos de navegación principales del sidebar
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
@@ -186,11 +187,13 @@ const modulosItems: NavItem[] = [
   },
 ];
 
+// Componente del sidebar de la aplicación
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const { tienePermiso } = useAuth();
   const location = useLocation();
 
+  // Estado para controlar qué submenú está abierto y la altura de los submenús
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "Módulos";
     key: string;
@@ -219,6 +222,7 @@ const AppSidebar: React.FC = () => {
       .filter((nav) => !nav.subItems || nav.subItems.length > 0);
   }, [tienePermiso]);
 
+  // Filtra los elementos de navegación principales según los permisos del usuario
   const navVisibles = useMemo(() => {
     return navItems.filter((nav) => {
       if (!nav.path) return true;
@@ -227,6 +231,7 @@ const AppSidebar: React.FC = () => {
     });
   }, [tienePermiso]);
 
+  // Efecto para abrir automáticamente el submenú correspondiente al módulo activo según la ruta actual
   useEffect(() => {
     let submenuMatched = false;
 
@@ -264,6 +269,7 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
+  // Función para manejar la apertura y cierre de submenús
   const handleSubmenuToggle = (name: string, menuType: "main" | "Módulos") => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
@@ -277,6 +283,7 @@ const AppSidebar: React.FC = () => {
     });
   };
 
+  // Función para renderizar los elementos de navegación y sus submenús
   const renderMenuItems = (items: NavItem[], menuType: "main" | "Módulos") => (
     <ul className="flex flex-col gap-4">
       {items.map((nav) => (

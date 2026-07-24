@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de solicitudes
 type SolicitudEstado =
   | "pendiente"
   | "entregado"
@@ -42,6 +43,7 @@ type MedidaOption = {
   simbolo: string;
 };
 
+// Estado inicial del formulario para editar una solicitud existente
 const emptyState: SolicitudFormState = {
   solicitante: "",
   ficha: "",
@@ -56,6 +58,7 @@ const emptyState: SolicitudFormState = {
   nombre_producto: "",
 };
 
+// Opciones de estado para la solicitud
 const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "pendiente", label: "Pendiente" },
   { value: "entregado", label: "Entregado" },
@@ -64,6 +67,7 @@ const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "devuelto", label: "Devuelto" },
 ];
 
+// Componente principal para editar una solicitud existente
 export default function SolicitudEdit() {
   const navigate = useNavigate();
   const params = useParams();
@@ -164,6 +168,7 @@ export default function SolicitudEdit() {
     }
   }, [form.insumo_id, inventarios]);
 
+  // Maneja los cambios en los campos del formulario de edición de solicitudes de insumos
   const handleChange =
     (field: keyof SolicitudFormState) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -191,6 +196,7 @@ export default function SolicitudEdit() {
         }));
       };
 
+  // Función para manejar el envío del formulario de edición de solicitudes de insumos
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!id) return;

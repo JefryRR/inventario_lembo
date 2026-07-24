@@ -4,6 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de edición de unidades
 type UnidadFormState = {
     unidad: string;
     simbolo: string;
@@ -11,6 +12,7 @@ type UnidadFormState = {
     tipo?: string;
 };
 
+// Estado inicial del formulario para editar una unidad
 const emptyState: UnidadFormState = {
     unidad: "",
     simbolo: "",
@@ -18,6 +20,7 @@ const emptyState: UnidadFormState = {
     tipo: "",
 };
 
+// Componente principal para editar una unidad existente
 export default function UnidadEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -62,6 +65,7 @@ export default function UnidadEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario de edición de unidades
     const handleChange =
         (field: keyof UnidadFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -69,6 +73,7 @@ export default function UnidadEdit() {
                 setForm((prev) => ({ ...prev, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario de edición de unidades
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

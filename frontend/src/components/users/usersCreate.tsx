@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de usuarios
 type UserFormState = {
     nombre_user: string;
     documento: string;
@@ -19,6 +20,7 @@ type RoleOption = {
     nombre_rol: string;
 };
 
+// Estado inicial del formulario para crear un nuevo usuario
 const initialState: UserFormState = {
     nombre_user: "",
     documento: "",
@@ -30,6 +32,7 @@ const initialState: UserFormState = {
     estado: true,
 };
 
+// Componente principal para crear un nuevo usuario
 export default function UsersCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<UserFormState>(initialState);
@@ -70,6 +73,7 @@ export default function UsersCreate() {
         };
     }, []);
 
+    // Función para manejar los cambios en los campos del formulario de creación de usuarios
     const handleChange =
         (field: keyof UserFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -81,6 +85,7 @@ export default function UsersCreate() {
                 }));
             };
 
+    // Función para manejar el envío del formulario de creación de usuarios
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

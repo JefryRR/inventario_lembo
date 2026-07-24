@@ -94,6 +94,7 @@ export default function InformeMaquina() {
         };
     }, [id_maquina]);
 
+    // Función para formatear la fecha en formato "dd/mm/yyyy"
     const formatearFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
         const fecha = new Date(fechaString);
@@ -105,6 +106,7 @@ export default function InformeMaquina() {
         });
     };
 
+    // Función para formatear el estado de la máquina a un texto legible
     const formatearEstado = (estado: string) => {
         const mapaEstados: Record<string, string> = {
             operativa: 'operativa',
@@ -116,8 +118,10 @@ export default function InformeMaquina() {
         return mapaEstados[estado] ?? estado;
     };
 
+    // Obtener el encabezado del reporte si está disponible para mostrar información general de la máquina
     const encabezado = reporte?.encabezado;
 
+    // Estado para controlar la descarga de reportes en PDF o Excel
     const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
 
     const handleExportar = async (formato: "pdf" | "excel") => {

@@ -5,6 +5,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de ventas
 type VentasFormState = {
     nombre_comprador: string;
     id_comprador: string;
@@ -17,6 +18,7 @@ type UserOption = {
     nombre_user: string;
 };
 
+// Función para obtener la fecha y hora actual en formato local (YYYY-MM-DDTHH:mm)
 const getCurrentDateTimeLocal = () => {
     const now = new Date();
     const offset = now.getTimezoneOffset();
@@ -24,6 +26,7 @@ const getCurrentDateTimeLocal = () => {
     return localDate.toISOString().slice(0, 16);
 };
 
+// Estado inicial del formulario para crear una nueva venta
 const initialState: VentasFormState = {
     nombre_comprador: "",
     id_comprador: "",
@@ -31,6 +34,7 @@ const initialState: VentasFormState = {
     user_id: 0,
 };
 
+// Componente principal para crear una nueva venta
 export default function VentasCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<VentasFormState>(initialState);
@@ -73,6 +77,7 @@ export default function VentasCreate() {
         };
     }, []);
 
+    // Función para manejar los cambios en los campos del formulario de creación de ventas
     const handleChange =
         (field: keyof VentasFormState) =>
         (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -92,6 +97,7 @@ export default function VentasCreate() {
             }));
         };
 
+    // Función para manejar el envío del formulario de creación de ventas
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

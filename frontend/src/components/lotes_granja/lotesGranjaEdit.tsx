@@ -4,7 +4,7 @@ import PageMeta from "@/components/common/PageMeta";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
-
+// Definición de tipos para el estado del formulario de edición de lote
 type LoteFormState = {
   nombre_lote: string;
   ubicacion: string;
@@ -12,8 +12,7 @@ type LoteFormState = {
   longitud: string;
 };
 
-
-
+// Estado inicial del formulario para la edición de lote
 const emptyState: LoteFormState = {
   nombre_lote: "",
   ubicacion: "",
@@ -21,7 +20,7 @@ const emptyState: LoteFormState = {
   longitud: "",
 };
 
-
+// Componente principal para editar un lote de granja
 export default function LotesEdit() {
   const navigate = useNavigate();
   const params = useParams();
@@ -68,6 +67,7 @@ export default function LotesEdit() {
     };
   }, [id]);
 
+  // Función para manejar cambios en los campos del formulario
   const handleChange =
     (field: keyof LoteFormState) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -79,6 +79,7 @@ export default function LotesEdit() {
         }));
       };
 
+  // Función para manejar el envío del formulario y actualizar el lote
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!id) return;
@@ -101,7 +102,6 @@ export default function LotesEdit() {
         body: payload,
       });
       
-      console.log("Payload a enviar para actualización:", payload);
       setSuccess("Lote actualizado correctamente");
       setTimeout(() => navigate("/lotesGranja"), 800);
     } catch (requestError: any) {

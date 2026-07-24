@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de solicitudes de maquinaria
 type SolicitudEstado =
   | "pendiente"
   | "entregada"
@@ -30,6 +31,7 @@ type UserOption = {
   nombre_user: string;
 };
 
+// Estado inicial del formulario para crear una nueva solicitud de maquinaria
 const initialState: SolicitudFormState = {
   maquinaria_id: 0,
   fecha_solicitud: new Date().toISOString().split("T")[0],
@@ -39,6 +41,7 @@ const initialState: SolicitudFormState = {
   observaciones: "",
 };
 
+// Opciones de estado para la solicitud de maquinaria
 const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "pendiente", label: "Pendiente" },
   { value: "entregada", label: "Entregada" },
@@ -46,6 +49,7 @@ const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
   { value: "devuelta", label: "Devuelta" },
 ];
 
+// Componente principal para crear una nueva solicitud de maquinaria
 export default function SolicitudCreate() {
   const navigate = useNavigate();
   const [form, setForm] = useState<SolicitudFormState>(initialState);
@@ -100,6 +104,7 @@ export default function SolicitudCreate() {
     };
   }, []);
 
+  // Actualiza los nombres de la maquinaria cuando se selecciona en el formulario
   useEffect(() => {
     if (form.maquinaria_id && form.maquinaria_id !== 0) {
       const maquinariaEncontrada = maquinaria.find(
@@ -114,6 +119,7 @@ export default function SolicitudCreate() {
       }
     }
 
+    // Actualiza el nombre del usuario cuando se selecciona en el formulario
     if (form.user_id && form.user_id !== 0) {
       const userEncontrado = users.find(
         (user) => user.id_user === Number(form.user_id)
@@ -128,6 +134,7 @@ export default function SolicitudCreate() {
     }
   }, [form.maquinaria_id, maquinaria, form.user_id, users]);
 
+  // Función para manejar los cambios en los campos del formulario de creación de solicitudes de maquinaria
   const handleChange =
     (field: keyof SolicitudFormState) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -155,6 +162,7 @@ export default function SolicitudCreate() {
         }));
       };
 
+  // Función para manejar el envío del formulario de creación de solicitudes de maquinaria
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);

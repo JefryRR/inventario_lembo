@@ -3,16 +3,19 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de la interfaz para representar el estado del formulario de creación de especies
 type EspeciesFormState = {
     nombre_especie: string;
     descripcion: string;
 };
 
+// Estado inicial del formulario de creación de especies
 const initialState: EspeciesFormState = {
     nombre_especie: "",
     descripcion: "",
 };
 
+// Componente principal para crear una nueva especie
 export default function EspeciesCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<EspeciesFormState>(initialState);
@@ -20,6 +23,7 @@ export default function EspeciesCreate() {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Función para manejar el envío del formulario de creación de especies
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

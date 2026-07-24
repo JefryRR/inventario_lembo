@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de lotes de producción
 type LoteEstado =
   | "activo"
   | "finalizado"
@@ -42,6 +43,7 @@ type UserOption = {
   nombre_user: string;
 };
 
+// Estado inicial del formulario de lotes de producción
 const initialState: LoteFormState = {
   lote_granj_id: 0,
   nombre_lote: "",
@@ -55,6 +57,7 @@ const initialState: LoteFormState = {
   user_id: 0,
 };
 
+// Opciones de estado del lote con sus etiquetas correspondientes
 const ESTADO_OPTIONS: Array<{ value: LoteEstado; label: string }> = [
   { value: "activo", label: "Activo" },
   { value: "finalizado", label: "Finalizado" },
@@ -62,6 +65,7 @@ const ESTADO_OPTIONS: Array<{ value: LoteEstado; label: string }> = [
   { value: "listo_cosecha", label: "Listo para cosechar" },
 ];
 
+// Componente principal para crear un lote de producción
 export default function LotesCreate() {
   const navigate = useNavigate();
   const [form, setForm] = useState<LoteFormState>(initialState);
@@ -197,6 +201,7 @@ export default function LotesCreate() {
 
     const cantidadValue = parseFloat(String(form.cantidad));
 
+    // Validar que la cantidad inicial sea un número mayor a 0
     if (isNaN(cantidadValue) || cantidadValue <= 0) {
         setError("La cantidad inicial debe ser un número mayor a 0");
         return;

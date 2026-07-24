@@ -8,10 +8,12 @@ type CategoriaFormState = {
     nombre_categoria: string;
 };
 
+// Estado inicial del formulario de categoría
 const emptyState: CategoriaFormState = {
     nombre_categoria: "",
 };
 
+// Componente para editar una categoría
 export default function CategoriaEdit() {
     const navigate = useNavigate();
     const params = useParams();
@@ -23,6 +25,7 @@ export default function CategoriaEdit() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
+    // useEffect para cargar los datos de la categoría al montar el componente
     useEffect(() => {
         if (!id) return;
 
@@ -53,6 +56,7 @@ export default function CategoriaEdit() {
         };
     }, [id]);
 
+    // Función para manejar los cambios en los campos del formulario
     const handleChange =
         (field: keyof CategoriaFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -60,6 +64,7 @@ export default function CategoriaEdit() {
                 setForm((prev) => ({ ...prev, [field]: value }));
             };
 
+    // Función para manejar el envío del formulario después de editar la categoría
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!id) return;

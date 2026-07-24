@@ -3,14 +3,17 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Define el tipo de estado del formulario para crear una categoría
 type CategoriaFormState = {
     nombre_categoria: string;
 };
 
+// Estado inicial del formulario para crear una categoría
 const initialState: CategoriaFormState = {
     nombre_categoria: "",
 };
 
+// Componente para crear una nueva categoría
 export default function CategoriasCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<CategoriaFormState>(initialState);
@@ -18,6 +21,7 @@ export default function CategoriasCreate() {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Función para manejar el envío del formulario
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

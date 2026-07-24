@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario
 type Inv_prodFormState = {
     id_inventario: string;
     nombre_producto: string;
@@ -35,7 +36,7 @@ type Unid_medOption = {
     simbolo: string;
 };
 
-
+// Estado inicial del formulario
 const initialState: Inv_prodFormState = {
     id_inventario: "",
     nombre_producto: "",
@@ -53,6 +54,7 @@ const initialState: Inv_prodFormState = {
     simbolo: ""
 };
 
+// Componente principal para crear un inventario de producción
 export default function Inv_prodCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<Inv_prodFormState>(initialState);
@@ -111,6 +113,7 @@ export default function Inv_prodCreate() {
         };
     }, []);
 
+    // Función para manejar cambios en los campos del formulario
     const handleChange =
         (field: keyof Inv_prodFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -121,12 +124,14 @@ export default function Inv_prodCreate() {
                 }));
             };
 
+    // Función para obtener la fecha y hora local en formato ISO
     const getLocalISODateTime = () => {
         const now = new Date();
         const offsetMs = now.getTimezoneOffset() * 60000;
         return new Date(now.getTime() - offsetMs).toISOString().slice(0, 19);
     };
 
+    // Función para manejar el cambio de lote y actualizar los campos relacionados
     const handleLoteChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedId = event.target.value;
         const loteSeleccionado = lotes.find((lote) => String(lote.id_lote) === selectedId);
@@ -141,6 +146,7 @@ export default function Inv_prodCreate() {
         }));
     };
 
+    // Función para manejar el envío del formulario y registrar el producto
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

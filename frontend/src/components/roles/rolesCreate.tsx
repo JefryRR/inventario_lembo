@@ -3,18 +3,21 @@ import { Link, useNavigate } from "react-router";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 
+// Definición de tipos para el estado del formulario de creación de roles
 type RolFormState = {
     nombre_rol: string;
     descripcion: string;
     estado: boolean;
 };
 
+// Estado inicial del formulario para crear un nuevo rol
 const initialState: RolFormState = {
     nombre_rol: "",
     descripcion: "",
     estado: true,
 };
 
+// Componente principal para crear un nuevo rol
 export default function RolesCreate() {
     const navigate = useNavigate();
     const [form, setForm] = useState<RolFormState>(initialState);
@@ -22,7 +25,7 @@ export default function RolesCreate() {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    
+    // Función para manejar los cambios en los campos del formulario de creación de roles
     const handleChange =
         (field: keyof RolFormState) =>
             (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -34,6 +37,7 @@ export default function RolesCreate() {
                 }));
             };
 
+    // Función para manejar el envío del formulario de creación de roles
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);

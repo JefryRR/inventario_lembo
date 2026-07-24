@@ -4,6 +4,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
 
+// Definición de tipos para las filas de datos del informe de lote
 type LoteRow = {
 	id_lote: number;
 	nombre_lote: string;
@@ -32,6 +33,7 @@ type HistorialEstadoRow = {
 	nombre_user?: string;
 };
 
+// Mapeo de estados a selectores de etiquetas legibles
 const ESTADO_LABELS: Record<string, string> = {
 	activo: "Activo",
 	finalizado: "Finalizado",
@@ -39,10 +41,12 @@ const ESTADO_LABELS: Record<string, string> = {
 	listo_cosecha: "Listo para cosecha",
 };
 
+// Funciones auxiliares para formatear datos
 function formatEstado(value: string): string {
 	return ESTADO_LABELS[value] || value;
 }
 
+// Función para formatear fechas en formato local
 function formatDate(value: string): string {
 	if (!value) return "-";
 	const normalized = value.endsWith("Z") || value.includes("+") ? value : value + "Z";
@@ -67,6 +71,7 @@ type MetricCardProps = {
 	color?: "green" | "red" | "gray" | "yellow";
 };
 
+// Componente para mostrar una tarjeta de métrica con etiqueta, valor y color
 function MetricCard({ label, value, sub, color = "gray" }: MetricCardProps) {
 	const colorMap = {
 		green: "text-green-600 dark:text-green-400",
@@ -88,6 +93,7 @@ function MetricCard({ label, value, sub, color = "gray" }: MetricCardProps) {
 	);
 }
 
+// Componente principal para mostrar el informe de un lote específico
 export default function InformeLote() {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
@@ -177,6 +183,7 @@ export default function InformeLote() {
 		);
 	}
 
+	// Función para manejar la exportación del informe en PDF o Excel
 	const handleExportar = async (formato: "pdf" | "excel") => {
 		if (!id) return;
 
