@@ -75,12 +75,8 @@ def update_especie_by_id(db: Session, id_especie: int, especie: EspecieUpdate) -
         logger.error(f"Error al actualizar la especie {id_especie}: {e}")
         raise Exception("Error de base de datos al actualizar la especie")
 
-<<<<<<< HEAD
-# Obtener especies con paginación
-def get_all_especies_pag(db: Session, skip: int = 0, limit: int = 10):
-=======
+# Obtener todas las especies con paginación y búsqueda
 def get_all_especies_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene especies con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.

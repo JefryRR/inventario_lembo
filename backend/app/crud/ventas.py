@@ -2,11 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text 
 from sqlalchemy.exc import SQLAlchemyError 
 from app.schemas.ventas import VentasCreate, VentasUpdate
-<<<<<<< HEAD
-=======
 from typing import Optional
 
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 import logging
 
 logger = logging.getLogger(__name__)
@@ -129,14 +126,9 @@ def get_ventas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
 
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las ventas por rango de fechas: {e}")
-<<<<<<< HEAD
 
-# Obtener ventas con paginación              
-def ventas_paginated(db: Session, skip: int = 0, limit: int = 10):
-=======
-                     
+# Obtener ventas con paginación y búsqueda   
 def ventas_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene ventas con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.

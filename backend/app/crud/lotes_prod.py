@@ -148,14 +148,9 @@ def get_historial_by_id(db: Session, id_lote_p: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener historial por id: {e}")
         raise Exception("Error de base de datos al obtener el historial del lote")
-<<<<<<< HEAD
 
-# Obtener todos los lotes de producción con paginación
-def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10):
-=======
- 
+# Obtener todos los lotes de producción con paginación y búsqueda
 def get_all_lotes_prod_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene lotes con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.

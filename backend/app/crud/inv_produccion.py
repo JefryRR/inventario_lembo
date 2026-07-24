@@ -415,12 +415,8 @@ def all_produccion(db: Session):
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas las producciones")
 
-<<<<<<< HEAD
-# Función para obtener registros de producción con paginación y filtrado por estado
-def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None):
-=======
+# Función para obtener registros de producción con paginación y filtros
 def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene inventario de producción con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
@@ -431,15 +427,11 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado
         where_clause = ""
         params = {"limit": limit, "skip": skip}
 
-<<<<<<< HEAD
-        # Filtrar por estado si se proporciona
-=======
         # Filtrar por búsqueda si se proporciona
         if search:
             where_clause = "WHERE LOWER(pr.nombre_producto) LIKE LOWER(:search) OR LOWER(l_g.nombre_lote) LIKE LOWER(:search) OR LOWER(c.nombre_categoria) LIKE LOWER(:search) OR LOWER(e.nombre_especie) LIKE LOWER(:search)"
             params["search"] = f"%{search}%"
 
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
         if estado:
             hoy = date.today()
             params["hoy"] = hoy

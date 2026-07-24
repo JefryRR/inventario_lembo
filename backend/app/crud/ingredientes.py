@@ -334,10 +334,7 @@ def all_ingredientes(db: Session):
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas los ingredientes")
 
-<<<<<<< HEAD
-# Obtener ingredientes con paginación
-def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
-=======
+# Función para obtener ingredientes con paginación
 def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
         """
         Obtiene ingredientes con paginación.
@@ -346,7 +343,6 @@ def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10, sear
         try:
             where_clause = ""
             params = {"limit": limit, "skip": skip}
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 
             if search:
                 where_clause = """WHERE LOWER(p.nombre_plato) LIKE LOWER(:search) OR LOWER(COALESCE(pr.nombre_producto, ins.nombre_producto, prc.nombre_producto, '')) LIKE LOWER(:search)"""

@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query 
 from sqlalchemy.orm import Session 
-=======
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
-from sqlalchemy.orm import Session # type: ignore
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db

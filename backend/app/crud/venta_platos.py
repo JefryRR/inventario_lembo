@@ -1,13 +1,7 @@
-<<<<<<< HEAD
 from sqlalchemy.orm import Session 
 from sqlalchemy import text 
 from sqlalchemy.exc import SQLAlchemyError 
-=======
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
 from typing import Optional
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 from app.schemas.venta_platos import VentaPlatoCreate, VentaPlatoUpdate
 import logging
 
@@ -104,12 +98,8 @@ def all_ventas_platos(db: Session):
         logger.error(f"Error al obtener todas las ventas: {e}")
         raise Exception("Error de base de datos al obtener todas las ventas")
 
-<<<<<<< HEAD
-# Obtener todas las ventas de platos con paginación
-def get_ventas_platos_paginated(db: Session, skip: int = 0, limit: int = 10):
-=======
+# Obtener todas las ventas de platos con paginación y búsqueda
 def get_ventas_platos_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 
     """
     Obtiene inventario de producción con paginación.

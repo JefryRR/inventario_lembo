@@ -187,12 +187,8 @@ def update_tratamiento_by_id(db: Session, id_tratamiento: int, tratamiento: Trat
         logger.error(f"Error al registrar el tratamiento: {e}")
         raise HTTPException(status_code=500, detail="Error interno al registrar el tratamiento")
 
-<<<<<<< HEAD
-# Obtener todos los tratamientos con paginación
-def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
-=======
+# Obtener todos los tratamientos con paginación y búsqueda
 def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene los registros de tratamientos con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.

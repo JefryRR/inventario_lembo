@@ -425,12 +425,8 @@ def get_insumos_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los insumos por rango de fechas: {e}")
 
-<<<<<<< HEAD
-# Función para obtener insumos con paginación y filtrado por estado
-def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None):
-=======
+# Función para obtener insumos con paginación y filtrado por estado y búsqueda
 def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene insumos con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.

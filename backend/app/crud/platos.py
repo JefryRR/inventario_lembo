@@ -2,11 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text 
 from sqlalchemy.exc import SQLAlchemyError 
 from app.schemas.platos import PlatoCreate, PlatoUpdate
-<<<<<<< HEAD
-=======
 from typing import Optional
 
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 import logging
 
 logger = logging.getLogger(__name__)
@@ -118,12 +115,8 @@ def change_plato_estado(db: Session, plato_id: int, nuevo_estado: bool):
         logger.error(f"Error al cambiar el estado del plato {plato_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del plato")
 
-<<<<<<< HEAD
-# Obtener los platos con paginación
-def get_platos_paginated(db: Session, skip: int = 0, limit: int = 10):
-=======
+# Obtener todos los platos con paginación y búsqueda
 def get_platos_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 
     """
     Obtiene inventario de producción con paginación.

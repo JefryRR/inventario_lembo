@@ -3,11 +3,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError 
 from datetime import date
 from app.schemas.solicitud_maq import SolicitudMaqCreate, SolicitudMaqUpdate
-<<<<<<< HEAD
-=======
 from typing import Optional
 
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 import logging
 
 logger = logging.getLogger(__name__)
@@ -182,12 +179,8 @@ def get_solicitudes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las solicitudes por rango de fechas: {e}")
 
-<<<<<<< HEAD
-# Obtener solicitudes con paginación
-def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
-=======
+# Obtener solicitudes de maquinaria con paginación y búsqueda
 def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 
     """
     Obtiene solicitudes con paginación.

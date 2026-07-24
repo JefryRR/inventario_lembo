@@ -170,13 +170,8 @@ def change_status_user(db: Session, user_id: int, estado: UserEstado) -> Optiona
         logger.error(f"Error al cambiar estado del usuario {user_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del usuario")
 
-<<<<<<< HEAD
-# Obtener todos los usuarios con paginación
-def get_all_users_pag(db: Session, skip: int = 0, limit: int = 10):
-=======
-
+# Obtener todos los usuarios con paginación y búsqueda opcional
 def get_all_users_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene usuarios con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
@@ -221,11 +216,3 @@ def get_all_users_pag(db: Session, skip: int = 0, limit: int = 10, search: Optio
         logger.error( f"Error al obtener los usuarios: {e}", exc_info=True);
 
         raise Exception( "Error de base de datos al obtener los usuarios" );
-
-<<<<<<< HEAD
-        raise Exception(
-            "Error de base de datos al obtener los usuarios"
-        )  
-=======
-        
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c

@@ -165,12 +165,8 @@ def update_alimento_by_id(db: Session, id_alimento: int, alimento: AlimentoUpdat
             logger.error(f"Error al actualizar alimento {id_alimento}: {e}")
             raise HTTPException(status_code=500, detail="Error de base de datos al actualizar el registro de alimento")
 
-<<<<<<< HEAD
-#Función para obtener los alimentos con paginación
-def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10):
-=======
+# Función para obtener todos los alimentos con paginación y búsqueda
 def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
->>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene los registros de alimentos con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
