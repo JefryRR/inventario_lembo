@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.crud.permisos import verify_permissions
@@ -148,6 +148,7 @@ def get_paginated_ingredientes(
     page: int = 1,
     page_size: int = 10,
     db: Session = Depends(get_db),
+    search: Optional[str] = None,
     user_token: UserOut = Depends(get_current_user)
 ):
     try:
@@ -156,7 +157,7 @@ def get_paginated_ingredientes(
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
         skip = (page - 1) * page_size
-        data = crud_ingredientes.get_ingredientes_paginated(db, skip=skip, limit=page_size)
+        data = crud_ingredientes.get_ingredientes_paginated(db, skip=skip, limit=page_size, search=search)
 
         total = data["total"]
         ingredientes = data["ingredientes"]

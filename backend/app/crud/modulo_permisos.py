@@ -112,12 +112,19 @@ def update_permiso(db: Session, id_modulo: int, id_rol: int, permiso: PermisoUpd
         raise Exception("Error de base de datos al actualizar el permiso")
 
 #Función para obtener todos los permisos haciendo uso de la paginación
-def get_all_permisos_pag(db: Session, skip:int = 0, limit = 10):
+def get_all_permisos_pag(db: Session, skip:int = 0, limit = 10, search: Optional[str] = None):
     """
     Obtiene los permisos con paginación.
     También realizar una segunda consulta para contar total de permisos.
     """
-    try: 
+    try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(m.nombre) LIKE LOWER(:search) OR LOWER(r.nombre_rol) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%" 
+
         count_query = text(f"""
             SELECT COUNT(*) AS total
             FROM (
@@ -125,9 +132,10 @@ def get_all_permisos_pag(db: Session, skip:int = 0, limit = 10):
                 FROM permisos AS p
                 JOIN modulos AS m ON p.id_modulo = m.id_modulo
                 JOIN roles AS r ON p.id_rol = r.id_rol
-            ) AS permisos_filtrados
+                {where_clause}
+            ) AS sub
         """)
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         #2 Consultar permisos
         data_query = text(f"""
@@ -137,10 +145,11 @@ def get_all_permisos_pag(db: Session, skip:int = 0, limit = 10):
             FROM permisos AS p
             JOIN modulos AS m ON p.id_modulo = m.id_modulo
             JOIN roles AS r ON p.id_rol = r.id_rol
+            {where_clause}
             ORDER BY p.id_rol, p.id_modulo
             LIMIT :limit OFFSET :skip
         """)
-        permisos_list = db.execute(data_query, {"limit": limit, "skip": skip} ).mappings().all()
+        permisos_list = db.execute(data_query, params).mappings().all()
         
         return {
                 "total": total_result or 0,
@@ -149,3 +158,5 @@ def get_all_permisos_pag(db: Session, skip:int = 0, limit = 10):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener los permisos: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener los permisos")
+
+    

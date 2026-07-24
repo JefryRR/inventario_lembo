@@ -6,6 +6,7 @@ from app.crud.permisos import verify_permissions
 from app.schemas.lotes import LoteCreate, LoteOut, LoteUpdate
 from app.schemas.users import UserOut
 from app.crud import lotes as crud_lotes_prod
+from typing import Optional
 
 router = APIRouter()
 modulo = 28
@@ -81,6 +82,7 @@ def update_lote_by_id( id_lote: int, lote: LoteUpdate, db: Session = Depends(get
 def get_all_lotes_prod_pag(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 
@@ -90,7 +92,7 @@ def get_all_lotes_prod_pag(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_lotes_prod.get_all_lotes_granja_pag(db, skip=skip, limit=page_size)
+        data = crud_lotes_prod.get_all_lotes_granja_pag(db, skip=skip, limit=page_size, search=search)
         total = data["total"]  
         lotes_granja = data["lotes_granja"]
         

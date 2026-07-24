@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-from typing import List
+from typing import List, Optional
 from app.schemas.permisos import PermisoCreate, PermisoOut, PermisoUpdate, PaginatedPermisos
 from app.crud import modulo_permisos as modulo_permisos
 from app.crud.permisos import verify_permissions, get_permisos_by_rol
@@ -111,6 +111,7 @@ def update_permiso(
 def get_all_permisos_pag(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 
@@ -122,11 +123,7 @@ def get_all_permisos_pag(
         
         # Calculamos el número de registros a saltar para la paginación
         skip = (page - 1) * page_size
-        data = modulo_permisos.get_all_permisos_pag(
-            db,
-            skip=skip,
-            limit=page_size,
-        )
+        data = modulo_permisos.get_all_permisos_pag(db, skip=skip, limit=page_size, search=search)
 
         total = data["total"]  
         permisos = data["permisos"]

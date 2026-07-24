@@ -65,12 +65,27 @@ export default function Lotes() {
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
 	useEffect(() => {
 		if (!localStorage.getItem("token")) {
 			navigate("/signin");
 		}
 	}, [navigate]);
+
+	// Debounce: espera 400ms después de que el usuario deja de escribir
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 400);
+
+        return () => clearTimeout(timeoutId);
+    }, [search]);
+
+    // Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -80,7 +95,16 @@ export default function Lotes() {
 			setError(null);
 
 			try {
-				const data = (await apiFetch(`lotes_prod/paginated?page=${page}&page_size=${pageSize}`)) as LotesResponse;
+				const params = new URLSearchParams({
+                    page: String(page),
+                    page_size: String(pageSize),
+                });
+                // Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    params.set("search", debouncedSearch.trim());
+                }
+
+				const data = (await apiFetch(`lotes_prod/paginated?${params.toString()}`)) as LotesResponse;
 
 				if (!isMounted) {
 					return;
@@ -110,7 +134,7 @@ export default function Lotes() {
 		return () => {
 			isMounted = false;
 		};
-	}, [page, pageSize]);
+	}, [page, pageSize, debouncedSearch]);
 
 	const filteredLotes = useMemo(() => {
 		const term = search.trim().toLowerCase();

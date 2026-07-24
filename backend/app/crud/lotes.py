@@ -72,25 +72,37 @@ def update_lote_by_id(db: Session, lote_id_g: int, lote: LoteUpdate) -> Optional
             logger.error(f"Error al actualizar lote {lote_id_g}: {e}")
             raise Exception("Error de base de datos al actualizar el lote")
 
+<<<<<<< HEAD
 # Función para obtener lotes con paginación
 def get_all_lotes_granja_pag(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_all_lotes_granja_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene lotes con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(nombre_lote) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+        
         # Total de lotes
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(id_lote_g) AS total
             FROM lotes_granja
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
-        # Lotes paginados
-        data_query = text(""" 
+        data_query = text(f""" 
                     SELECT id_lote_g, nombre_lote, ubicacion, latitud, longitud
                     FROM lotes_granja
+                    {where_clause}
                         LIMIT :limit OFFSET :skip
                     """)
 

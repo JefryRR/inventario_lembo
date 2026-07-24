@@ -328,6 +328,7 @@ def get_paginated_insumos(
     page_size: int = 10,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user),
+    search: Optional[str] = None,
     estado: Optional[Literal["vencido", "sin_stock", "critico", "urgente", "vigente"]] = None
 ):
     try:
@@ -336,7 +337,7 @@ def get_paginated_insumos(
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
         skip = (page - 1) * page_size
-        data = crud_insumos.get_insumos_paginated(db, skip=skip, limit=page_size, estado=estado)
+        data = crud_insumos.get_insumos_paginated(db, skip=skip, limit=page_size, estado=estado, search=search)
 
         total = data["total"]
         insumos = data["insumos"]

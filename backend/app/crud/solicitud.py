@@ -298,23 +298,39 @@ def get_solicitud_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las solicitudes por rango de fechas: {e}")
 
+<<<<<<< HEAD
 # Obtener solicitudes con paginación
 def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene solicitudes con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(si.solicitante) LIKE LOWER(:search) OR LOWER(ii.nombre_producto) LIKE LOWER(:search) OR LOWER(t_i.nombre_tipo) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+        
         # Total de solicitudes
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(si.id_solicitud) AS total
             FROM solicitud_insumo si
+            INNER JOIN  tipo_insumo AS t_i ON si.tipo_insumo_id = t_i.id_tipo_insumo
+            LEFT JOIN unidades_medida AS u_m ON si.unid_med_id = u_m.id_unidad
+            LEFT JOIN inv_insumos AS ii ON si.insumo_id = ii.id_insumo
+            LEFT JOIN users AS us ON si.user_id = us.id_user
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Insumos paginados
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT sol.id_solicitud, sol.solicitante, sol.ficha, sol.insumo_id, sol.tipo_insumo_id, sol.cantidad_in, sol.unid_med_id,
                         sol.fecha_solicitud, sol.fecha_entrega, sol.fecha_devolucion, sol.cant_devolver, sol.estado_solicitud, 
                         t_i.nombre_tipo, u_m.simbolo, ii.nombre_producto, us.nombre_user
@@ -327,13 +343,7 @@ def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
                         LIMIT :limit OFFSET :skip
                     """)
 
-        solicitudes_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        solicitudes_list = db.execute( data_query, params ).mappings().all()
 
         return {
             "total": total_result or 0,

@@ -212,6 +212,10 @@ def procesar_vencidos_manual(
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
+    id_rol = user_token.rol_id
+    if not verify_permissions(db, id_rol, modulo, 'insertar'):
+        raise HTTPException(status_code=401, detail='Usuario no autorizado')
+    
     from app.crud.comercio import registrar_vencidos_como_perdidas as vencidos_comercio
     from app.crud.inv_produccion import registrar_vencidos_como_perdidas as vencidos_produccion
     from app.crud.inv_insumos import registrar_vencidos_como_perdidas as vencidos_insumos

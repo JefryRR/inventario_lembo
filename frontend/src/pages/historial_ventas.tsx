@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -68,10 +68,9 @@ export default function VentasPage() {
     const [page, setPage] = useState(1);
     const [pageSize] = useState(10);
     const [total, setTotal] = useState(0);
-    const [dateRange, setDateRange] = useState<DateRangeState>({
-        fecha_inicio: "",
-        fecha_fin: "",
-    });
+    const [dateRange, setDateRange] = useState<DateRangeState>({ fecha_inicio: "", fecha_fin: ""});
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+
     const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -101,6 +100,18 @@ export default function VentasPage() {
             setActiveDateRange(newRange);
         }
     };
+
+    // Debounce: espera 400ms después de que el usuario deja de escribir
+    useEffect(() => {
+        const timeoutId = setTimeout(() => { setDebouncedSearch(search); }, 400);
+        return () => clearTimeout(timeoutId);
+    }, [search]);
+
+    // Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
+
     useEffect(() => {
         let mounted = true;
 
@@ -113,6 +124,11 @@ export default function VentasPage() {
                     page: String(page),
                     page_size: String(pageSize),
                 });
+
+                // Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    queryParams.set("search", debouncedSearch.trim());
+                }
 
                 const endpoint = activeDateRange
                     ? (() => {
@@ -162,47 +178,14 @@ export default function VentasPage() {
         return () => {
             mounted = false;
         };
-    }, [location.key, locationState?.refresh, locationState?.newVentaId, locationState?.selectVentaId, locationState?.newDetalleId, page, pageSize, activeDateRange]);
+    }, [location.key, locationState?.refresh, locationState?.newVentaId, locationState?.selectVentaId, locationState?.newDetalleId, page, pageSize, activeDateRange, debouncedSearch]);
 
-    const filteredVentas = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) return ventas;
-        return ventas.filter((v) =>
-            [
-                String(v.id_venta),
-                v.nombre_comprador || "",
-                String(v.id_comprador || ""),
-                v.nombre_user || "",
-                String(v.total_venta ?? ""),
-                v.fecha_venta || "",
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term)
-        );
-    }, [ventas, search]);
 
     const getDetalles = (ventaId: number) =>
         detalles.filter((d) => d.venta_id === ventaId);
 
     const toggleExpanded = (ventaId: number) => {
         setExpandedVenta((prev) => (prev === ventaId ? null : ventaId));
-    };
-
-    const applyDateFilter = () => {
-        if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
-            setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
-            return;
-        }
-
-        if (dateRange.fecha_inicio > dateRange.fecha_fin) {
-            setError("La fecha inicial no puede ser mayor que la fecha final.");
-            return;
-        }
-
-        setError(null);
-        setPage(1);
-        setActiveDateRange({ ...dateRange });
     };
 
     const clearDateFilter = () => {
@@ -360,14 +343,14 @@ export default function VentasPage() {
                                             {error}
                                         </td>
                                     </tr>
-                                ) : filteredVentas.length === 0 ? (
+                                ) : ventas.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                             No hay ventas registradas.
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredVentas.map((venta) => (
+                                    ventas.map((venta) => (
                                         <>
                                             <tr key={venta.id_venta} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                                 <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">{venta.nombre_comprador}</td>

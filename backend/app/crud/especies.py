@@ -75,36 +75,42 @@ def update_especie_by_id(db: Session, id_especie: int, especie: EspecieUpdate) -
         logger.error(f"Error al actualizar la especie {id_especie}: {e}")
         raise Exception("Error de base de datos al actualizar la especie")
 
+<<<<<<< HEAD
 # Obtener especies con paginación
 def get_all_especies_pag(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_all_especies_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene especies con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
 
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(nombre_especie) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
 
         # Total de especies
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(id_especie) AS total
             FROM especies 
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # especies paginados
-        data_query = text("""SELECT
+        data_query = text(f"""SELECT
                             * FROM especies
+                            {where_clause}
                         LIMIT :limit OFFSET :skip
                     """)
 
-        especies_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        especies_list = db.execute(data_query, params).mappings().all()
 
         return {
             "total": total_result or 0,

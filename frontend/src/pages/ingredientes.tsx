@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -46,6 +46,7 @@ export default function Ingrediente() {
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
 	// Estado para el modal de confirmación de eliminación
 	const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -57,6 +58,17 @@ export default function Ingrediente() {
 		}
 	}, [navigate]);
 
+	// Debounce: espera 400ms después de que el usuario deja de escribir
+    useEffect(() => {
+        const timeoutId = setTimeout(() => { setDebouncedSearch(search); }, 400);
+        return () => clearTimeout(timeoutId);
+    }, [search]);
+
+    // Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
+
 	useEffect(() => {
 		let isMounted = true;
 
@@ -65,9 +77,17 @@ export default function Ingrediente() {
 			setError(null);
 
 			try {
-				const data = (await apiFetch(
-					`ingredientes/ingredientes_pag?page=${page}&page_size=${pageSize}`
-				)) as IngredienteResponse;
+				const params = new URLSearchParams({
+                    page: String(page),
+                    page_size: String(pageSize),
+                });
+
+                // Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    params.set("search", debouncedSearch.trim());
+                }
+
+				const data = (await apiFetch(`ingredientes/ingredientes_pag?${params.toString()}` )) as IngredienteResponse;
 
 				if (!isMounted) return;
 
@@ -87,19 +107,8 @@ export default function Ingrediente() {
 
 		loadIngredientes();
 		return () => { isMounted = false; };
-	}, [page, pageSize]);
+	}, [page, pageSize, debouncedSearch]);
 
-	const filteredIngredientes = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) return ingredientes;
-
-		return ingredientes.filter((ing) =>
-			[ing.nombre_plato, ing.nombre_producto, ing.simbolo]
-				.join(" ")
-				.toLowerCase()
-				.includes(term)
-		);
-	}, [search, ingredientes]);
 
 	const handleConfirmarEliminar = (id: number) => {
 		setSelectedId(id);
@@ -188,14 +197,14 @@ export default function Ingrediente() {
 										{error}
 									</td>
 								</tr>
-							) : filteredIngredientes.length === 0 ? (
+							) : ingredientes.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay ingredientes para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredIngredientes.map((ingrediente) => (
+								ingredientes.map((ingrediente) => (
 									<tr key={ingrediente.id_ingrediente} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
 											{ingrediente.nombre_plato}

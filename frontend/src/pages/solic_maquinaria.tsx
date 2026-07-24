@@ -12,15 +12,15 @@ import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type SolicitudRow = {
 	id_solicitud_maq: number;
-    maquinaria_id: number;
+	maquinaria_id: number;
 	fecha_solicitud: string;
 	fecha_entrega: string;
 	fecha_devolucion: string;
 	estado: string;
-    nombre_maq: string;
-    user_id: number;
-    nombre_user: string;
-    observaciones: string;
+	nombre_maq: string;
+	user_id: number;
+	nombre_user: string;
+	observaciones: string;
 };
 
 type SolicitudResponse = {
@@ -31,8 +31,8 @@ type SolicitudResponse = {
 };
 
 type DateRangeState = {
-    fecha_inicio: string;
-    fecha_fin: string;
+	fecha_inicio: string;
+	fecha_fin: string;
 };
 
 const ESTADO_LABELS: Record<string, string> = {
@@ -65,39 +65,51 @@ export default function Solicitudes() {
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
-    const [dateRange, setDateRange] = useState<DateRangeState>({
-                fecha_inicio: "",
-                fecha_fin: "",
-            });
-        const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
-    
-        const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [dateRange, setDateRange] = useState<DateRangeState>({fecha_inicio: "", fecha_fin: ""});
+	const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
+	const [debouncedSearch, setDebouncedSearch] = useState(search);
+	const [isOpen, setIsOpen] = useState<boolean>(false);
 
-    // Estado que requiere react-day-picker (usa objetos Date de JS)
-    const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
-        from: dateRange.fecha_inicio ? new Date(dateRange.fecha_inicio) : undefined,
-        to: dateRange.fecha_fin ? new Date(dateRange.fecha_fin) : undefined,
-    });
+	// Estado que requiere react-day-picker (usa objetos Date de JS)
+	const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
+		from: dateRange.fecha_inicio ? new Date(dateRange.fecha_inicio) : undefined,
+		to: dateRange.fecha_fin ? new Date(dateRange.fecha_fin) : undefined,
+	});
 
-    // 3. Manejador del cambio de fecha en el calendario dual
-    const handleSelectRange = (range: DateRange | undefined) => {
-        setSelectedRange(range);
+	// 3. Manejador del cambio de fecha en el calendario dual
+	const handleSelectRange = (range: DateRange | undefined) => {
+		setSelectedRange(range);
 
-        // Convertimos los objetos Date a strings (YYYY-MM-DD) para el Backend
-        const inicioStr = range?.from ? format(range.from, 'yyyy-MM-dd') : '';
-        const finStr = range?.to ? format(range.to, 'yyyy-MM-dd') : '';
+		// Convertimos los objetos Date a strings (YYYY-MM-DD) para el Backend
+		const inicioStr = range?.from ? format(range.from, 'yyyy-MM-dd') : '';
+		const finStr = range?.to ? format(range.to, 'yyyy-MM-dd') : '';
 
-        const newRange = { fecha_inicio: inicioStr, fecha_fin: finStr };
-        setDateRange(newRange);
+		const newRange = { fecha_inicio: inicioStr, fecha_fin: finStr };
+		setDateRange(newRange);
 
-        // Si el usuario ya seleccionó ambas fechas, aplicamos el filtro y cerramos
-        if (range?.from && range?.to) {
-            setIsOpen(false);
-            setError(null);
-            setPage(1);
-            setActiveDateRange(newRange);
-        }
-    };
+		// Si el usuario ya seleccionó ambas fechas, aplicamos el filtro y cerramos
+		if (range?.from && range?.to) {
+			setIsOpen(false);
+			setError(null);
+			setPage(1);
+			setActiveDateRange(newRange);
+		}
+	};
+
+	// Debounce: espera 400ms después de que el usuario deja de escribir
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			setDebouncedSearch(search);
+		}, 400);
+
+		return () => clearTimeout(timeoutId);
+	}, [search]);
+
+	// Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+	useEffect(() => {
+		setPage(1);
+	}, [debouncedSearch]);
+
 
 	useEffect(() => {
 		let isMounted = true;
@@ -107,18 +119,23 @@ export default function Solicitudes() {
 			setError(null);
 
 			try {
-                const queryParams = new URLSearchParams({
-                    page: String(page),
-                    page_size: String(pageSize),
-                });
+				const queryParams = new URLSearchParams({
+					page: String(page),
+					page_size: String(pageSize),
+				});
+				
+				// Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    queryParams.set("search", debouncedSearch.trim());
+                }
 
-                const endpoint = activeDateRange
-                    ? (() => {
-                        queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
-                        queryParams.set("fecha_fin", activeDateRange.fecha_fin);
-                        return `solicitud-maq/rango-fechas?${queryParams.toString()}`;
-                    })()
-                    : `solicitud-maq/paginated-solicitudes?${queryParams.toString()}`;
+				const endpoint = activeDateRange
+					? (() => {
+						queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
+						queryParams.set("fecha_fin", activeDateRange.fecha_fin);
+						return `solicitud-maq/rango-fechas?${queryParams.toString()}`;
+					})()
+					: `solicitud-maq/paginated-solicitudes?${queryParams.toString()}`;
 
 				const data = (await apiFetch(endpoint)) as SolicitudResponse;
 
@@ -135,8 +152,8 @@ export default function Solicitudes() {
 
 				setError(
 					requestError?.detail ||
-						requestError?.message ||
-						"No se pudieron cargar las solicitudes"
+					requestError?.message ||
+					"No se pudieron cargar las solicitudes"
 				);
 			} finally {
 				if (isMounted) {
@@ -150,14 +167,14 @@ export default function Solicitudes() {
 		return () => {
 			isMounted = false;
 		};
-	}, [page, pageSize, activeDateRange]);
+	}, [page, pageSize, activeDateRange, debouncedSearch]);
 
 	const filteredSolicitudes = useMemo(() => {
 		const term = search.trim().toLowerCase();
 		if (!term) {
 			return solicitudes;
 		}
-	
+
 		return solicitudes.filter((solicitud) => {
 			return [
 				solicitud.nombre_maq,
@@ -203,67 +220,67 @@ export default function Solicitudes() {
 							className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-72"
 						/>
 					</div>
-                    <div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
+					<div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
 						<label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-						Filtrar por fechas:
+							Filtrar por fechas:
 						</label>
 
 						{/* BOTÓN INTERACTIVO DEL CALENDARIO UNIFICADO */}
 						<div className="relative w-full lg:w-64">
-						<button
-							type="button"
-							onClick={() => setIsOpen(!isOpen)}
-							className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-							aria-label="Seleccionar rango de fechas"
-						>
-							<span className="truncate">
-							{selectedRange?.from ? (
-								selectedRange.to ? (
-								<>
-									{format(selectedRange.from, 'dd LLL yyyy', { locale: es })} -{' '}
-									{format(selectedRange.to, 'dd LLL yyyy', { locale: es })}
-								</>
-								) : (
-								format(selectedRange.from, 'dd LLL yyyy', { locale: es })
-								)
-							) : (
-								<span className="text-gray-400">Seleccionar rango</span>
-							)}
-							</span>
-							<CalendarIcon className="h-4 w-4 text-gray-400" />
-						</button>
+							<button
+								type="button"
+								onClick={() => setIsOpen(!isOpen)}
+								className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+								aria-label="Seleccionar rango de fechas"
+							>
+								<span className="truncate">
+									{selectedRange?.from ? (
+										selectedRange.to ? (
+											<>
+												{format(selectedRange.from, 'dd LLL yyyy', { locale: es })} -{' '}
+												{format(selectedRange.to, 'dd LLL yyyy', { locale: es })}
+											</>
+										) : (
+											format(selectedRange.from, 'dd LLL yyyy', { locale: es })
+										)
+									) : (
+										<span className="text-gray-400">Seleccionar rango</span>
+									)}
+								</span>
+								<CalendarIcon className="h-4 w-4 text-gray-400" />
+							</button>
 
-						{/* POPOVER / POPUP DEL CALENDARIO DUAL (Se muestra al hacer clic) */}
-						{isOpen && (
-							<>
-							{/* Overlay para cerrar al hacer clic fuera */}
-							<div
-								className="fixed inset-0 z-40"
-								onClick={() => setIsOpen(false)}
-							/>
-							<div className="absolute top-12 right-0 z-50 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-800 dark:bg-gray-900">
-								<DayPicker
-								mode="range"
-								defaultMonth={selectedRange?.from || new Date()}
-								selected={selectedRange}
-								onSelect={handleSelectRange}
-								locale={es}
-								className="text-gray-800 dark:text-white/90"
-								/>
-							</div>
-							</>
-						)}
+							{/* POPOVER / POPUP DEL CALENDARIO DUAL (Se muestra al hacer clic) */}
+							{isOpen && (
+								<>
+									{/* Overlay para cerrar al hacer clic fuera */}
+									<div
+										className="fixed inset-0 z-40"
+										onClick={() => setIsOpen(false)}
+									/>
+									<div className="absolute top-12 right-0 z-50 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+										<DayPicker
+											mode="range"
+											defaultMonth={selectedRange?.from || new Date()}
+											selected={selectedRange}
+											onSelect={handleSelectRange}
+											locale={es}
+											className="text-gray-800 dark:text-white/90"
+										/>
+									</div>
+								</>
+							)}
 						</div>
 
 						{/* Botón limpiar — visible solo cuando hay filtro activo */}
 						{activeDateRange && (
-						<button
-							type="button"
-							onClick={clearDateFilter}
-							className="h-11 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-						>
-							Limpiar filtro
-						</button>
+							<button
+								type="button"
+								onClick={clearDateFilter}
+								className="h-11 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+							>
+								Limpiar filtro
+							</button>
 						)}
 					</div>
 				</div>
@@ -288,10 +305,10 @@ export default function Solicitudes() {
 									Observaciones
 								</th>
 								<ConPermiso accion="actualizar">
-                                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                        Acciones
-                                    </th>
-                                </ConPermiso>
+									<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+										Acciones
+									</th>
+								</ConPermiso>
 							</tr>
 						</thead>
 
@@ -339,18 +356,18 @@ export default function Solicitudes() {
 											</span>
 										</td>
 
-                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                            {solicitud.observaciones || "-"}
-                                        </td>
+										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+											{solicitud.observaciones || "-"}
+										</td>
 
 										<td className="px-5 py-4">
 											{solicitud.estado?.toLowerCase() === "cancelada" || solicitud.estado?.toLowerCase() === "devuelta" ? (
-                    						  <ConPermiso accion="actualizar">
+												<ConPermiso accion="actualizar">
 													<span className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-300 px-4 text-sm font-medium text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500">
-													Editar
-												</span>
-											  </ConPermiso>
-                    						) : (
+														Editar
+													</span>
+												</ConPermiso>
+											) : (
 												<div className="flex flex-col items-center gap-2">
 													<ConPermiso accion="actualizar">
 														<Link

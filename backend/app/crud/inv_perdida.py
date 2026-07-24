@@ -315,6 +315,13 @@ def get_perdidas_paginated(db: Session, skip: int = 0, limit: int = 10):
         count_query = text("""
             SELECT COUNT(p.id_perdida) AS total
             FROM inv_perdidas p
+            LEFT JOIN inv_produccion ip ON p.origen = 'produccion' AND p.inv_prod_id = ip.id_inventario
+            LEFT JOIN lote_produccion lp ON ip.lote_id = lp.id_lote
+            LEFT JOIN lotes_granja lg ON lp.lote_granj_id = lg.id_lote_g
+            LEFT JOIN inv_insumos ii ON p.origen = 'insumo' AND p.inv_prod_id = ii.id_insumo
+            LEFT JOIN inv_produccion ip_c ON p.origen = 'comercializacion' AND p.inv_prod_id = ip_c.id_inventario
+            LEFT JOIN users u ON p.user_id = u.id_user
+            LEFT JOIN unidades_medida um ON p.unid_medida_id = um.id_unidad
         """)
         total_result = db.execute(count_query).scalar()
 

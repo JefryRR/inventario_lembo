@@ -111,14 +111,14 @@ export default function VentasPage() {
                 const ventasList: VentaRow[] = Array.isArray(ventasData?.ventas)
                     ? ventasData.ventas
                     : Array.isArray(ventasData)
-                    ? ventasData
-                    : [];
+                        ? ventasData
+                        : [];
 
                 const detallesList: DetalleRow[] = Array.isArray(detallesData?.detalles)
                     ? detallesData.detalles
                     : Array.isArray(detallesData)
-                    ? detallesData
-                    : [];
+                        ? detallesData
+                        : [];
 
                 setVentas(ventasList);
                 setDetalles(detallesList);
@@ -151,24 +151,6 @@ export default function VentasPage() {
         locationState?.newDetalleId,
     ]);
 
-    const filteredVentas = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) return ventas;
-        return ventas.filter((v) =>
-            [
-                String(v.id_venta),
-                v.nombre_comprador ?? "",
-                String(v.id_comprador ?? ""),
-                v.nombre_user ?? "",
-                String(v.total_venta ?? ""),
-                v.fecha_venta ?? "",
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term)
-        );
-    }, [ventas, search]);
-
     const ventasHoy = useMemo(() => {
         const hoy = new Date().toISOString().slice(0, 10);
         return ventas.filter((v) => v.fecha_venta?.slice(0, 10) === hoy);
@@ -185,7 +167,7 @@ export default function VentasPage() {
     );
 
     useEffect(() => {
-        const term = search.trim();
+        const term = search.trim().toLowerCase();
 
         if (!term) {
             setSelectedVenta(resolveDefaultVenta(ventas));
@@ -193,12 +175,46 @@ export default function VentasPage() {
             return;
         }
 
-        if (filteredVentas.length === 0) {
+        // 1. Buscar ventas cuyo comprador (nombre o identificación) coincida
+        const ventasPorComprador = ventas.filter((v) =>
+            [v.nombre_comprador, v.id_comprador ?? ""]
+                .join(" ")
+                .toLowerCase()
+                .includes(term)
+        );
+
+        // 2. Buscar ventas que tengan algún detalle cuyo producto coincida
+        const ventaIdsPorProducto = new Set(
+            detalles
+                .filter((d) => (d.nombre_producto ?? "").toLowerCase().includes(term))
+                .map((d) => d.venta_id)
+        );
+        const ventasPorProducto = ventas.filter((v) => ventaIdsPorProducto.has(v.id_venta));
+
+        // 3. Combinar ambos resultados sin duplicados, priorizando coincidencia por comprador
+        const combinadas = [...ventasPorComprador];
+        ventasPorProducto.forEach((v) => {
+            if (!combinadas.some((c) => c.id_venta === v.id_venta)) {
+                combinadas.push(v);
+            }
+        });
+
+        // 4. Ordenar por fecha (más reciente primero) y seleccionar la primera coincidencia
+        const ordenadas = [...combinadas].sort(
+            (a, b) =>
+                new Date(b.fecha_venta ?? "").getTime() -
+                new Date(a.fecha_venta ?? "").getTime()
+        );
+
+        if (ordenadas.length > 0) {
+            setSelectedVenta(ordenadas[0].id_venta);
+            setSelectedDetalleId(null);
+        } else {
+            // Ninguna venta coincide: limpiamos la selección para mostrar el mensaje de "sin resultados"
             setSelectedVenta(null);
-        } else if (!filteredVentas.find((v) => v.id_venta === selectedVentaRef.current)) {
-            setSelectedVenta(filteredVentas[0].id_venta);
+            setSelectedDetalleId(null);
         }
-    }, [search, filteredVentas, ventas]);
+    }, [search, ventas, detalles]);
 
     // Limpia el highlight del detalle al cambiar de venta manualmente
     const handleSelectVenta = (id: number | null) => {
@@ -263,20 +279,11 @@ export default function VentasPage() {
                                 {ventasHoy.map((venta) => (
                                     <option className="dark:text-black" key={venta.id_venta} value={venta.id_venta}>
                                         {venta.nombre_comprador}
-                                        {venta.fecha_venta? ` - ${new Date(venta.fecha_venta).toLocaleDateString()}`: ""}
+                                        {venta.fecha_venta ? ` - ${new Date(venta.fecha_venta).toLocaleDateString()}` : ""}
                                     </option>
                                 ))}
                             </select>
                         </ConPermiso>
-                    </div>
-
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
-                        <input
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Buscar ventas..."
-                            className="h-10 w-60 rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:ring-gray-500 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-700 sm:w-40"
-                        />
                     </div>
                 </div>
 
@@ -362,11 +369,10 @@ export default function VentasPage() {
                                                 ? selectedDetalleRef
                                                 : null
                                         }
-                                        className={`hover:bg-gray-50 dark:hover:bg-white/[0.02] ${
-                                            det.id_detalle_venta === selectedDetalleId
+                                        className={`hover:bg-gray-50 dark:hover:bg-white/[0.02] ${det.id_detalle_venta === selectedDetalleId
                                                 ? "bg-green-50/70 dark:bg-green-500/10"
                                                 : ""
-                                        }`}
+                                            }`}
                                     >
                                         <td className="px-4 py-4 text-center text-sm text-gray-800 dark:text-white/90">
                                             {det.nombre_producto}

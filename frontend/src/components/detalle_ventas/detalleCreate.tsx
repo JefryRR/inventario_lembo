@@ -63,7 +63,12 @@ const initialState: DetalleFormState = {
     estado_venta: "Separado",
 };
 
-
+function fechaLocal(fecha: Date): string {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, "0");
+    const day = String(fecha.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
 
 export default function DetalleCreate() {
     const navigate = useNavigate();
@@ -115,12 +120,14 @@ export default function DetalleCreate() {
                         : [];
 
                 const fecha_actual = new Date().toISOString().slice(0, 10);
-                const productosVigentes = productoList.filter((p: ProductoOption) =>
-                    p.fecha_vencimiento ? p.fecha_vencimiento.slice(0, 10) > fecha_actual : true
-                );
+                const productosVigentes = productoList.filter((p: ProductoOption) => {
+                    const noVencido = p.fecha_vencimiento ? p.fecha_vencimiento.slice(0, 10) > fecha_actual : true;
+                    const conStock = (p.cantidad ?? 0) > 0;
+                    return noVencido && conStock;
+                });
                 setProductos(productosVigentes);
 
-                const hoy = new Date().toISOString().slice(0, 10);
+                const hoy = fechaLocal(new Date());
                 const ventasHoy = ventaList.filter((v: VentaOption) => v.fecha_venta?.slice(0, 10) === hoy);
                 setVentas(ventasHoy);
                 setMedidas(medidaList);

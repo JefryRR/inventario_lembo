@@ -3,6 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError 
 from datetime import date, datetime
 from app.schemas.maquinaria import MaquinariaCreate, MaquinariaUpdate
+from typing import Optional
 
 import logging
 
@@ -187,36 +188,45 @@ def all_maquina(db: Session):
         logger.error(f"Error al obtener todas las maquinaes: {e}")
         raise Exception("Error de base de datos al obtener todas las maquinaes")
 
+<<<<<<< HEAD
 # Obtener todas las máquinas con paginación
 def get_maquina_paginated(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_maquina_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str]= None):
+
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene inventario de producción con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(nombre_maq) LIKE LOWER(:search) OR LOWER(num_serie) LIKE LOWER(:search) OR LOWER(marca) LIKE LOWER(:search) OR LOWER(modelo) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+
         # Total de producción
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(id_maquina) AS total
             FROM maquinaria
+            {where_clause}
             ORDER BY fecha_compra ASC
         """)
-
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Producción paginada
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT id_maquina, nombre_maq, tipo_maq, marca, modelo,
                             num_serie, fecha_compra, estado, ubicacion, observaciones, fecha_de_baja
                             FROM maquinaria
+                            {where_clause}
                             ORDER BY fecha_compra ASC
                         LIMIT :limit OFFSET :skip
                     """)
             
-        maquinas_list = db.execute(data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }).mappings().all()
+        maquinas_list = db.execute(data_query, params).mappings().all()
 
         return {
             "total": total_result or 0,

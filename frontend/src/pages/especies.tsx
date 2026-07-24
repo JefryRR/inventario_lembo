@@ -28,12 +28,27 @@ export default function Especies() {
     const [pageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     useEffect(() => {
         if (!localStorage.getItem("token")) {
             navigate("/signin");
         }
     }, [navigate]);
+
+    // Debounce: espera 400ms después de que el usuario deja de escribir
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 400);
+
+        return () => clearTimeout(timeoutId);
+    }, [search]);
+
+    // Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
 
     useEffect(() => {
         let isMounted = true;
@@ -43,7 +58,15 @@ export default function Especies() {
             setError(null);
 
             try {
-                const data = (await apiFetch(`especies/paginated?page=${page}&page_size=${pageSize}`)) as EspeciesResponse;
+                const params = new URLSearchParams({
+                    page: String(page),
+                    page_size: String(pageSize),
+                });
+                // Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    params.set("search", debouncedSearch.trim());
+                }
+                const data = (await apiFetch(`especies/paginated?${params.toString()}`)) as EspeciesResponse;
 
                 if (!isMounted) {
                     return;
@@ -73,7 +96,7 @@ export default function Especies() {
         return () => {
             isMounted = false;
         };
-    }, [page, pageSize]);
+    }, [page, pageSize, debouncedSearch]);
 
     const filteredEspecies = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -116,7 +139,7 @@ export default function Especies() {
                             placeholder="Buscar especie..."
                             className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm focus:ring-gray-500 text-gray-800 outline-none placeholder:text-gray-400 focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800 sm:w-72"
                         />
-                        
+
                     </div>
                 </div>
 

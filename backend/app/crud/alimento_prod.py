@@ -165,27 +165,41 @@ def update_alimento_by_id(db: Session, id_alimento: int, alimento: AlimentoUpdat
             logger.error(f"Error al actualizar alimento {id_alimento}: {e}")
             raise HTTPException(status_code=500, detail="Error de base de datos al actualizar el registro de alimento")
 
+<<<<<<< HEAD
 #Función para obtener los alimentos con paginación
 def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene los registros de alimentos con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(in_ins.nombre_producto) LIKE LOWER(:search) OR LOWER(l_g.nombre_lote) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+
         # Total de alimentos
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(a_p.id_alimento) AS total
             FROM alimento_produccion AS a_p
             INNER JOIN lote_produccion AS l_p ON a_p.lote_id = l_p.id_lote
             LEFT JOIN especies AS e ON l_p.especie_id = e.id_especie
             LEFT JOIN categorias AS c ON l_p.categoria_id = c.id_categoria
             LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
+            LEFT JOIN inv_insumos AS in_ins ON a_p.insumo_id = in_ins.id_insumo
+            LEFT JOIN unidades_medida AS u_m ON a_p.unid_medida_id = u_m.id_unidad
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Registros paginados
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT a_p.id_alimento, a_p.lote_id, a_p.insumo_id, a_p.fecha_alimento, a_p.cantidad, a_p.unid_medida_id,
                         e.nombre_especie, c.nombre_categoria, u_m.simbolo, in_ins.nombre_producto, l_g.nombre_lote
                         FROM alimento_produccion AS a_p
@@ -195,17 +209,12 @@ def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN lotes_granja AS l_g ON l_p.lote_granj_id = l_g.id_lote_g
                         LEFT JOIN inv_insumos AS in_ins ON a_p.insumo_id = in_ins.id_insumo
                         LEFT JOIN unidades_medida AS u_m ON a_p.unid_medida_id = u_m.id_unidad
+                        {where_clause}
                         ORDER BY a_p.id_alimento DESC
                         LIMIT :limit OFFSET :skip
                     """)
 
-        alimento_prod_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        alimento_prod_list = db.execute( data_query, params).mappings().all()
 
         return {
             "total": total_result or 0,

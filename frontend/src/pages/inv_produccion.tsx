@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -57,13 +57,10 @@ export default function Inv_prod() {
     const [pageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
-    const [dateRange, setDateRange] = useState<DateRangeState>({
-        fecha_inicio: "",
-        fecha_fin: "",
-    });
+    const [dateRange, setDateRange] = useState<DateRangeState>({fecha_inicio: "", fecha_fin: "",});
     const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
     const [estadoFiltro, setEstadoFiltro] = useState< "vencido" | "sin_stock" | "critico" | "urgente" | "vigente" | null>(null);
-
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
     // Estado que requiere react-day-picker (usa objetos Date de JS)
@@ -93,6 +90,19 @@ export default function Inv_prod() {
     };
 
     useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 400);
+
+        return () => clearTimeout(timeoutId);
+    }, [search]);
+
+    // Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
+
+    useEffect(() => {
         let isMounted = true;
 
         const loadInv_prod = async () => {
@@ -104,6 +114,11 @@ export default function Inv_prod() {
                     page: String(page),
                     page_size: String(pageSize),
                 });
+
+                // Si hay un término de búsqueda, lo agregamos a los parámetros de la URL
+                if (debouncedSearch.trim()) {
+                    queryParams.set("search", debouncedSearch.trim());
+                }
 
                 let endpoint;
 
@@ -149,31 +164,8 @@ export default function Inv_prod() {
         return () => {
             isMounted = false;
         };
-    }, [page, pageSize, activeDateRange, estadoFiltro]);
+    }, [page, pageSize, activeDateRange, estadoFiltro, debouncedSearch]);
 
-    const filteredInvProduc = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) {
-            return invProd;
-        }
-
-        return invProd.filter((inv_prod) => {
-            return [
-                inv_prod.nombre_producto,
-                String(inv_prod.cantidad),
-                inv_prod.nombre_lote,
-                inv_prod.nombre_categoria,
-                inv_prod.nombre_especie,
-                inv_prod.fecha_ingreso,
-                inv_prod.fecha_vencimiento,
-                String(inv_prod.valor_unitario),
-                inv_prod.nivel_alerta
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term);
-        });
-    }, [search, invProd]);
 
     const formatearFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
@@ -412,14 +404,14 @@ export default function Inv_prod() {
                                         {error}
                                     </td>
                                 </tr>
-                            ) : filteredInvProduc.length === 0 ? (
+                            ) : invProd.length === 0 ? (
                                 <tr>
                                     <td colSpan={TABLE_COLUMNS} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay registros de inventario para mostrar.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredInvProduc.map((inv_prod) => (
+                                invProd.map((inv_prod) => (
                                     <tr key={inv_prod.id_inventario} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                         <td className="px-4 py-4">
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">

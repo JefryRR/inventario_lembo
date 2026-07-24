@@ -59,6 +59,7 @@ export default function InvInsumo() {
     const [facturaInsumoId, setFacturaInsumoId] = useState<number | null>(null);
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [estadoFiltro, setEstadoFiltro] = useState< "vencido" | "sin_stock" | "critico" | "urgente" | "vigente" | null>(null);
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     // Estado que requiere react-day-picker (usa objetos Date de JS)
     const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
@@ -86,6 +87,20 @@ export default function InvInsumo() {
         }
     };
 
+     // Debounce: espera 400ms después de que el usuario deja de escribir
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 400);
+
+        return () => clearTimeout(timeoutId);
+    }, [search]);
+
+    // Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
+
     useEffect(() => {
         let isMounted = true;
 
@@ -99,6 +114,10 @@ export default function InvInsumo() {
                 });
 
                 let endpoint;
+                
+                if (debouncedSearch.trim()) {
+                    queryParams.set("search", debouncedSearch.trim());
+                }
 
                 if (activeDateRange) {
                         queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
@@ -130,7 +149,7 @@ export default function InvInsumo() {
 
         loadInvInsumo();
         return () => { isMounted = false; };
-    }, [page, pageSize, activeDateRange, estadoFiltro]);
+    }, [page, pageSize, activeDateRange, estadoFiltro, debouncedSearch]);
 
     const SoloFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
@@ -141,27 +160,6 @@ export default function InvInsumo() {
             year: "numeric",
         });
     };
-
-    const filteredInvInsumos = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) return invInsumo;
-        return invInsumo.filter((inv_insumo) =>
-            [
-                inv_insumo.nombre_producto,
-                String(inv_insumo.cantidad),
-                inv_insumo.simbolo,
-                String(inv_insumo.min_stock),
-                inv_insumo.nombre_tipo,
-                SoloFecha(inv_insumo.fecha_ingreso),
-                SoloFecha(inv_insumo.fecha_vencimiento),
-                String(inv_insumo.precio_unitario),
-                inv_insumo.nivel_alerta,
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term)
-        );
-    }, [search, invInsumo, activeDateRange]);
 
     const clearDateFilter = () => {
         setDateRange({ fecha_inicio: "", fecha_fin: "" });
@@ -347,14 +345,14 @@ export default function InvInsumo() {
                                 <tr>
                                     <td colSpan={9} className="px-5 py-10 text-center text-sm text-error-500">{error}</td>
                                 </tr>
-                            ) : filteredInvInsumos.length === 0 ? (
+                            ) : invInsumo.length === 0 ? (
                                 <tr>
                                     <td colSpan={9} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay registros de insumos para mostrar.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredInvInsumos.map((inv_insumo) => {
+                                invInsumo.map((inv_insumo) => {
                                     const estado = Estadoinsumo(inv_insumo.cantidad, inv_insumo.min_stock);
                                     return (
                                         <tr key={inv_insumo.id_insumo} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">

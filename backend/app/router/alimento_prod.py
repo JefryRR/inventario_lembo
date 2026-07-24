@@ -6,7 +6,7 @@ from app.crud.permisos import verify_permissions
 from app.schemas.alimento_prod import AlimentoCreate, AlimentoUpdate, AlimentoOut, PaginatedAlimentos
 from app.schemas.users import UserOut
 from app.crud import alimento_prod as crud_alimento_prod
-from sqlalchemy.exc import SQLAlchemyError
+from typing import Optional
 
 router = APIRouter()
 modulo = 14 # ID del módulo de lotes para verificar permisos
@@ -87,6 +87,7 @@ def update_alimento_by_id(id_alimento: int, alimento: AlimentoUpdate, db: Sessio
 def get_all_alimentos_pag(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 
@@ -96,7 +97,7 @@ def get_all_alimentos_pag(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_alimento_prod.get_all_alimentos_pag(db, skip=skip, limit=page_size)
+        data = crud_alimento_prod.get_all_alimentos_pag(db, skip=skip, limit=page_size, search=search)
         total = data["total"]  
         alimento = data["alimentos"]
         

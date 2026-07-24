@@ -170,51 +170,62 @@ def change_status_user(db: Session, user_id: int, estado: UserEstado) -> Optiona
         logger.error(f"Error al cambiar estado del usuario {user_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del usuario")
 
+<<<<<<< HEAD
 # Obtener todos los usuarios con paginación
 def get_all_users_pag(db: Session, skip: int = 0, limit: int = 10):
+=======
+
+def get_all_users_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene usuarios con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
 
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip};
+        
+        if search:
+            where_clause = "WHERE LOWER(r.nombre_rol) LIKE LOWER(:search) OR LOWER(u.nombre_user) LIKE LOWER(:search)";
+            params["search"] = f"%{search}%";
 
         # Total de usuarios
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(u.id_user) AS total
             FROM users AS u
-            INNER JOIN roles AS r 
-                ON u.rol_id = r.id_rol
-        """)
+            LEFT JOIN roles AS r ON u.rol_id = r.id_rol
+            {where_clause}
+        """);
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar();
 
         # Usuarios paginados
-        data_query = text("""
+        data_query = text(f"""
             SELECT u.id_user, u.rol_id, u.nombre_user, u.tipo_documento, u.documento, u.correo,
-            u.telefono, u.estado, r.nombre_rol
-                FROM users AS u
-                INNER JOIN roles AS r 
-                ON u.rol_id = r.id_rol
+                u.telefono, u.estado, r.nombre_rol
+            FROM users AS u
+            LEFT JOIN roles AS r ON u.rol_id = r.id_rol
+            {where_clause}
             LIMIT :limit OFFSET :skip
-        """)
+        """);
 
-        users_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        users_list = db.execute(data_query, params).mappings().all();
 
         return {
             "total": total_result or 0,
             "users": users_list
-        }
+        };
 
     except SQLAlchemyError as e:
-        logger.error( f"Error al obtener los usuarios: {e}", exc_info=True)
+        logger.error( f"Error al obtener los usuarios: {e}", exc_info=True);
 
+        raise Exception( "Error de base de datos al obtener los usuarios" );
+
+<<<<<<< HEAD
         raise Exception(
             "Error de base de datos al obtener los usuarios"
         )  
+=======
+        
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c

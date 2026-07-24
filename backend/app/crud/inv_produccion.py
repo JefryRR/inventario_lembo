@@ -415,8 +415,12 @@ def all_produccion(db: Session):
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas las producciones")
 
+<<<<<<< HEAD
 # Función para obtener registros de producción con paginación y filtrado por estado
 def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None):
+=======
+def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene inventario de producción con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
@@ -427,7 +431,15 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado
         where_clause = ""
         params = {"limit": limit, "skip": skip}
 
+<<<<<<< HEAD
         # Filtrar por estado si se proporciona
+=======
+        # Filtrar por búsqueda si se proporciona
+        if search:
+            where_clause = "WHERE LOWER(pr.nombre_producto) LIKE LOWER(:search) OR LOWER(l_g.nombre_lote) LIKE LOWER(:search) OR LOWER(c.nombre_categoria) LIKE LOWER(:search) OR LOWER(e.nombre_especie) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
         if estado:
             hoy = date.today()
             params["hoy"] = hoy
@@ -454,6 +466,7 @@ def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado
             SELECT COUNT(pr.id_inventario) AS total
             FROM inv_produccion AS pr
             LEFT JOIN lote_produccion AS l ON pr.lote_id = l.id_lote
+            LEFT JOIN lotes_granja AS l_g ON l.lote_granj_id = l_g.id_lote_g
             LEFT JOIN categorias AS c ON l.categoria_id = c.id_categoria
             LEFT JOIN especies AS e ON l.especie_id = e.id_especie
             LEFT JOIN unidades_medida AS u_m ON pr.unid_medida_id = u_m.id_unidad

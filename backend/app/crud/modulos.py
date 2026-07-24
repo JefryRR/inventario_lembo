@@ -78,42 +78,45 @@ def update_module_by_id(db: Session, id_modulo: int, modulo: ModuloUpdate) -> Op
         raise Exception("Error de base de datos al actualizar el modulo")
 
 #Función para obtener todos los modulos haciendo uso de la paginación
-def get_all_modules_pag(db: Session, skip: int = 0, limit: int = 10):
+def get_all_modules_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
     """
-    Obtiene modulos con paginación.
+    Obtiene modulos con paginación y búsqueda opcional por nombre.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
 
     try:
-        # Total de modulos
-        count_query = text("""
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+
+        if search:
+            where_clause = "WHERE LOWER(m.nombre) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+
+        # Total de modulos (respetando el filtro)
+        count_query = text(f"""
             SELECT COUNT(m.id_modulo) AS total
             FROM modulos AS m
-        """)
+            {where_clause}
+        """);
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
-        # Modulos paginados
-        data_query = text("""
-                    SELECT m.id_modulo, m.nombre
-                    FROM modulos AS m
-                    ORDER BY m.id_modulo
-                    LIMIT :limit OFFSET :skip
-                """)
+        # Modulos paginados (respetando el filtro)
+        data_query = text(f"""
+            SELECT m.id_modulo, m.nombre
+            FROM modulos AS m
+            {where_clause}
+            ORDER BY m.id_modulo
+            LIMIT :limit OFFSET :skip
+        """);
 
-        modulos_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        modulos_list = db.execute(data_query, params).mappings().all();
 
         return {
             "total": total_result or 0,
             "modulos": modulos_list
-        }
+        };
 
     except SQLAlchemyError as e:
-        logger.error( f"Error al obtener los detalles de venta: {e}", exc_info=True)
-        raise Exception("Error de base de datos al obtener los detalles de venta")
+        logger.error(f"Error al obtener los modulos paginados: {e}", exc_info=True);
+        raise Exception("Error de base de datos al obtener los modulos");

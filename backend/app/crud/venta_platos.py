@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 from sqlalchemy.orm import Session 
 from sqlalchemy import text 
 from sqlalchemy.exc import SQLAlchemyError 
+=======
+from sqlalchemy.orm import Session # type: ignore
+from sqlalchemy import text # type: ignore
+from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from typing import Optional
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 from app.schemas.venta_platos import VentaPlatoCreate, VentaPlatoUpdate
 import logging
 
@@ -97,32 +104,46 @@ def all_ventas_platos(db: Session):
         logger.error(f"Error al obtener todas las ventas: {e}")
         raise Exception("Error de base de datos al obtener todas las ventas")
 
+<<<<<<< HEAD
 # Obtener todas las ventas de platos con paginación
 def get_ventas_platos_paginated(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_ventas_platos_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 
     """
     Obtiene inventario de producción con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(p.nombre_plato) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+        
         # Total de producción
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(id_venta_plato) AS total
-            FROM venta_platos
+            FROM venta_platos AS vp
+            LEFT JOIN platos p ON vp.plato_id = p.id_plato
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Producción paginada
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT vp.id_venta_plato, vp.plato_id, vp.cantidad, vp.precio, vp.fecha_venta, p.nombre_plato
                         FROM venta_platos vp
                         LEFT JOIN platos p ON vp.plato_id = p.id_plato
+                        {where_clause}
                         ORDER BY vp.fecha_venta DESC
                         LIMIT :limit OFFSET :skip
                     """)
             
-        ventas_list = db.execute(data_query, {"limit": limit, "skip": skip}).mappings().all()
+        ventas_list = db.execute(data_query, params).mappings().all()
 
         return {
                 "total": total_result or 0,

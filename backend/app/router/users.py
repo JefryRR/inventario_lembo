@@ -5,6 +5,7 @@ from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
 from app.schemas.users import UserCreate, UserEstado, UserUpdate, UserOut
 from app.crud import users as crud_users
+from typing import Optional
 
 router = APIRouter()
 modulo = 3
@@ -138,6 +139,7 @@ def change_status_user(user_id: int, estado: UserEstado, db: Session = Depends(g
 def get_all_users_pag(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 
@@ -147,7 +149,7 @@ def get_all_users_pag(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_users.get_all_users_pag(db, skip=skip, limit=page_size)
+        data = crud_users.get_all_users_pag(db, skip=skip, limit=page_size, search=search)
         total = data["total"]  
         users = data["users"]
         

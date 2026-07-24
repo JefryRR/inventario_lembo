@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 from app.schemas.ingredientes import IngredienteCreate, IngredienteUpdate
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -333,63 +334,71 @@ def all_ingredientes(db: Session):
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas los ingredientes")
 
+<<<<<<< HEAD
 # Obtener ingredientes con paginación
 def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_ingredientes_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+        """
+        Obtiene ingredientes con paginación.
+        Compatible con PostgreSQL, MySQL y SQLite.
+        """
+        try:
+            where_clause = ""
+            params = {"limit": limit, "skip": skip}
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 
-    """
-    Obtiene ingredientes con paginación.
-    Compatible con PostgreSQL, MySQL y SQLite.
-    """
-    try:
-        # Total de ingredientes
-        count_query = text("""
-            SELECT COUNT(id_ingrediente) AS total
-            FROM ingredientes_plato
-        """)
+            if search:
+                where_clause = """WHERE LOWER(p.nombre_plato) LIKE LOWER(:search) OR LOWER(COALESCE(pr.nombre_producto, ins.nombre_producto, prc.nombre_producto, '')) LIKE LOWER(:search)"""
+                params["search"] = f"%{search}%"
 
-        total_result = db.execute(count_query).scalar()
+            count_query = text(f"""
+                SELECT COUNT(id_ingrediente) AS total
+                FROM ingredientes_plato AS ip
+                LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+                LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+                LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                LEFT JOIN comercializacion AS c ON ip.origen_inv = 3 AND ip.inventario_id = c.id_comercializacion
+                LEFT JOIN inv_produccion AS prc ON c.producto_id = prc.id_inventario
+                LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
+                {where_clause}
+            """)
 
-        # Ingredientes paginados
-        data_query = text(""" 
-                            SELECT 
-                                ip.id_ingrediente, 
-                                ip.plato_id, 
-                                ip.origen_inv, 
-                                ip.inventario_id, 
-                                ip.cant_inv, 
-                                ip.unid_med_id, 
-                                ip.fecha_registro, 
-                                p.nombre_plato,
-                                um.simbolo,
-                                -- COALESCE toma el primer valor que NO sea null. 
-                                -- Si no encuentra el producto ni el insumo, pondrá 'Producto no encontrado'
-                                COALESCE(pr.nombre_producto, ins.nombre_producto, prc.nombre_producto, 'Producto no encontrado') AS nombre_producto
-                            FROM ingredientes_plato AS ip
-                            LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
-                            LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
-                            LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
-                            LEFT JOIN comercializacion AS c ON ip.origen_inv = 3 AND ip.inventario_id = c.id_comercializacion
-                            LEFT JOIN inv_produccion AS prc ON c.producto_id = prc.id_inventario
-                            LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
-                            ORDER BY ip.fecha_registro DESC
-                            LIMIT :limit OFFSET :skip
-                          
-                        """)
-            
-        ingredientes_list = db.execute(
-        data_query,
-        {
-            "limit": limit,
-            "skip": skip
-        }
-        ).mappings().all()
+            total_result = db.execute(count_query, params).scalar()
 
-        return {
-            "total": total_result or 0,
-            "ingredientes": ingredientes_list
-        }
+            data_query = text(f""" 
+                SELECT 
+                    ip.id_ingrediente, 
+                    ip.plato_id, 
+                    ip.origen_inv, 
+                    ip.inventario_id, 
+                    ip.cant_inv, 
+                    ip.unid_med_id, 
+                    ip.fecha_registro, 
+                    p.nombre_plato,
+                    um.simbolo,
+                    COALESCE(pr.nombre_producto, ins.nombre_producto, prc.nombre_producto, 'Producto no encontrado') AS nombre_producto
+                FROM ingredientes_plato AS ip
+                LEFT JOIN platos AS p ON ip.plato_id = p.id_plato
+                LEFT JOIN inv_produccion AS pr ON ip.origen_inv = 1 AND ip.inventario_id = pr.id_inventario
+                LEFT JOIN inv_insumos AS ins ON ip.origen_inv = 2 AND ip.inventario_id = ins.id_insumo
+                LEFT JOIN comercializacion AS c ON ip.origen_inv = 3 AND ip.inventario_id = c.id_comercializacion
+                LEFT JOIN inv_produccion AS prc ON c.producto_id = prc.id_inventario
+                LEFT JOIN unidades_medida AS um ON ip.unid_med_id = um.id_unidad
+                {where_clause}
+                ORDER BY ip.fecha_registro DESC
+                LIMIT :limit OFFSET :skip
+            """)
 
-    except SQLAlchemyError as e:
-        logger.error(f"Error al obtener los ingredientes: {e}", exc_info=True)
-        raise Exception("Error de base de datos al obtener los ingredientes")
+            ingredientes_list = db.execute(data_query, params).mappings().all()
+
+            return {
+                "total": total_result or 0,
+                "ingredientes": ingredientes_list
+            }
+
+        except SQLAlchemyError as e:
+            logger.error(f"Error al obtener los ingredientes: {e}", exc_info=True)
+            raise Exception("Error de base de datos al obtener los ingredientes")
+
     

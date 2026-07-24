@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.crud.permisos import verify_permissions
@@ -182,6 +182,7 @@ def obtener_ventas_por_rango_fechas(
 def get_paginated_prog_platos(
      page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ):
@@ -191,7 +192,7 @@ def get_paginated_prog_platos(
             raise HTTPException(status_code=401, detail="Usuario no autorizado")
         
         skip = (page - 1) * page_size
-        data = crud_ventas_plato.get_ventas_platos_paginated(db, skip=skip, limit=page_size)
+        data = crud_ventas_plato.get_ventas_platos_paginated(db, skip=skip, limit=page_size, search=search)
 
         total = data["total"]
         ventas = data["ventaPlatos"]

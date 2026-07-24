@@ -2,6 +2,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text 
 from sqlalchemy.exc import SQLAlchemyError 
 from app.schemas.ventas import VentasCreate, VentasUpdate
+<<<<<<< HEAD
+=======
+from typing import Optional
+
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 import logging
 
 logger = logging.getLogger(__name__)
@@ -124,42 +129,51 @@ def get_ventas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
 
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las ventas por rango de fechas: {e}")
+<<<<<<< HEAD
 
 # Obtener ventas con paginación              
 def ventas_paginated(db: Session, skip: int = 0, limit: int = 10):
+=======
+                     
+def ventas_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene ventas con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(v.nombre_comprador) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+        
         # Total de ventas
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(v.id_venta) AS total
             FROM ventas AS v
-            LEFT JOIN users ON v.user_id = users.id_user
+            LEFT JOIN users AS u ON v.user_id = u.id_user
+            LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Ventas paginadas
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT  v.id_venta, v.nombre_comprador, v.id_comprador, v.fecha_venta, v.user_id,
                         u.nombre_user, COALESCE(SUM(d.precio_venta * d.cantidad), 0) AS total_venta
                         FROM ventas AS v
                         LEFT JOIN users AS u ON v.user_id = u.id_user
                         LEFT JOIN detalle_ventas d ON v.id_venta = d.venta_id
-                            AND d.estado_venta NOT IN ('Cancelado', 'Anulado')
+                        {where_clause}
+                        AND d.estado_venta NOT IN ('Cancelado', 'Anulado')
                         GROUP BY v.id_venta, v.nombre_comprador, v.id_comprador, v.fecha_venta, v.user_id, u.nombre_user
                         LIMIT :limit OFFSET :skip
                     """)
 
-        ventas_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        ventas_list = db.execute(data_query, params).mappings().all()
 
         return {
             "total": total_result or 0,

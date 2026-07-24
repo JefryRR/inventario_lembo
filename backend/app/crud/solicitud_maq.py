@@ -3,6 +3,11 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError 
 from datetime import date
 from app.schemas.solicitud_maq import SolicitudMaqCreate, SolicitudMaqUpdate
+<<<<<<< HEAD
+=======
+from typing import Optional
+
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 import logging
 
 logger = logging.getLogger(__name__)
@@ -177,8 +182,12 @@ def get_solicitudes_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las solicitudes por rango de fechas: {e}")
 
+<<<<<<< HEAD
 # Obtener solicitudes con paginación
 def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 
     """
     Obtiene solicitudes con paginación.
@@ -186,30 +195,37 @@ def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10):
     """
     try:
         # Total de solicitudes
-        count_query = text("""
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+
+        if search:
+            where_clause = "WHERE LOWER(u.nombre_user) LIKE LOWER(:search) OR LOWER(m.nombre_maq) LIKE LOWER(:search) OR LOWER(sm.estado) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+
+        count_query = text(f"""
             SELECT COUNT(id_solicitud_maq) AS total
-            FROM solicitud_maquinaria
+            FROM solicitud_maquinaria AS sm
+            LEFT JOIN users AS u ON sm.user_id = u.id_user
+            LEFT JOIN maquinaria AS m ON sm.maquinaria_id = m.id_maquina
+            {where_clause}
             ORDER BY fecha_solicitud DESC
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Solicitudes paginadas
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT sm.id_solicitud_maq, sm.maquinaria_id, sm.user_id, sm.fecha_solicitud, sm.fecha_entrega, 
                          sm.fecha_devolucion, sm.estado, sm.observaciones, u.nombre_user, m.nombre_maq
                          FROM solicitud_maquinaria AS sm
                          LEFT JOIN users AS u ON sm.user_id = u.id_user
                          LEFT JOIN maquinaria AS m ON sm.maquinaria_id = m.id_maquina
+                         {where_clause}
                          ORDER BY sm.fecha_solicitud DESC
                         LIMIT :limit OFFSET :skip
                     """)
             
-        solicitudes_maq_list = db.execute(data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }).mappings().all()
+        solicitudes_maq_list = db.execute(data_query, params).mappings().all()
 
         return {
             "total": total_result or 0,

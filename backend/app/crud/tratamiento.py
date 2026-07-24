@@ -187,15 +187,26 @@ def update_tratamiento_by_id(db: Session, id_tratamiento: int, tratamiento: Trat
         logger.error(f"Error al registrar el tratamiento: {e}")
         raise HTTPException(status_code=500, detail="Error interno al registrar el tratamiento")
 
+<<<<<<< HEAD
 # Obtener todos los tratamientos con paginación
 def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
+=======
+def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
     """
     Obtiene los registros de tratamientos con paginación.
     Compatible con PostgreSQL, MySQL y SQLite.
     """
     try:
+        where_clause = ""
+        params = {"limit": limit, "skip": skip}
+        
+        if search:
+            where_clause = "WHERE LOWER(e.nombre_especie) LIKE LOWER(:search) OR LOWER(c.nombre_categoria) LIKE LOWER(:search) OR LOWER(in_ins.nombre_producto) LIKE LOWER(:search) OR LOWER(l_g.nombre_lote) LIKE LOWER(:search) OR LOWER(u.nombre_user) LIKE LOWER(:search)"
+            params["search"] = f"%{search}%"
+
         # Total de tratamientos
-        count_query = text("""
+        count_query = text(f"""
             SELECT COUNT(t_p.id_tratamiento) AS total
             FROM tratamientos AS t_p
             LEFT JOIN lote_produccion AS l_p ON t_p.lote_id = l_p.id_lote
@@ -205,12 +216,13 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
             LEFT JOIN inv_insumos AS in_ins ON t_p.medicina_id = in_ins.id_insumo
             LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
             LEFT JOIN users AS u ON t_p.user_id = u.id_user
+            {where_clause}
         """)
 
-        total_result = db.execute(count_query).scalar()
+        total_result = db.execute(count_query, params).scalar()
 
         # Registros paginados
-        data_query = text(""" 
+        data_query = text(f""" 
                         SELECT t_p.id_tratamiento, t_p.lote_id, t_p.medicina_id, t_p.fecha_inicio, t_p.fecha_fin,
                         t_p.cantidad, t_p.unid_medida_id, t_p.observacion, e.nombre_especie, c.nombre_categoria,
                         t_p.cant_convertida, t_p.user_id,
@@ -223,16 +235,11 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10):
                         LEFT JOIN lotes_granja AS l_g ON t_p.lote_id = l_g.id_lote_g
                         LEFT JOIN unidades_medida AS u_m ON t_p.unid_medida_id = u_m.id_unidad
                         LEFT JOIN users AS u ON t_p.user_id = u.id_user
+                        {where_clause}
                         ORDER BY t_p.id_tratamiento DESC
                         LIMIT :limit OFFSET :skip
                     """)
-        tratamiento_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        tratamiento_list = db.execute( data_query, params ).mappings().all()
 
         return {
             "total": total_result or 0,

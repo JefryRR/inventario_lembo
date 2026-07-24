@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query 
 from sqlalchemy.orm import Session 
+=======
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
+from sqlalchemy.orm import Session # type: ignore
+>>>>>>> 4d7f0f246392f0e0fa2474862b82d6893f3f228c
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
@@ -155,6 +161,7 @@ def change_status_solicitud(
 def get_solicitud_paginated(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     user_token: UserOut = Depends(get_current_user)
 ): 
@@ -164,7 +171,7 @@ def get_solicitud_paginated(
              raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
          
         skip = (page - 1) * page_size
-        data = crud_sol_maquinas.get_solicitudes_paginated(db, skip=skip, limit=page_size)
+        data = crud_sol_maquinas.get_solicitudes_paginated(db, skip=skip, limit=page_size, search=search)
         total = data["total"]
         solicitudes = data["solicitudes"]
         total_pages = (total + page_size - 1) // page_size
