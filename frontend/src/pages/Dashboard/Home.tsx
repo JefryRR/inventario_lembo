@@ -5,14 +5,18 @@ import RecentOrders from "@/components/ecommerce/RecentOrders";
 import PageMeta from "@/components/common/PageMeta";
 import { useAuth } from "@/context/AuthContext";
 
+// Componente principal de la página de inicio del dashboard
 export default function Home() {
   const { tienePermiso } = useAuth();
 
+  // Verifica si el usuario tiene permisos para ver las secciones de ventas y producción
   const puedeVerVentas = tienePermiso("Ventas", "seleccionar");
   const puedeVerProduccion = tienePermiso("Inventario de producción", "seleccionar");
 
+  // Determina si el usuario tiene acceso a alguna de las secciones
   const tieneAlgunAcceso = puedeVerVentas || puedeVerProduccion ;
 
+  // Renderiza un mensaje de bienvenida si el usuario no tiene acceso a ninguna sección
   if (!tieneAlgunAcceso) {
     return (
       <>
@@ -29,6 +33,7 @@ export default function Home() {
     );
   }
 
+  // Renderiza las métricas y gráficos si el usuario tiene acceso a alguna sección
   if (tieneAlgunAcceso) {
     return (
     <>

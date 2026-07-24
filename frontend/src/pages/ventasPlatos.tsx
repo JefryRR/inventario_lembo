@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
-import { format, set } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Para que el calendario aparezca en español
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { DayPicker, DateRange } from 'react-day-picker';
