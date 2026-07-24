@@ -99,16 +99,10 @@ def get_all_lotes_granja_pag(db: Session, skip: int = 0, limit: int = 10, search
                     SELECT id_lote_g, nombre_lote, ubicacion, latitud, longitud
                     FROM lotes_granja
                     {where_clause}
-                        LIMIT :limit OFFSET :skip
+                    LIMIT :limit OFFSET :skip
                     """)
 
-        lotes_prod_list = db.execute(
-            data_query,
-            {
-                "limit": limit,
-                "skip": skip
-            }
-        ).mappings().all()
+        lotes_prod_list = db.execute(data_query, params).mappings().all()
 
         return {
             "total": total_result or 0,

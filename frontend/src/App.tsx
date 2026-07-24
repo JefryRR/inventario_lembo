@@ -13,7 +13,7 @@ import BarChart from "./pages/Charts/BarChart";
 import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
-import Blank from "./pages/Blank";
+// import Blank from "./pages/Blank";
 import Users from "./pages/users";
 import Roles from "./pages/roles";
 import RolesCreate from "./components/roles/rolesCreate"
@@ -201,7 +201,6 @@ export default function App() {
             <Route path="/comercializaciones/report/:id_comercializacion" element={<ComercioReport />} />
             <Route path="/movimientos-comercio" element={<MovimientosComercio />} />
             <Route path="/calendar" element={<Calendar />} />
-            <Route path="/blank" element={<Blank />} />
 
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />

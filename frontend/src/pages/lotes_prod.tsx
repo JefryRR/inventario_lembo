@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipos de datos para los lotes de producción
 type LoteRow = {
 	id_lote: number;
 	lote_granj_id: number;
@@ -29,6 +30,7 @@ type LotesResponse = {
 	lotes: LoteRow[];
 };
 
+// Mapeo de estados a etiquetas legibles
 const ESTADO_LABELS: Record<string, string> = {
 	activo: "Activo",
 	finalizado: "Finalizado",
@@ -41,6 +43,7 @@ function formatEstado(value: string): string {
 	return ESTADO_LABELS[value] || value;
 }
 
+// Función para formatear la fecha en formato "dd/mm/yyyy hh:mm"
 function formatDate(value: string): string {
 	if (!value) return "-";
 
@@ -95,6 +98,7 @@ export default function Lotes() {
 			setError(null);
 
 			try {
+				// Construimos los parámetros de la URL para la paginación y búsqueda
 				const params = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -135,28 +139,6 @@ export default function Lotes() {
 			isMounted = false;
 		};
 	}, [page, pageSize, debouncedSearch]);
-
-	const filteredLotes = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) {
-			return lotes;
-		}
-
-		return lotes.filter((lote) => {
-			return [
-				lote.nombre_lote,
-				lote.sublote,
-				lote.nombre_especie,
-				lote.nombre_categoria,
-				lote.nombre_user,
-				lote.estado_lote,
-				formatEstado(lote.estado_lote),
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, lotes]);
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -229,14 +211,14 @@ export default function Lotes() {
 										{error}
 									</td>
 								</tr>
-							) : filteredLotes.length === 0 ? (
+							) : lotes.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay registros de producción para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredLotes.map((lote) => (
+								lotes.map((lote) => (
 									<tr key={lote.id_lote} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 										<td className="px-5 py-4">
 											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{lote.nombre_lote}</div>

@@ -14,6 +14,7 @@ import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
 type TipoComida = "desayuno" | "almuerzo" | "refrigerio";
 
+
 interface Plato {
   id_plato: number;
   nombre_plato: string;
@@ -37,6 +38,7 @@ interface CalendarEvent extends EventInput {
   };
 }
 
+// Mapeo de colores para cada tipo de comida
 const TIPO_COMIDA_COLOR: Record<TipoComida, string> = {
   desayuno: "Primary",
   almuerzo: "Success",
@@ -56,6 +58,7 @@ function programacionToEvent(p: ProgramacionOut): CalendarEvent {
   };
 }
 
+// Formulario vacío para inicializar el estado
 const FORM_EMPTY = {
   plato_id: 0,
   tipo_comida: "" as TipoComida | "",
@@ -104,6 +107,7 @@ const CalendarProgramacion: React.FC = () => {
     openModal();
   };
 
+  // Función para manejar el clic en un evento del calendario
   const handleEventClick = (clickInfo: EventClickArg) => {
     const prog = clickInfo.event.extendedProps.programacion as ProgramacionOut;
     setSelectedId(prog.id_programacion);

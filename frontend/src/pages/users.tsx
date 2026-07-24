@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Definición de tipos para los datos de usuario
 type UserRow = {
     id_user: number;
     nombre_user: string;
@@ -35,7 +36,7 @@ export default function Users() {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
-
+    // useEffect para redirigir al usuario a la página de inicio de sesión si no hay un token en el almacenamiento local
     useEffect(() => {
         if (!localStorage.getItem("token")) {
             navigate("/signin");
@@ -56,6 +57,7 @@ export default function Users() {
         setPage(1);
     }, [debouncedSearch]);
 
+    // useEffect para cargar los usuarios desde la API cuando cambian la página, el tamaño de página o el término de búsqueda
     useEffect(() => {
         let isMounted = true;
 
@@ -64,6 +66,7 @@ export default function Users() {
             setError(null);
 
             try {
+                // Construimos los parámetros de la URL para la paginación y búsqueda
                 const params = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -74,12 +77,14 @@ export default function Users() {
                     params.set("search", debouncedSearch.trim());
                 }
 
+                // Llamada a la API para obtener los usuarios paginados
                 const data = (await apiFetch(`users/paginated?${params.toString()}`)) as UsersResponse;
 
                 if (!isMounted) {
                     return;
                 }
 
+                // Aseguramos que data.users sea un array antes de asignarlo al estado
                 setUsers(Array.isArray(data?.users) ? data.users : []);
                 setTotal(Number(data?.total ?? 0));
             } catch (requestError: any) {
@@ -105,27 +110,6 @@ export default function Users() {
             isMounted = false;
         };
     }, [page, pageSize, debouncedSearch]);
-
-    const filteredUsers = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) {
-            return users;
-        }
-
-        return users.filter((user) => {
-            return [
-                user.nombre_user,
-                String(user.documento),
-                user.tipo_documento,
-                user.telefono,
-                user.correo,
-                user.nombre_rol,
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term);
-        });
-    }, [search, users]);
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -205,14 +189,14 @@ export default function Users() {
                                         {error}
                                     </td>
                                 </tr>
-                            ) : filteredUsers.length === 0 ? (
+                            ) : users.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay usuarios para mostrar.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredUsers.map((user) => (
+                                users.map((user) => (
                                     <tr key={user.id_user} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                         <td className="px-5 py-4">
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">

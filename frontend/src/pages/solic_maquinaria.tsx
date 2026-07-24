@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -10,6 +10,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipos de datos para las solicitudes de maquinaria
 type SolicitudRow = {
 	id_solicitud_maq: number;
 	maquinaria_id: number;
@@ -35,6 +36,7 @@ type DateRangeState = {
 	fecha_fin: string;
 };
 
+// Mapeo de estados a etiquetas legibles
 const ESTADO_LABELS: Record<string, string> = {
 	pendiente: "Pendiente",
 	entregada: "Entregada",
@@ -42,10 +44,12 @@ const ESTADO_LABELS: Record<string, string> = {
 	devuelta: "Devuelta"
 };
 
+// Función para formatear el estado de la solicitud
 function formatEstado(value: string): string {
 	return ESTADO_LABELS[value] || value;
 }
 
+// Función para formatear fechas de YYYY-MM-DD a DD/MM/YYYY
 function formatDate(value: string): string {
 	if (!value) return "-";
 
@@ -114,11 +118,13 @@ export default function Solicitudes() {
 	useEffect(() => {
 		let isMounted = true;
 
+		// Función para cargar las solicitudes desde la API
 		const loadSolicitudes = async () => {
 			setLoading(true);
 			setError(null);
 
 			try {
+				// Construimos los parámetros de la URL para la paginación y búsqueda
 				const queryParams = new URLSearchParams({
 					page: String(page),
 					page_size: String(pageSize),
@@ -128,7 +134,8 @@ export default function Solicitudes() {
                 if (debouncedSearch.trim()) {
                     queryParams.set("search", debouncedSearch.trim());
                 }
-
+				
+				// Si hay un rango de fechas activo, lo agregamos a los parámetros de la URL
 				const endpoint = activeDateRange
 					? (() => {
 						queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
@@ -143,6 +150,7 @@ export default function Solicitudes() {
 					return;
 				}
 
+				// Aseguramos que data.solicitudes sea un array antes de asignarlo al estado
 				setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
 				setTotal(Number(data?.total_solicitudes ?? 0));
 			} catch (requestError: any) {
@@ -169,25 +177,7 @@ export default function Solicitudes() {
 		};
 	}, [page, pageSize, activeDateRange, debouncedSearch]);
 
-	const filteredSolicitudes = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) {
-			return solicitudes;
-		}
-
-		return solicitudes.filter((solicitud) => {
-			return [
-				solicitud.nombre_maq,
-				solicitud.nombre_user,
-				solicitud.estado,
-				formatEstado(solicitud.estado),
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, solicitudes, activeDateRange]);
-
+	//	 Función para limpiar el filtro de fechas
 	const clearDateFilter = () => {
 		setDateRange({ fecha_inicio: "", fecha_fin: "" });
 		setActiveDateRange(null);
@@ -327,14 +317,14 @@ export default function Solicitudes() {
 										{error}
 									</td>
 								</tr>
-							) : filteredSolicitudes.length === 0 ? (
+							) : solicitudes.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay registros de solicitudes para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredSolicitudes.map((solicitud) => (
+								solicitudes.map((solicitud) => (
 									<tr key={solicitud.id_solicitud_maq} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 										<td className="px-5 py-4">
 											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{solicitud.nombre_user}</div>

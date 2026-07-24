@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipos de datos para las solicitudes
 type SolicitudRow = {
 	id_solicitud: number;
     solicitante: string;
@@ -31,6 +32,7 @@ type SolicitudResponse = {
 	solicitudes: SolicitudRow[];
 };
 
+// Mapeo de estados a etiquetas legibles
 const ESTADO_LABELS: Record<string, string> = {
 	pendiente: "Pendiente",
 	entregado: "Entregado",
@@ -39,10 +41,12 @@ const ESTADO_LABELS: Record<string, string> = {
 	devuelto: "Devuelto"
 };
 
+// Función para formatear el estado de la solicitud
 function formatEstado(value: string): string {
 	return ESTADO_LABELS[value] || value;
 }
 
+// Función para formatear fechas en formato DD/MM/YYYY
 function formatDate(value: string): string {
 	if (!value) return "-";
 
@@ -92,6 +96,7 @@ export default function Solicitudes() {
 			setError(null);
 
 			try {
+				// Construimos los parámetros de la URL para la paginación y búsqueda
 				const params = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -102,12 +107,15 @@ export default function Solicitudes() {
                     params.set("search", debouncedSearch.trim());
                 }
 
+
+				// Llamada a la API para obtener las solicitudes paginadas
 				const data = (await apiFetch(`solicitud/paginated_solicitudes?${params.toString()}`)) as SolicitudResponse;
 
 				if (!isMounted) {
 					return;
 				}
 
+				// Aseguramos que data.solicitudes sea un array antes de asignarlo al estado
 				setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
 				setTotal(Number(data?.total_solicitudes ?? 0));
 			} catch (requestError: any) {
@@ -134,32 +142,11 @@ export default function Solicitudes() {
 		};
 	}, [page, pageSize, debouncedSearch]);
 
-	const filteredSolicitudes = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) {
-			return solicitudes;
-		}
-	
-		return solicitudes.filter((solicitud) => {
-			return [
-				solicitud.nombre_producto,
-				solicitud.ficha,
-				solicitud.solicitante,
-				solicitud.nombre_tipo,
-				solicitud.nombre_user,
-				solicitud.estado_solicitud,
-				formatEstado(solicitud.estado_solicitud),
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, solicitudes]);
-
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
 	const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
 
+	// Función para exportar solicitudes en formato PDF o Excel
 	const handleExportarSolicitudes = async (formato: "pdf" | "excel") => {
 		setDescargando(formato);
 		try {
@@ -260,14 +247,14 @@ export default function Solicitudes() {
 										{error}
 									</td>
 								</tr>
-							) : filteredSolicitudes.length === 0 ? (
+							) : solicitudes.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay registros de solicitudes para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredSolicitudes.map((solicitud) => (
+								solicitudes.map((solicitud) => (
 									<tr key={solicitud.id_solicitud} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 										<td className="px-5 py-4">
 											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{solicitud.solicitante}</div>

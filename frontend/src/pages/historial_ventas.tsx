@@ -57,6 +57,7 @@ type DateRangeState = {
 const TABLE_COLUMNS = 10;
 
 export default function VentasPage() {
+    // se usa useLocation para obtener el estado de la ubicación, que puede contener información sobre la venta seleccionada o nueva
     const location = useLocation();
     const locationState = (location.state as VentasLocationState | null) ?? null;
     const [ventas, setVentas] = useState<VentaRow[]>([]);
@@ -120,6 +121,7 @@ export default function VentasPage() {
             setError(null);
 
             try {
+                // Construimos los parámetros de la URL para la paginación y búsqueda
                 const queryParams = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -180,14 +182,16 @@ export default function VentasPage() {
         };
     }, [location.key, locationState?.refresh, locationState?.newVentaId, locationState?.selectVentaId, locationState?.newDetalleId, page, pageSize, activeDateRange, debouncedSearch]);
 
-
+    // Función para obtener los detalles de una venta específica
     const getDetalles = (ventaId: number) =>
         detalles.filter((d) => d.venta_id === ventaId);
 
+    // Función para alternar la expansión de los detalles de una venta
     const toggleExpanded = (ventaId: number) => {
         setExpandedVenta((prev) => (prev === ventaId ? null : ventaId));
     };
 
+    // Función para limpiar el filtro de fechas
     const clearDateFilter = () => {
         setDateRange({ fecha_inicio: "", fecha_fin: "" });
         setActiveDateRange(null);
@@ -196,10 +200,12 @@ export default function VentasPage() {
         setError(null);
     };
 
+    // Calculamos el total de páginas basado en el total de ventas y el tamaño de página
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
 
+    // Función para exportar ventas en PDF o Excel
     const handleExportarVentas = async (formato: "pdf" | "excel") => {
         setDescargando(formato);
         try {

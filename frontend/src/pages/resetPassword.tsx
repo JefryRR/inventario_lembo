@@ -17,6 +17,7 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Función para manejar el envío del formulario de restablecimiento de contraseña
   const handleSubmit = async () => {
     setError("");
     if (!password.trim()) {
@@ -26,11 +27,14 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
+
+      // Llamada a la API para restablecer la contraseña
       await apiFetch("access/reset-password", {
         method: "POST",
         body: { token, new_password: password },
       });
       setDone(true);
+      // Redirigir al usuario a la página de inicio de sesión después de 2 segundos
       setTimeout(() => navigate("/signin"), 2000);
     } catch (err) {
       setError("El enlace es inválido o ya expiró.");
@@ -39,6 +43,7 @@ export default function ResetPassword() {
     }
   };
 
+  // Renderizado condicional basado en el estado de 'done'
   if (done) {
     return (
       <div className="flex flex-col flex-1 mt-40">

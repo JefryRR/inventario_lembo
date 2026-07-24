@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipos de datos para los permisos
 type PermisoRow = {
     id_modulo: number;
     id_rol: number;
@@ -24,6 +25,7 @@ type PermisosResponse = {
     permisos: PermisoRow[];
 };
 
+// Componente para mostrar un badge de estado (activo/inactivo)
 function StatusBadge({ active }: { active: boolean }) {
     return (
         <span
@@ -76,6 +78,7 @@ export default function Permisos() {
             setError(null);
 
             try {
+                // Construimos los parámetros de la URL para la paginación y búsqueda
                 const params = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -116,27 +119,7 @@ export default function Permisos() {
         };
     }, [page, pageSize, debouncedSearch]);
 
-    const filteredPermisos = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) {
-            return permisos;
-        }
-
-        return permisos.filter((permiso) => {
-            return [
-                permiso.insertar,
-                permiso.actualizar,
-                permiso.seleccionar,
-                permiso.borrar,
-                permiso.nombre_modulo,
-                permiso.nombre_rol,
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term);
-        });
-    }, [search, permisos]);
-
+    // Calculamos el total de páginas basado en el total de permisos y el tamaño de página
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
@@ -207,14 +190,14 @@ export default function Permisos() {
                                         {error}
                                     </td>
                                 </tr>
-                            ) : filteredPermisos.length === 0 ? (
+                            ) : permisos.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay permisos para mostrar.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredPermisos.map((permiso) => (
+                                permisos.map((permiso) => (
                                     <tr key={`${permiso.id_modulo}-${permiso.id_rol}`} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                         <td className="px-5 py-4">
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">

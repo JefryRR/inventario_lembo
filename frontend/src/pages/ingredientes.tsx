@@ -25,6 +25,7 @@ type IngredienteResponse = {
 	ingredientes: IngredienteRow[];
 };
 
+// Formatea la fecha en formato "dd/mm/yyyy"
 function formatDate(value: string): string {
     if (!value) return "-";
     const date = new Date(value);
@@ -71,12 +72,13 @@ export default function Ingrediente() {
 
 	useEffect(() => {
 		let isMounted = true;
-
+	
 		const loadIngredientes = async () => {
 			setLoading(true);
 			setError(null);
 
 			try {
+				// Construimos los parámetros de la URL para la paginación y búsqueda
 				const params = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -87,10 +89,11 @@ export default function Ingrediente() {
                     params.set("search", debouncedSearch.trim());
                 }
 
+				// Llamada a la API para obtener los ingredientes con paginación y búsqueda
 				const data = (await apiFetch(`ingredientes/ingredientes_pag?${params.toString()}` )) as IngredienteResponse;
 
 				if (!isMounted) return;
-
+				// Validamos que la respuesta tenga el formato esperado
 				setIngredientes(Array.isArray(data?.ingredientes) ? data.ingredientes : []);
 				setTotal(Number(data?.total_ingredientes ?? 0));
 			} catch (requestError: any) {
@@ -109,18 +112,19 @@ export default function Ingrediente() {
 		return () => { isMounted = false; };
 	}, [page, pageSize, debouncedSearch]);
 
-
+	// Funciones para manejar la eliminación de un ingrediente
 	const handleConfirmarEliminar = (id: number) => {
 		setSelectedId(id);
 		setConfirmandoEliminar(true);
 	};
-
+	// Cancela la eliminación y cierra el modal
 	const handleCancelarEliminar = () => {
 		setSelectedId(null);
 		setConfirmandoEliminar(false);
 		setError(null);
 	};
 
+	// Función para eliminar un ingrediente
 	const handleEliminar = async () => {
 		if (selectedId === null) return;
 

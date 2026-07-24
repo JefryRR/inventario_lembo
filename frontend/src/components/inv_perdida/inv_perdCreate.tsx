@@ -26,6 +26,7 @@ type InvProdOption = {
     nombre_lote: string;
     cantidad: number;
     unid_medida_id: number;
+    fecha_vencimiento: Date;
 };
 
 
@@ -44,6 +45,7 @@ type InvInsumoOption = {
     nombre_producto: string;
     cantidad: number;
     simbolo: string;
+    fecha_vencimiento: Date;
 };
 
 type ComercioOption = {
@@ -52,6 +54,7 @@ type ComercioOption = {
     producto_id: number;
     cant_no_vendida: number;
     simbolo: string;
+    fecha_vencimiento: Date;
 };
 
 const motivoOptions: MotivoOption[] = [
@@ -125,19 +128,27 @@ export default function InvPerdCreate() {
 
         loadUnidMedidas();
 
+        const hoy = new Date();
+
         const loadInvProd = async () => {
             setLoadingInvprod(true);
             try {
                 const inv_prodData = await apiFetch(`inv_produccion/all/produccion`);
                 if (!mounted) return;
 
-                const invProdList = Array.isArray(inv_prodData?.inv_produccion)
+                const invProdList: InvProdOption[] = Array.isArray(inv_prodData?.inv_produccion)
                     ? inv_prodData.inv_produccion
                     : Array.isArray(inv_prodData)
                         ? inv_prodData
                         : [];
 
-                setInvProd(invProdList);
+                const prodVigentes = invProdList.filter((prod) =>{ 
+                    const prodNovencido = new Date(prod.fecha_vencimiento) > hoy;
+                    const conStock = prod.cantidad > 0
+                return prodNovencido && conStock
+                });
+
+                setInvProd(prodVigentes);
             } catch (requestError: any) {
                 if (!mounted) return;
                 setError(requestError?.detail || requestError?.message || "No se pudieron cargar las unidades de medida");
@@ -154,13 +165,18 @@ export default function InvPerdCreate() {
                 const inv_insumoData = await apiFetch(`inv_insumos/all_insumos`);
                 if (!mounted) return;
 
-                const invInsumoList = Array.isArray(inv_insumoData?.inv_insumos)
+                const invInsumoList: InvInsumoOption[] = Array.isArray(inv_insumoData?.inv_insumos)
                     ? inv_insumoData.inv_insumos
                     : Array.isArray(inv_insumoData)
                         ? inv_insumoData
                         : [];
 
-                setInvInsumo(invInsumoList);
+                const insumosVigentes = invInsumoList.filter((ins) => {
+                    const conStock = ins.cantidad > 0
+                    const insumoNovencido = new Date(ins.fecha_vencimiento) > hoy;
+                    return conStock && insumoNovencido
+                });
+                setInvInsumo(insumosVigentes);
             } catch (requestError: any) {
                 if (!mounted) return;
                 setError(requestError?.detail || requestError?.message || "No se pudieron cargar los insumos");
@@ -177,13 +193,18 @@ export default function InvPerdCreate() {
                 const comercioData = await apiFetch(`comercio/all/comercializaciones?solo_vigentes=true`);
                 if (!mounted) return;
 
-                const invComercioList = Array.isArray(comercioData?.comercio)
+                const invComercioList: ComercioOption[] = Array.isArray(comercioData?.comercio)
                     ? comercioData.comercio
                     : Array.isArray(comercioData)
                         ? comercioData
                         : [];
+                const comercioVigentes = invComercioList.filter((com) => {
+                    const conStock = com.cant_no_vendida > 0;
+                    const comercioNovencido = new Date(com.fecha_vencimiento) > hoy;
+                    return conStock && comercioNovencido;
+                });
 
-                setComercio(invComercioList);
+                setComercio(comercioVigentes);
             } catch (requestError: any) {
                 if (!mounted) return;
                 setError(requestError?.detail || requestError?.message || "No se pudieron cargar los comercios");

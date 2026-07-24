@@ -5,6 +5,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipos de datos para los platos
 type PlatoRow = {
     id_plato: number;
     nombre_plato: string;
@@ -30,7 +31,7 @@ export default function Platos() {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
-
+    // Debounce del término de búsqueda para evitar demasiadas solicitudes mientras el usuario escribe
     useEffect(() => {
         const timeoutId = setTimeout(() => { setDebouncedSearch(search); }, 400);
         return () => clearTimeout(timeoutId);
@@ -49,6 +50,7 @@ export default function Platos() {
             setError(null);
 
             try {
+                // Construimos los parámetros de la URL para la paginación y búsqueda
                 const params = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -65,6 +67,7 @@ export default function Platos() {
                     return;
                 }
 
+                // Aseguramos que data.platos sea un array antes de asignarlo al estado
                 const platoList = Array.isArray(data)
                     ? data
                     : Array.isArray(data?.platos)
@@ -97,6 +100,7 @@ export default function Platos() {
         };
     }, [ page, pageSize, debouncedSearch ]);
 
+    // Calculamos el total de páginas basado en el total de platos y el tamaño de página
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (

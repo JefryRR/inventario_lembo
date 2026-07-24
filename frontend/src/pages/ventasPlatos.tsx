@@ -10,6 +10,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Definición de tipos para los datos de venta de platos
 type VentaPlatosRow = {
 	id_venta_plato: number;
 	plato_id: number;
@@ -31,6 +32,7 @@ type DateRangeState = {
 	fecha_fin: string;
 };
 
+// Función para formatear la fecha en formato legible
 function formatDate(value: string): string {
 	if (!value) return "-";
 
@@ -71,6 +73,7 @@ export default function VentaPlatos() {
 		const inicioStr = range?.from ? format(range.from, 'yyyy-MM-dd') : '';
 		const finStr = range?.to ? format(range.to, 'yyyy-MM-dd') : '';
 
+		// Actualizamos el estado de dateRange con los valores seleccionados
 		const newRange = { fecha_inicio: inicioStr, fecha_fin: finStr };
 		setDateRange(newRange);
 
@@ -103,6 +106,7 @@ export default function VentaPlatos() {
 			setError(null);
 
 			try {
+				// Construimos los parámetros de la URL para la paginación y búsqueda
 				const queryParams = new URLSearchParams({
 					page: String(page),
 					page_size: String(pageSize),
@@ -113,6 +117,7 @@ export default function VentaPlatos() {
                     queryParams.set("search", debouncedSearch.trim());
                 }
 
+				// Si hay un rango de fechas activo, usamos el endpoint de rango de fechas; de lo contrario, usamos el endpoint paginado
 				const endpoint = activeDateRange
 					? (() => {
 						queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
@@ -120,7 +125,8 @@ export default function VentaPlatos() {
 						return `venta_platos/rango-fechas?${queryParams.toString()}`;
 					})()
 					: `venta_platos/venta_platos_paginated?${queryParams.toString()}`;
-
+				
+					// Llamada a la API para obtener las ventas de platos
 				const data = (await apiFetch(endpoint)) as VentaPlatosResponse;
 
 				if (!isMounted) {
@@ -153,7 +159,7 @@ export default function VentaPlatos() {
 		};
 	}, [page, pageSize, activeDateRange, debouncedSearch]);
 
-
+	// Función para limpiar el filtro de fechas y restablecer la paginación
 	const clearDateFilter = () => {
 		setDateRange({ fecha_inicio: "", fecha_fin: "" });
 		setActiveDateRange(null);
@@ -162,6 +168,7 @@ export default function VentaPlatos() {
 		setError(null);
 	};
 
+	// Cálculo del total general de ventas de platos
 	const totalGeneral = useMemo(() => {
 		return ventas.reduce((acc, venta) => acc + venta.precio * venta.cantidad, 0);
 	}, [ventas]);

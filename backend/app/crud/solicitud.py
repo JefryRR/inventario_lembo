@@ -309,17 +309,17 @@ def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10, searc
         params = {"limit": limit, "skip": skip}
         
         if search:
-            where_clause = "WHERE LOWER(si.solicitante) LIKE LOWER(:search) OR LOWER(ii.nombre_producto) LIKE LOWER(:search) OR LOWER(t_i.nombre_tipo) LIKE LOWER(:search)"
+            where_clause = "WHERE LOWER(sol.solicitante) LIKE LOWER(:search) OR LOWER(ii.nombre_producto) LIKE LOWER(:search) OR LOWER(t_i.nombre_tipo) LIKE LOWER(:search) OR LOWER(us.nombre_user) LIKE LOWER(:search)"
             params["search"] = f"%{search}%"
         
         # Total de solicitudes
         count_query = text(f"""
-            SELECT COUNT(si.id_solicitud) AS total
-            FROM solicitud_insumo si
-            INNER JOIN  tipo_insumo AS t_i ON si.tipo_insumo_id = t_i.id_tipo_insumo
-            LEFT JOIN unidades_medida AS u_m ON si.unid_med_id = u_m.id_unidad
-            LEFT JOIN inv_insumos AS ii ON si.insumo_id = ii.id_insumo
-            LEFT JOIN users AS us ON si.user_id = us.id_user
+            SELECT COUNT(sol.id_solicitud) AS total
+            FROM solicitud_insumo sol
+            INNER JOIN  tipo_insumo AS t_i ON sol.tipo_insumo_id = t_i.id_tipo_insumo
+            LEFT JOIN unidades_medida AS u_m ON sol.unid_med_id = u_m.id_unidad
+            LEFT JOIN inv_insumos AS ii ON sol.insumo_id = ii.id_insumo
+            LEFT JOIN users AS us ON sol.user_id = us.id_user
             {where_clause}
         """)
 
@@ -335,11 +335,12 @@ def get_solicitudes_paginated(db: Session, skip: int = 0, limit: int = 10, searc
                         LEFT JOIN unidades_medida AS u_m ON sol.unid_med_id = u_m.id_unidad
                         LEFT JOIN inv_insumos AS ii ON sol.insumo_id = ii.id_insumo
                         LEFT JOIN users AS us ON sol.user_id = us.id_user
+                        {where_clause}
                         ORDER BY sol.fecha_solicitud DESC
                         LIMIT :limit OFFSET :skip
                     """)
 
-        solicitudes_list = db.execute( data_query, params ).mappings().all()
+        solicitudes_list = db.execute(data_query, params).mappings().all()
 
         return {
             "total": total_result or 0,

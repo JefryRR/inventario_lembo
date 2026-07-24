@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch, apiDownload } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Definición de tipos para los datos de tratamiento
 type TratamientoRow = {
 	id_tratamiento: number;
     id_lote_g: number;
@@ -29,6 +30,7 @@ type TratamientosResponse = {
 	tratamientos: TratamientoRow[];
 };
 
+// Función para formatear fechas en formato "dd/mm/yyyy"
 function formatDate(value: string): string {
 	if (!value) return "-";
 
@@ -76,6 +78,7 @@ export default function Tratamientos() {
 	useEffect(() => {
 		let isMounted = true;
 
+		// Función para cargar los tratamientos desde la API
 		const loadTratamientos = async () => {
 			setLoading(true);
 			setError(null);
@@ -95,7 +98,8 @@ export default function Tratamientos() {
 				if (!isMounted) {
 					return;
 				}
-
+				
+				// Aseguramos que data.tratamientos sea un array antes de asignarlo al estado
 				setTratamientos(Array.isArray(data?.tratamientos) ? data.tratamientos : []);
 				setTotal(Number(data?.total_tratamientos ?? 0));
 			} catch (requestError: any) {
@@ -122,29 +126,11 @@ export default function Tratamientos() {
 		};
 	}, [page, pageSize, debouncedSearch]);
 
-	const filteredTratamientos = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) {
-			return tratamientos;
-		}
-
-		return tratamientos.filter((tratamiento) => {
-			return [
-				tratamiento.nombre_lote,
-				tratamiento.nombre_producto,
-                tratamiento.nombre_user,
-				tratamiento.observacion,
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, tratamientos]);
-
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
 	const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
 
+	// Función para exportar los tratamientos en formato PDF o Excel
 	const handleExportarTratamientos = async (formato: "pdf" | "excel") => {
 		setDescargando(formato);
 		try {
@@ -240,14 +226,14 @@ export default function Tratamientos() {
 										{error}
 									</td>
 								</tr>
-							) : filteredTratamientos.length === 0 ? (
+							) : tratamientos.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay tratamientos para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredTratamientos.map((tratamiento) => (
+								tratamientos.map((tratamiento) => (
 									<tr key={tratamiento.id_tratamiento} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">

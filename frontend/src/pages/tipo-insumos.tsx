@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Definición de tipos para los datos de tipo de insumo
 type TipoInsumoRow = {
     id_tipo_insumo: number;
     nombre_tipo: string;
@@ -22,7 +23,7 @@ export default function TiposInsumos() {
 
     useEffect(() => {
         let isMounted = true;
-
+        // Función para cargar los tipos de insumos desde la API
         const loadTipos = async () => {
             setLoading(true);
             setError(null);
@@ -33,7 +34,8 @@ export default function TiposInsumos() {
                 if (!isMounted) {
                     return;
                 }
-
+                
+                // Aseguramos que data sea un array antes de asignarlo al estado
                 const tipoList = Array.isArray(data)
                     ? data
                     : Array.isArray(data?.tipos)
@@ -64,22 +66,6 @@ export default function TiposInsumos() {
             isMounted = false;
         };
     }, []);
-
-    const filteredTipos = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) {
-            return tipo;
-        }
-
-        return tipo.filter((tipo) => {
-            return [
-                tipo.nombre_tipo,
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term);
-        });
-    }, [search, tipo]);
 
         return (
             <>
@@ -135,14 +121,14 @@ export default function TiposInsumos() {
                                             {error}
                                         </td>
                                     </tr>
-                                ) : filteredTipos.length === 0 ? (
+                                ) : tipo.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                             No hay tipos de insumos para mostrar.
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredTipos.map((tipo) => (
+                                    tipo.map((tipo) => (
                                         <tr key={tipo.id_tipo_insumo} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                             <td className="px-5 py-4 text-center">
                                                 <div className="text-sm font-medium text-gray-800 dark:text-white/90">
