@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipo de dato para representar un alimento
 type AlimentoRow = {
 	id_alimento: number;
 	lote_id: number;
@@ -17,6 +18,7 @@ type AlimentoRow = {
 	nombre_lote: string;
 };
 
+// Tipo de dato para la respuesta paginada de alimentos
 type AlimentosResponse = {
 	total_alimentos: number;
 	page: number;
@@ -24,10 +26,11 @@ type AlimentosResponse = {
 	alimentos: AlimentoRow[];
 };
 
-
+// Función para formatear la fecha en formato "dd/mm/yyyy"
 function formatDate(value: string): string {
 	if (!value) return "-";
 
+	// Intentamos crear un objeto Date a partir del valor proporcionado
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;
 
@@ -49,12 +52,14 @@ export default function Alimentos() {
 	const [search, setSearch] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 
+	// Redirigir al usuario a la página de inicio de sesión si no hay token en el almacenamiento local
 	useEffect(() => {
 		if (!localStorage.getItem("token")) {
 			navigate("/signin");
 		}
 	}, [navigate]);
 
+	// Debounce para la búsqueda: actualiza el término de búsqueda después de 400ms de inactividad
 	useEffect(() => {
 		const timeoutId = setTimeout(() => {
 			setDebouncedSearch(search);
@@ -63,7 +68,7 @@ export default function Alimentos() {
 		return () => clearTimeout(timeoutId);
 	}, [search]);
 
-	// Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+	// Cuando cambia el término de búsqueda, volvemos a la página 1
 	useEffect(() => {
 		setPage(1);
 	}, [debouncedSearch]);
@@ -76,7 +81,7 @@ export default function Alimentos() {
 			setError(null);
 
 			try {
-
+				// Construimos los parámetros de la consulta para la paginación y búsqueda
 				const params = new URLSearchParams({
 					page: String(page),
 					page_size: String(pageSize),
@@ -90,7 +95,7 @@ export default function Alimentos() {
 				if (!isMounted) {
 					return;
 				}
-
+				// Actualizamos el estado con los alimentos obtenidos y el total de alimentos
 				setAlimentos(Array.isArray(data?.alimentos) ? data.alimentos : []);
 				setTotal(Number(data?.total_alimentos ?? 0));
 			} catch (requestError: any) {
@@ -117,24 +122,6 @@ export default function Alimentos() {
 		};
 	}, [page, pageSize, debouncedSearch]);
 
-	const filteredAlimentos = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) {
-			return alimentos;
-		}
-
-		return alimentos.filter((alimento) => {
-			return [
-				alimento.nombre_lote,
-				alimento.nombre_producto,
-				alimento.simbolo,
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, alimentos]);
-
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
 	return (
@@ -144,6 +131,7 @@ export default function Alimentos() {
 			<div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+						{/* Botón para crear un nuevo alimento, con permisos según el rol del usuario */}
 						<ConPermiso accion="insertar">
 							<Link
 								to="/alimentos/create"
@@ -186,6 +174,7 @@ export default function Alimentos() {
 						</thead>
 
 						<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+							{/* Filas de la tabla con los alimentos */}
 							{loading ? (
 								Array.from({ length: 5 }).map((_, index) => (
 									<tr key={index}>
@@ -200,14 +189,14 @@ export default function Alimentos() {
 										{error}
 									</td>
 								</tr>
-							) : filteredAlimentos.length === 0 ? (
+							) : alimentos.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay alimentos para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredAlimentos.map((alimento) => (
+								alimentos.map((alimento) => (
 									<tr key={alimento.id_alimento} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">

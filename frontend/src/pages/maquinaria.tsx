@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -89,6 +89,7 @@ export default function Maquinas() {
 			setError(null);
 
 			try {
+				// Construimos los parámetros de la URL para la paginación y búsqueda
 				 const params = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -103,6 +104,7 @@ export default function Maquinas() {
 					return;
 				}
 
+				// Aseguramos que data.maquinas sea un array antes de asignarlo al estado
 				setMaquinas(Array.isArray(data?.maquinas) ? data.maquinas : []);
 				setTotal(Number(data?.total_maquinas ?? 0));
 			} catch (requestError: any) {
@@ -129,32 +131,9 @@ export default function Maquinas() {
 		};
 	}, [page, pageSize, debouncedSearch]);
 
-	const filteredMaquinas = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) {
-			return maquinas;
-		}
-
-		return maquinas.filter((maquina) => {
-			return [
-				maquina.nombre_maq,
-				maquina.tipo_maq,
-				maquina.marca,
-				maquina.modelo,
-				maquina.num_serie,
-				maquina.fecha_compra,
-				formatEstado(maquina.estado),
-				maquina.ubicacion,
-				maquina.observaciones,
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, maquinas]);
-
 	const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
-
+	
+	// Función para exportar el reporte de máquinas en PDF o Excel
 	const handleExportarMaquinas = async (formato: "pdf" | "excel") => {
 		setDescargando(formato);
 		try {
@@ -259,14 +238,14 @@ export default function Maquinas() {
 										{error}
 									</td>
 								</tr>
-							) : filteredMaquinas.length === 0 ? (
+							) : maquinas.length === 0 ? (
 								<tr>
 									<td colSpan={10} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay máquinas para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredMaquinas.map((maquina) => (
+								maquinas.map((maquina) => (
 									<tr key={maquina.id_maquina} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 
 										<td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">

@@ -15,6 +15,7 @@ from app.schemas.comercio import (
 )
 from app.schemas.users import UserOut
 from fastapi.responses import StreamingResponse 
+from typing import Optional
 from app.utils.exportar_reportes import generar_excel_reporte_comercializacion, generar_pdf_reporte_comercializacion
 
 
@@ -234,6 +235,7 @@ def get_comercializaciones_paginated(
 	page: int = Query(1, ge=1),
 	page_size: int = Query(10, ge=1, le=100),
 	db: Session = Depends(get_db),
+    search: Optional[str] = None,
 	user_token: UserOut = Depends(get_current_user)
 ):
 	try:
@@ -242,7 +244,7 @@ def get_comercializaciones_paginated(
 			raise HTTPException(status_code=401, detail="Usuario no autorizado")
 
 		skip = (page - 1) * page_size
-		data = crud_comercializacion.get_comercializaciones_paginated(db, skip=skip, limit=page_size)
+		data = crud_comercializacion.get_comercializaciones_paginated(db, skip=skip, limit=page_size, search=search)
 		total = data["total"]
 		comercializaciones = data["comercializaciones"]
 

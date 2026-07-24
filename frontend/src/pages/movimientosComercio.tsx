@@ -9,6 +9,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 
+// Tipos de datos para la respuesta de comercializaciones
 type MovimientosLocationState = {
     refresh?: boolean;
     newComercializacionId?: number;
@@ -47,12 +48,10 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
-const TABLE_COLUMNS = 6;
-
 export default function MovimientosComercioPage() {
+    // Estado para manejar la ubicación y el estado de la página
     const location = useLocation();
     const locationState = (location.state as MovimientosLocationState | null) ?? null;
-
     const [movimientos, setMovimientos] = useState<ComercializacionRow[]>([]);
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
@@ -76,6 +75,7 @@ export default function MovimientosComercioPage() {
         to: dateRange.fecha_fin ? new Date(dateRange.fecha_fin) : undefined,
     });
 
+    // Función para manejar la selección de rango de fechas desde el calendario
     const handleSelectRange = (range: DateRange | undefined) => {
         setSelectedRange(range);
 
@@ -122,6 +122,7 @@ export default function MovimientosComercioPage() {
 
                 if (!mounted) return;
 
+                // Normalizamos los datos para que siempre tengamos un array de movimientos
                 const movimientosList = Array.isArray(data)
                     ? data
                     : Array.isArray((data as ComercializacionesResponse)?.comercializaciones)
@@ -152,6 +153,7 @@ export default function MovimientosComercioPage() {
         };
     }, [location.key, locationState?.refresh, locationState?.newComercializacionId, page, pageSize, activeDateRange, soloDisponibles]);
 
+    // Filtrado de movimientos basado en la búsqueda
     const filteredMovimientos = useMemo(() => {
         const term = search.trim().toLowerCase();
         if (!term) return movimientos;
@@ -170,26 +172,12 @@ export default function MovimientosComercioPage() {
         );
     }, [movimientos, search]);
 
+    // Función para alternar la expansión de los detalles de un movimiento
     const toggleExpanded = (id: number) => {
         setExpandedId((prev) => (prev === id ? null : id));
     };
 
-    const applyDateFilter = () => {
-        if (!dateRange.fecha_inicio || !dateRange.fecha_fin) {
-            setError("Debes seleccionar fecha inicial y fecha final para filtrar.");
-            return;
-        }
-
-        if (dateRange.fecha_inicio > dateRange.fecha_fin) {
-            setError("La fecha inicial no puede ser mayor que la fecha final.");
-            return;
-        }
-
-        setError(null);
-        setPage(1);
-        setActiveDateRange({ ...dateRange });
-    };
-
+    // Función para limpiar el filtro de fechas
     const clearDateFilter = () => {
         setDateRange({ fecha_inicio: "", fecha_fin: "" });
         setActiveDateRange(null);
@@ -202,6 +190,7 @@ export default function MovimientosComercioPage() {
 
     const [actualizandoId, setActualizandoId] = useState<number | null>(null);
 
+    // Función para alternar el estado de "vendió todo" de un movimiento
     const handleToggleVendioTodo = async (mov: ComercializacionRow) => {
         setActualizandoId(mov.id_comercializacion);
         const nuevoEstado = !mov.vendio_todo;
@@ -336,20 +325,20 @@ export default function MovimientosComercioPage() {
                                 {loading ? (
                                     Array.from({ length: 10 }).map((_, index) => (
                                         <tr key={index}>
-                                            <td colSpan={TABLE_COLUMNS} className="px-5 py-4">
+                                            <td colSpan={6} className="px-5 py-4">
                                                 <div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
                                             </td>
                                         </tr>
                                     ))
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={TABLE_COLUMNS} className="px-5 py-10 text-center text-sm text-error-500">
+                                        <td colSpan={6} className="px-5 py-10 text-center text-sm text-error-500">
                                             {error}
                                         </td>
                                     </tr>
                                 ) : filteredMovimientos.length === 0 ? (
                                     <tr>
-                                        <td colSpan={TABLE_COLUMNS} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                             No hay movimientos de comercialización registrados.
                                         </td>
                                     </tr>
@@ -404,7 +393,7 @@ export default function MovimientosComercioPage() {
                                             {/* Fila expandible de detalles */}
                                             {expandedId === mov.id_comercializacion && (
                                                 <tr key={`detalles-${mov.id_comercializacion}`}>
-                                                    <td colSpan={TABLE_COLUMNS} className="bg-gray-50 px-6 py-4 dark:bg-white/[0.02]">
+                                                    <td colSpan={6} className="bg-gray-50 px-6 py-4 dark:bg-white/[0.02]">
                                                         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                                             Detalle del movimiento
                                                         </p>

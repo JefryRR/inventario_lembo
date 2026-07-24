@@ -10,6 +10,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipos de datos para la respuesta de inventario de producción
 type invProdRow = {
     id_inventario: number,
     nombre_producto: string,
@@ -41,13 +42,12 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
+// Función para determinar si el botón de editar debe estar deshabilitado
 function isEditDisabled(cantidad: number, alerta: string | undefined): boolean {
     if (alerta?.toLowerCase().includes("vencido")) return true;
     if (cantidad <= 0) return true;
     return false;
 }
-
-const TABLE_COLUMNS = 10;
 
 export default function Inv_prod() {
     const [invProd, setInvProd] = useState<invProdRow[]>([]);
@@ -110,6 +110,7 @@ export default function Inv_prod() {
             setError(null);
 
             try {
+                // Construimos los parámetros de la URL para la paginación y búsqueda
                 const queryParams = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -166,7 +167,7 @@ export default function Inv_prod() {
         };
     }, [page, pageSize, activeDateRange, estadoFiltro, debouncedSearch]);
 
-
+// Función para formatear la fecha en formato "dd/mm/yyyy hh:mm AM/PM"
     const formatearFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
         const fecha = new Date(fechaString);
@@ -393,20 +394,20 @@ export default function Inv_prod() {
                             {loading ? (
                                 Array.from({ length: 10 }).map((_, index) => (
                                     <tr key={index}>
-                                        <td colSpan={TABLE_COLUMNS} className="px-5 py-4">
+                                        <td colSpan={10} className="px-5 py-4">
                                             <div className="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
                                         </td>
                                     </tr>
                                 ))
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={TABLE_COLUMNS} className="px-5 py-10 text-center text-sm text-error-500">
+                                    <td colSpan={10} className="px-5 py-10 text-center text-sm text-error-500">
                                         {error}
                                     </td>
                                 </tr>
                             ) : invProd.length === 0 ? (
                                 <tr>
-                                    <td colSpan={TABLE_COLUMNS} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    <td colSpan={10} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay registros de inventario para mostrar.
                                     </td>
                                 </tr>

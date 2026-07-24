@@ -5,6 +5,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipos de datos para los roles
 type RolRow = {
     id_rol: number;
     nombre_rol: string;
@@ -25,6 +26,7 @@ export default function Roles() {
     useEffect(() => {
         let isMounted = true;
 
+        // Función para cargar los roles desde la API
         const loadRoles = async () => {
             setLoading(true);
             setError(null);
@@ -36,6 +38,7 @@ export default function Roles() {
                     return;
                 }
 
+                // Aseguramos que data.roles sea un array antes de asignarlo al estado
                 const roleList = Array.isArray(data)
                     ? data
                     : Array.isArray(data?.roles)
@@ -67,6 +70,7 @@ export default function Roles() {
         };
     }, []);
 
+    // Filtrado de roles basado en el término de búsqueda
     const filteredRoles = useMemo(() => {
         const term = search.trim().toLowerCase();
         if (!term) {

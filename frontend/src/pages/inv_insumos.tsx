@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore
@@ -11,7 +11,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
-
+// Tipos de datos para el inventario de insumos
 type invInsumoRow = {
     id_insumo: number;
     nombre_producto: string;
@@ -40,6 +40,7 @@ type DateRangeState = {
     fecha_fin: string;
 };
 
+// función para determinar si el botón de editar debe estar deshabilitado
 function isEditDisabled(cantidad: number, alerta: string): boolean {
     if (alerta?.toLowerCase().includes("vencido")) return true;
     if (cantidad <= 0) return true;
@@ -108,6 +109,7 @@ export default function InvInsumo() {
             setLoading(true);
             setError(null);
             try {
+                // Construimos los parámetros de consulta para la API
                 const queryParams = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -151,6 +153,7 @@ export default function InvInsumo() {
         return () => { isMounted = false; };
     }, [page, pageSize, activeDateRange, estadoFiltro, debouncedSearch]);
 
+    // Función para formatear la fecha en formato "dd/mm/yyyy"
     const SoloFecha = (fechaString: string | number | Date) => {
         if (!fechaString) return "-";
         const fecha = new Date(fechaString);
@@ -161,6 +164,7 @@ export default function InvInsumo() {
         });
     };
 
+    // Función para limpiar el filtro de fechas
     const clearDateFilter = () => {
         setDateRange({ fecha_inicio: "", fecha_fin: "" });
         setActiveDateRange(null);
@@ -190,6 +194,7 @@ export default function InvInsumo() {
 
     type EstadoInsumo = { label: string; color: string };
 
+    // Función para determinar el estado del insumo según la cantidad y el stock mínimo
     const Estadoinsumo = (cantidad: number, minima: number): EstadoInsumo => {
         if (cantidad <= 20) return { label: "Agotado", color: "text-red-600" };
         if (cantidad <= minima) return { label: "Provisionar", color: "text-yellow-500" };

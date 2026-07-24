@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -98,27 +98,8 @@ export default function Especies() {
         };
     }, [page, pageSize, debouncedSearch]);
 
-    const filteredEspecies = useMemo(() => {
-        const term = search.trim().toLowerCase();
-        if (!term) {
-            return especies;
-        }
-
-        return especies.filter((especie) => {
-            return [
-                especie.nombre_especie,
-                especie.descripcion
-            ]
-                .join(" ")
-                .toLowerCase()
-                .includes(term);
-        });
-    }, [search, especies]);
-
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    // const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
-    // const endItem = Math.min(page * pageSize, total);
-
+   
     return (
         <>
             <PageBreadcrumb pageTitle="Especies" />
@@ -175,14 +156,14 @@ export default function Especies() {
                                         {error}
                                     </td>
                                 </tr>
-                            ) : filteredEspecies.length === 0 ? (
+                            ) : especies.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                         No hay especies para mostrar.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredEspecies.map((especie) => (
+                                especies.map((especie) => (
                                     <tr key={especie.id_especie} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                         <td className="px-5 py-4">
                                             <div className="text-sm font-medium text-gray-800 dark:text-white/90">

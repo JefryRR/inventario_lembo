@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -10,10 +10,11 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// tipo de dato para una fila de comercialización
 type ComercioRow = {
 	id_comercializacion: number;
 	producto_id: number;
-    lote_id: number | null;
+	lote_id: number | null;
 	cantidad: number;
 	unid_med_id: number;
 	lugar_comercializacion: string;
@@ -25,10 +26,11 @@ type ComercioRow = {
 	nombre_producto: string;
 	user_id: number;
 	nombre_user: string;
-    sublote: string | null;
-    observacion: string | null;
+	sublote: string | null;
+	observacion: string | null;
 };
 
+// tipo de dato para la respuesta de la API de comercializaciones
 type ComercioResponse = {
 	total_comercializaciones: number;
 	page: number;
@@ -36,11 +38,13 @@ type ComercioResponse = {
 	comercializaciones: ComercioRow[];
 };
 
+// tipo de dato para el estado del rango de fechas
 type DateRangeState = {
-    fecha_inicio: string;
-    fecha_fin: string;
+	fecha_inicio: string;
+	fecha_fin: string;
 };
 
+// Función para formatear fechas de YYYY-MM-DD a DD/MM/YYYY
 function formatDate(value: string): string {
 	if (!value) return "-";
 
@@ -60,39 +64,36 @@ export default function Comercios() {
 	const [pageSize] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState("");
-    const [dateRange, setDateRange] = useState<DateRangeState>({
-                    fecha_inicio: "",
-                    fecha_fin: "",
-                });
-            const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
-        
-            const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [dateRange, setDateRange] = useState<DateRangeState>({ fecha_inicio: "", fecha_fin: "" });
+	const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
+	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    // Estado que requiere react-day-picker (usa objetos Date de JS)
-    const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
-        from: dateRange.fecha_inicio ? new Date(dateRange.fecha_inicio) : undefined,
-        to: dateRange.fecha_fin ? new Date(dateRange.fecha_fin) : undefined,
-    });
+	// Estado que requiere react-day-picker (usa objetos Date de JS)
+	const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({
+		from: dateRange.fecha_inicio ? new Date(dateRange.fecha_inicio) : undefined,
+		to: dateRange.fecha_fin ? new Date(dateRange.fecha_fin) : undefined,
+	});
 
-    // 3. Manejador del cambio de fecha en el calendario dual
-    const handleSelectRange = (range: DateRange | undefined) => {
-        setSelectedRange(range);
+	// 3. Manejador del cambio de fecha en el calendario dual
+	const handleSelectRange = (range: DateRange | undefined) => {
+		setSelectedRange(range);
 
-        // Convertimos los objetos Date a strings (YYYY-MM-DD) para el Backend
-        const inicioStr = range?.from ? format(range.from, 'yyyy-MM-dd') : '';
-        const finStr = range?.to ? format(range.to, 'yyyy-MM-dd') : '';
+		// Convertimos los objetos Date a strings (YYYY-MM-DD) para el Backend
+		const inicioStr = range?.from ? format(range.from, 'yyyy-MM-dd') : '';
+		const finStr = range?.to ? format(range.to, 'yyyy-MM-dd') : '';
 
-        const newRange = { fecha_inicio: inicioStr, fecha_fin: finStr };
-        setDateRange(newRange);
+		const newRange = { fecha_inicio: inicioStr, fecha_fin: finStr };
+		setDateRange(newRange);
 
-        // Si el usuario ya seleccionó ambas fechas, aplicamos el filtro y cerramos
-        if (range?.from && range?.to) {
-            setIsOpen(false);
-            setError(null);
-            setPage(1);
-            setActiveDateRange(newRange);
-        }
-    };
+		// Si el usuario ya seleccionó ambas fechas, aplicamos el filtro y cerramos
+		if (range?.from && range?.to) {
+			setIsOpen(false);
+			setError(null);
+			setPage(1);
+			setActiveDateRange(newRange);
+		}
+	};
 
 	// Vendió todo (switch) state
 	const [updatingId, setUpdatingId] = useState<number | null>(null);
@@ -105,6 +106,17 @@ export default function Comercios() {
 		}
 	}, [navigate]);
 
+	// Debounce: espera 400ms después de que el usuario deja de escribir
+	useEffect(() => {
+		const timeoutId = setTimeout(() => { setDebouncedSearch(search); }, 400);
+		return () => clearTimeout(timeoutId);
+	}, [search]);
+
+	// Cuando cambia el término de búsqueda (ya debounced), volvemos a la página 1
+	useEffect(() => {
+		setPage(1);
+	}, [debouncedSearch]);
+
 	useEffect(() => {
 		let isMounted = true;
 
@@ -113,18 +125,23 @@ export default function Comercios() {
 			setError(null);
 
 			try {
-                const queryParams = new URLSearchParams({
-                    page: String(page),
-                    page_size: String(pageSize),
-                });
+				// Construimos los parámetros de consulta para la paginación y el filtro de fechas
+				const queryParams = new URLSearchParams({
+					page: String(page),
+					page_size: String(pageSize),
+				});
+				
+				 if (debouncedSearch.trim()) {
+                    queryParams.set("search", debouncedSearch.trim());
+                }
 
-                const endpoint = activeDateRange
-                    ? (() => {
-                        queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
-                        queryParams.set("fecha_fin", activeDateRange.fecha_fin);
-                        return `comercio/rango-fechas?${queryParams.toString()}`;
-                    })()
-                    : `comercio/paginated-comercializaciones?${queryParams.toString()}`;
+				const endpoint = activeDateRange
+					? (() => {
+						queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
+						queryParams.set("fecha_fin", activeDateRange.fecha_fin);
+						return `comercio/rango-fechas?${queryParams.toString()}`;
+					})()
+					: `comercio/paginated-comercializaciones?${queryParams.toString()}`;
 
 				const data = (await apiFetch(endpoint)) as ComercioResponse;
 
@@ -141,8 +158,8 @@ export default function Comercios() {
 
 				setError(
 					requestError?.detail ||
-						requestError?.message ||
-						"No se pudieron cargar las comercializaciones"
+					requestError?.message ||
+					"No se pudieron cargar las comercializaciones"
 				);
 			} finally {
 				if (isMounted) {
@@ -156,26 +173,7 @@ export default function Comercios() {
 		return () => {
 			isMounted = false;
 		};
-	}, [page, pageSize, activeDateRange]);
-
-	const filteredComercializaciones = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) {
-			return comercializaciones;
-		}
-	
-		return comercializaciones.filter((comercializacion) => {
-			return [
-				comercializacion.nombre_producto,
-				comercializacion.nombre_user,
-				comercializacion.lugar_comercializacion,
-				comercializacion.sublote,
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, comercializaciones, activeDateRange]);
+	}, [page, pageSize, activeDateRange, debouncedSearch]);
 
 	const clearDateFilter = () => {
 		setDateRange({ fecha_inicio: "", fecha_fin: "" });
@@ -276,15 +274,15 @@ export default function Comercios() {
 	const handleExportarComercializaciones = async (formato: "pdf" | "excel") => {
 		setDescargando(formato);
 		try {
-		const extension = formato === "pdf" ? "pdf" : "xlsx";
-		await apiDownload(
-			`comercio/exportar/${formato}`,
-			`reporte_comercializaciones.${extension}`,
-		);
+			const extension = formato === "pdf" ? "pdf" : "xlsx";
+			await apiDownload(
+				`comercio/exportar/${formato}`,
+				`reporte_comercializaciones.${extension}`,
+			);
 		} catch (err: any) {
-		alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
+			alert(err?.detail || err?.message || "No se pudo descargar el reporte.");
 		} finally {
-		setDescargando(null);
+			setDescargando(null);
 		}
 	};
 
@@ -314,78 +312,78 @@ export default function Comercios() {
 							onClick={() => handleExportarComercializaciones("excel")}
 							disabled={descargando !== null}
 							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-							>
+						>
 							{descargando === "excel" ? "Descargando..." : "Exportar Excel"}
-							</button>
-							<button
+						</button>
+						<button
 							onClick={() => handleExportarComercializaciones("pdf")}
 							disabled={descargando !== null}
 							className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-							>
+						>
 							{descargando === "pdf" ? "Descargando..." : "Exportar PDF"}
 						</button>
 					</div>
-                    <div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
+					<div className="flex flex-col gap-2 lg:flex-row lg:items-center relative">
 						<label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-						Filtrar por fechas:
+							Filtrar por fechas:
 						</label>
 
 						{/* BOTÓN INTERACTIVO DEL CALENDARIO UNIFICADO */}
 						<div className="relative w-full lg:w-50">
-						<button
-							type="button"
-							onClick={() => setIsOpen(!isOpen)}
-							className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
-							aria-label="Seleccionar rango de fechas"
-						>
-							<span className="truncate">
-							{selectedRange?.from ? (
-								selectedRange.to ? (
-								<>
-									{format(selectedRange.from, 'dd LLL yyyy', { locale: es })} -{' '}
-									{format(selectedRange.to, 'dd LLL yyyy', { locale: es })}
-								</>
-								) : (
-								format(selectedRange.from, 'dd LLL yyyy', { locale: es })
-								)
-							) : (
-								<span className="text-gray-400">Seleccionar rango</span>
-							)}
-							</span>
-							<CalendarIcon className="h-4 w-4 text-gray-400" />
-						</button>
+							<button
+								type="button"
+								onClick={() => setIsOpen(!isOpen)}
+								className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-left text-sm text-gray-800 outline-none focus:border-gray-300 dark:border-gray-700 dark:text-white/90 dark:focus:border-gray-800"
+								aria-label="Seleccionar rango de fechas"
+							>
+								<span className="truncate">
+									{selectedRange?.from ? (
+										selectedRange.to ? (
+											<>
+												{format(selectedRange.from, 'dd LLL yyyy', { locale: es })} -{' '}
+												{format(selectedRange.to, 'dd LLL yyyy', { locale: es })}
+											</>
+										) : (
+											format(selectedRange.from, 'dd LLL yyyy', { locale: es })
+										)
+									) : (
+										<span className="text-gray-400">Seleccionar rango</span>
+									)}
+								</span>
+								<CalendarIcon className="h-4 w-4 text-gray-400" />
+							</button>
 
-						{/* POPOVER / POPUP DEL CALENDARIO DUAL (Se muestra al hacer clic) */}
-						{isOpen && (
-							<>
-							{/* Overlay para cerrar al hacer clic fuera */}
-							<div
-								className="fixed inset-0 z-40"
-								onClick={() => setIsOpen(false)}
-							/>
-							<div className="absolute top-12 right-0 z-50 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-800 dark:bg-gray-900">
-								<DayPicker
-								mode="range"
-								defaultMonth={selectedRange?.from || new Date()}
-								selected={selectedRange}
-								onSelect={handleSelectRange}
-								locale={es}
-								className="text-gray-800 dark:text-white/90"
-								/>
-							</div>
-							</>
-						)}
+							{/* POPOVER / POPUP DEL CALENDARIO DUAL (Se muestra al hacer clic) */}
+							{isOpen && (
+								<>
+									{/* Overlay para cerrar al hacer clic fuera */}
+									<div
+										className="fixed inset-0 z-40"
+										onClick={() => setIsOpen(false)}
+									/>
+									<div className="absolute top-12 right-0 z-50 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+										<DayPicker
+											mode="range"
+											defaultMonth={selectedRange?.from || new Date()}
+											selected={selectedRange}
+											onSelect={handleSelectRange}
+											locale={es}
+											className="text-gray-800 dark:text-white/90"
+										/>
+									</div>
+								</>
+							)}
 						</div>
 
 						{/* Botón limpiar — visible solo cuando hay filtro activo */}
 						{activeDateRange && (
-						<button
-							type="button"
-							onClick={clearDateFilter}
-							className="h-11 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-						>
-							Limpiar filtro
-						</button>
+							<button
+								type="button"
+								onClick={clearDateFilter}
+								className="h-11 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+							>
+								Limpiar filtro
+							</button>
 						)}
 					</div>
 				</div>
@@ -412,7 +410,7 @@ export default function Comercios() {
 								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Estado
 								</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Observación
 								</th>
 								<th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -436,14 +434,14 @@ export default function Comercios() {
 										{error}
 									</td>
 								</tr>
-							) : filteredComercializaciones.length === 0 ? (
+							) : comercializaciones.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay registros de comercializaciones para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredComercializaciones.map((comercializacion) => (
+								comercializaciones.map((comercializacion) => (
 									<tr key={comercializacion.id_comercializacion} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 										<td className="px-5 py-4">
 											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{comercializacion.nombre_producto}</div>
@@ -478,16 +476,14 @@ export default function Comercios() {
 															updatingId === comercializacion.id_comercializacion ||
 															comercializacion.vendio_todo === false
 														}
-														className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-															comercializacion.vendio_todo
+														className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${comercializacion.vendio_todo
 																? "bg-green-600"
 																: "bg-gray-300 dark:bg-gray-700"
-														}`}
+															}`}
 													>
 														<span
-															className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-																comercializacion.vendio_todo ? "translate-x-6" : "translate-x-1"
-															}`}
+															className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${comercializacion.vendio_todo ? "translate-x-6" : "translate-x-1"
+																}`}
 														/>
 													</button>
 													<span className="text-xs font-medium text-gray-600 dark:text-gray-300">
@@ -504,7 +500,7 @@ export default function Comercios() {
 															onChange={(e) => setCantidadInput(e.target.value)}
 															placeholder="Cant. no vendida"
 															className="h-8 w-28 rounded-md border border-gray-300 bg-transparent px-2 text-xs text-gray-800 outline-none focus:border-gray-400 dark:border-gray-700 dark:text-white/90"
-														/> 
+														/>
 														<button
 															type="button"
 															onClick={() => handleGuardarNoVendioTodo(comercializacion)}
@@ -529,15 +525,15 @@ export default function Comercios() {
 															No vendido: {comercializacion.cant_no_vendida} {comercializacion.simbolo}
 														</span>
 													)
-																									)}
+												)}
 											</div>
 										</td>
 
-                                        <td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">
-                                            {comercializacion.observacion || "Sin observación"}
-                                        </td>
+										<td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">
+											{comercializacion.observacion || "Sin observación"}
+										</td>
 
-                                        <td className="px-5 py-4 text-center">
+										<td className="px-5 py-4 text-center">
 											<div className="flex items-center justify-center gap-2">
 												<ConPermiso accion="actualizar">
 													{comercializacion.vendio_todo === false ? (

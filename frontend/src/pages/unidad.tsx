@@ -5,6 +5,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+//  Definición de tipos para los datos de unidad de medida
 type UnidadRow = {
     id_unidad: number;
     unidad: string;
@@ -31,12 +32,14 @@ export default function Unidades() {
             setError(null);
 
             try {
+                // Llamada a la API para obtener todas las unidades de medida
                 const data = await apiFetch(`unid-medida/all-unid_medidas`) as UnidadesResponse | UnidadRow[];
 
                 if (!isMounted) {
                     return;
                 }
 
+                // Aseguramos que data.unidades sea un array antes de asignarlo al estado
                 const unidadList = Array.isArray(data)
                     ? data
                     : Array.isArray(data?.unidades)
@@ -68,6 +71,7 @@ export default function Unidades() {
         };
     }, []);
 
+    // Filtrado de unidades basado en el término de búsqueda
     const filteredUnidades = useMemo(() => {
         const term = search.trim().toLowerCase();
         if (!term) {

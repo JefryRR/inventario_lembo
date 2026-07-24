@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
@@ -10,6 +10,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// Tipos de datos para las perdidas
 type invPerdRow = {
   id_perdida: number;
   inv_prod_id: number;
@@ -39,6 +40,7 @@ type DateRangeState = {
   fecha_fin: string;
 };
 
+// Mapeo de motivos de pérdida a nombres legibles
   const MotivosPerdida: Record<string, string> = {
     vencimiento: "Vencimiento",
     daño_fisico: "Dañado",
@@ -48,6 +50,7 @@ type DateRangeState = {
   };
 
   function formatearMotivo(value: string): string {
+    // retorna el nombre legible del motivo de pérdida, o el valor original si no está en el mapeo
     return MotivosPerdida[value] || value;
   }
 
@@ -59,11 +62,7 @@ export default function InvPerd() {
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [dateRange, setDateRange] = useState<DateRangeState>({ fecha_inicio: "", fecha_fin: "" });
-  
-  const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(
-    null,
-  );
-
+  const [activeDateRange, setActiveDateRange] = useState<DateRangeState | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   // Estado que requiere react-day-picker (usa objetos Date de JS)
@@ -101,11 +100,13 @@ export default function InvPerd() {
       setError(null);
 
       try {
+        // Construimos los parámetros de consulta para la API
         const queryParams = new URLSearchParams({
           page: String(page),
           page_size: String(pageSize),
         });
 
+        // Si hay un rango de fechas activo, lo agregamos a los parámetros de consulta
         const endpoint = activeDateRange
           ? (() => {
             queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);
@@ -114,12 +115,14 @@ export default function InvPerd() {
           })()
           : `inv_perdida/paginated-perdida?${queryParams.toString()}`;
 
+        // Llamada a la API para obtener los datos de pérdidas
         const data = (await apiFetch(endpoint)) as invPerdResponse;
 
         if (!isMounted) {
           return;
         }
 
+        // Actualizamos el estado con los datos obtenidos
         setInvPerd(Array.isArray(data?.perdidas) ? data.perdidas : []);
         setTotal(Number(data?.total_perdidas ?? 0));
       } catch (requestError: any) {
@@ -146,26 +149,7 @@ export default function InvPerd() {
     };
   }, [page, pageSize, activeDateRange]);
 
-  const filteredInvperd = useMemo(() => {
-
-    return invPerd.filter((inv_perd) => {
-      return [
-        inv_perd.nombre_producto,
-        String(inv_perd.cantidad),
-        formatearMotivo(inv_perd.motivo),
-        inv_perd.nombre_user,
-        inv_perd.fecha_reporte,
-        inv_perd.observaciones,
-        inv_perd.simbolo,
-        inv_perd.origen,
-        String(inv_perd.valor_unitario),
-        inv_perd.nombre_lote,
-      ]
-        .join(" ")
-        .toLowerCase()
-    });
-  }, [invPerd, activeDateRange]);
-
+  // Función para formatear la fecha en formato "dd/mm/yyyy hh:mm AM/PM"
   const formatearFecha = (fechaString: string | number | Date) => {
     if (!fechaString) return "-";
     const fecha = new Date(fechaString);
@@ -179,11 +163,13 @@ export default function InvPerd() {
     });
   };
 
+  // Función para formatear la cantidad con su unidad de medida
   const formatearCantidad = (cantidad: number | string, simbolo?: string) => {
     const unidad = simbolo?.trim() || "-";
     return `${cantidad ?? 0} ${unidad}`;
   };
 
+  // Función para limpiar el filtro de fechas
   const clearDateFilter = () => {
     setDateRange({ fecha_inicio: "", fecha_fin: "" });
     setActiveDateRange(null);
@@ -196,6 +182,7 @@ export default function InvPerd() {
 
   const [descargando, setDescargando] = useState<"pdf" | "excel" | null>(null);
 
+  // Función para exportar el reporte de pérdidas en PDF o Excel
   const handleExportarPerdidas = async (formato: "pdf" | "excel") => {
     setDescargando(formato);
     try {
@@ -356,7 +343,7 @@ export default function InvPerd() {
                     {error}
                   </td>
                 </tr>
-              ) : filteredInvperd.length === 0 ? (
+              ) : invPerd.length === 0 ? (
                 <tr>
                   <td
                     colSpan={9}
@@ -366,7 +353,7 @@ export default function InvPerd() {
                   </td>
                 </tr>
               ) : (
-                filteredInvperd.map((inv_perd) => (
+                invPerd.map((inv_perd) => (
                   <tr
                     key={inv_perd.id_perdida}
                     className="hover:bg-gray-50 dark:hover:bg-white/[0.02]"

@@ -469,16 +469,28 @@ def change_vendio_todo_status(db: Session, id: int, vendio_todo: bool):
 		raise Exception("Error de base de datos al cambiar el estado de vendio_todo")
 
 # Función para obtener comercializaciones paginadas
-def get_comercializaciones_paginated(db: Session, skip: int = 0, limit: int = 10):
+def get_comercializaciones_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
 	try:
-		count_query = text("""
+		where_clause = ""
+		params = {"limit": limit, "skip": skip}
+		
+		if search:
+			where_clause = """WHERE LOWER(p.nombre_producto) LIKE LOWER(:search) OR LOWER(c.lugar_comercializacion) LIKE LOWER(:search)"""
+			params["search"] = f"%{search}%"
+
+		count_query = text(f"""
 			SELECT COUNT(c.id_comercializacion) AS total
 			FROM comercializacion AS c
+			LEFT JOIN inv_produccion AS p ON c.producto_id = p.id_inventario
+			LEFT JOIN unidades_medida AS u ON c.unid_medida_id = u.id_unidad
+			LEFT JOIN users AS us ON c.user_id = us.id_user
+			LEFT JOIN lote_produccion AS l_p ON c.lote_id = l_p.id_lote
+			{where_clause}
 		""")
 
-		total_result = db.execute(count_query).scalar()
+		total_result = db.execute(count_query, params).scalar()
 
-		data_query = text("""
+		data_query = text(f"""
 			SELECT c.id_comercializacion, c.producto_id, c.lote_id, c.fecha_comercializacion,
 				   c.cantidad, c.unid_medida_id, c.lugar_comercializacion, p.fecha_vencimiento,
 				   c.observacion, c.user_id, c.vendio_todo, c.cant_no_vendida,
@@ -488,17 +500,12 @@ def get_comercializaciones_paginated(db: Session, skip: int = 0, limit: int = 10
 			LEFT JOIN unidades_medida AS u ON c.unid_medida_id = u.id_unidad
 			LEFT JOIN users AS us ON c.user_id = us.id_user
 			LEFT JOIN lote_produccion AS l_p ON c.lote_id = l_p.id_lote
+			{where_clause}
 			ORDER BY c.id_comercializacion DESC
 			LIMIT :limit OFFSET :skip
 		""")
 
-		comercializaciones_list = db.execute(
-			data_query,
-			{
-				"limit": limit,
-				"skip": skip,
-			}
-		).mappings().all()
+		comercializaciones_list = db.execute(data_query, params).mappings().all()
 
 		return {
 			"total": total_result or 0,

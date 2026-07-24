@@ -14,6 +14,7 @@ import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 // se usa solo para armar la URL completa de las fotos servidas como StaticFiles.
 const API_BASE_URL: string = (import.meta as any)?.env?.VITE_API_URL || "http://localhost:8000";
 
+// Tipos de datos para la respuesta de mortalidad
 type MortalidadRow = {
 	id_mortalidad: number;
 	lote_id: number;
@@ -41,6 +42,7 @@ type DateRangeState = {
 	fecha_fin: string;
 };
 
+// Función para formatear la fecha en formato "dd/mm/yyyy hh:mm"
 function formatDate(value: string): string {
 	if (!value) return "-";
 
@@ -56,6 +58,7 @@ function formatDate(value: string): string {
 	});
 }
 
+// Función para resolver la URL de la foto, considerando si es relativa o absoluta
 function resolveFotoUrl(fotoUrl?: string | null): string | null {
 	if (!fotoUrl) return null;
 	if (fotoUrl.startsWith("http://") || fotoUrl.startsWith("https://")) return fotoUrl;
@@ -128,6 +131,7 @@ export default function Mortalidad() {
 			setError(null);
 
 			try {
+				// Construimos los parámetros de consulta para la paginación y búsqueda
 				const queryParams = new URLSearchParams({
 					page: String(page),
 					page_size: String(pageSize),
@@ -137,6 +141,7 @@ export default function Mortalidad() {
 					queryParams.set("search", debouncedSearch);
 				}
 
+				// Si hay un rango de fechas activo, usamos el endpoint de rango; si no, usamos el endpoint paginado
 				const endpoint = activeDateRange
 					? (() => {
 						queryParams.set("fecha_inicio", activeDateRange.fecha_inicio);

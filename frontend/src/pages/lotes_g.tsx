@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 // @ts-ignore: api helper is a JS module without generated declarations
 import { apiFetch } from "@/services/api";
 import { ConPermiso } from "@/components/PermisoModulo/ConPermiso";
 
+// tipo de dato para representar un lote
 type LoteRow = {
 	id_lote_g: number;
 	nombre_lote: string;
@@ -60,6 +61,7 @@ export default function Lotes_granja() {
 			setError(null);
 
 			try {
+				// Construimos los parámetros de la URL para la paginación y búsqueda
 				const params = new URLSearchParams({
                     page: String(page),
                     page_size: String(pageSize),
@@ -99,26 +101,7 @@ export default function Lotes_granja() {
 		return () => {
 			isMounted = false;
 		};
-	}, [page, pageSize]);
-
-	const filteredLotes = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) {
-			return lotes;
-		}
-	
-		return lotes.filter((lote) => {
-			return [
-				lote.nombre_lote,
-				lote.ubicacion,
-				lote.latitud,
-				lote.longitud,
-			]
-				.join(" ")
-				.toLowerCase()
-				.includes(term);
-		});
-	}, [search, lotes]);
+	}, [page, pageSize, debouncedSearch]);
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -185,14 +168,14 @@ export default function Lotes_granja() {
 										{error}
 									</td>
 								</tr>
-							) : filteredLotes.length === 0 ? (
+							) : lotes.length === 0 ? (
 								<tr>
 									<td colSpan={5} className="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
 										No hay lotes para mostrar.
 									</td>
 								</tr>
 							) : (
-								filteredLotes.map((lote_g) => (
+								lotes.map((lote_g) => (
 									<tr key={lote_g.id_lote_g} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
 										<td className="px-5 py-4">
 											<div className="text-sm font-medium text-gray-800 dark:text-white/90">{lote_g.nombre_lote}</div>

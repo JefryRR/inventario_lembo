@@ -82,7 +82,7 @@ export default function VentasPage() {
     const [selectedDetalleId, setSelectedDetalleId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [search, setSearch] = useState("");
+    const [search] = useState("");
 
     const selectedDetalleRef = useRef<HTMLTableRowElement | null>(null);
 
@@ -101,19 +101,21 @@ export default function VentasPage() {
             setError(null);
 
             try {
+                // Carga de ventas y detalles en paralelo
                 const [ventasData, detallesData] = await Promise.all([
                     apiFetch("ventas/all/ventas"),
                     apiFetch("detalles-venta/all/detalles"),
                 ]);
 
                 if (!mounted) return;
-
+                // Aseguramos que ventasData.ventas y detallesData.detalles sean arrays antes de asignarlos al estado
                 const ventasList: VentaRow[] = Array.isArray(ventasData?.ventas)
                     ? ventasData.ventas
                     : Array.isArray(ventasData)
                         ? ventasData
                         : [];
-
+                
+                // Aseguramos que detallesData.detalles sea un array antes de asignarlo al estado
                 const detallesList: DetalleRow[] = Array.isArray(detallesData?.detalles)
                     ? detallesData.detalles
                     : Array.isArray(detallesData)
@@ -123,6 +125,7 @@ export default function VentasPage() {
                 setVentas(ventasList);
                 setDetalles(detallesList);
 
+                // Determinar la venta y detalle seleccionados según el estado de la ubicación o por defecto
                 const ventaIdFromState =
                     locationState?.newVentaId ?? locationState?.selectVentaId ?? null;
                 const detalleIdFromState = locationState?.newDetalleId ?? null;
@@ -143,7 +146,8 @@ export default function VentasPage() {
         return () => {
             mounted = false;
         };
-    }, [
+    }, // Dependencias del efecto: se ejecuta al montar y cuando cambian estas variables 
+    [
         location.key,
         locationState?.refresh,
         locationState?.newVentaId,
@@ -151,16 +155,19 @@ export default function VentasPage() {
         locationState?.newDetalleId,
     ]);
 
+    // Filtrado de ventas del día de hoy
     const ventasHoy = useMemo(() => {
         const hoy = new Date().toISOString().slice(0, 10);
         return ventas.filter((v) => v.fecha_venta?.slice(0, 10) === hoy);
     }, [ventas]);
 
+    // Filtrado de detalles de la venta seleccionada
     const filteredDetalles = useMemo(
         () => detalles.filter((d) => d.venta_id === selectedVenta),
         [detalles, selectedVenta]
     );
 
+    // Venta seleccionada según el estado de selectedVenta
     const selectedVentaData = useMemo(
         () => ventas.find((v) => v.id_venta === selectedVenta) ?? null,
         [ventas, selectedVenta]
@@ -266,6 +273,7 @@ export default function VentasPage() {
                         )}
 
                         <ConPermiso accion="insertar">
+                            {/* Selector de ventas del día de hoy */}
                             <select
                                 value={selectedVenta ?? 0}
                                 onChange={(e) =>
@@ -304,6 +312,7 @@ export default function VentasPage() {
                                     selectedVentaData.fecha_venta ? new Date(selectedVentaData.fecha_venta).toLocaleDateString() : "-"
                                 }
                             />
+                            {/* Detalles de la venta */}
                             <Field
                                 label="Total"
                                 value={

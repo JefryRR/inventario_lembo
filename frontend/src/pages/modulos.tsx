@@ -18,7 +18,6 @@ type ModulosResponse = {
     modulos: ModuloRow[]
 };
 
-
 export default function Modulos() {
     const navigate = useNavigate();
     const [modulos, setModulos] = useState<ModuloRow[]>([]);
@@ -65,6 +64,7 @@ export default function Modulos() {
                     params.set("search", debouncedSearch.trim());
                 }
 
+                // Llamada a la API para obtener los módulos con paginación y búsqueda
                 const data = (await apiFetch(`modulos/all_modules_pag?${params.toString()}`)) as ModulosResponse;
                 if (!isMounted) {
                     return;
@@ -95,6 +95,7 @@ export default function Modulos() {
         };
     }, [page, pageSize, debouncedSearch]);
 
+    // Calculamos el total de páginas basado en el total de módulos y el tamaño de página
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
