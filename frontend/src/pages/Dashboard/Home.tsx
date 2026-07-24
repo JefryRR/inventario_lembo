@@ -10,9 +10,8 @@ export default function Home() {
 
   const puedeVerVentas = tienePermiso("Ventas", "seleccionar");
   const puedeVerProduccion = tienePermiso("Inventario de producción", "seleccionar");
-  const puedeVerPerdidas = tienePermiso("Pérdidas", "seleccionar");
 
-  const tieneAlgunAcceso = puedeVerVentas || puedeVerProduccion || puedeVerPerdidas;
+  const tieneAlgunAcceso = puedeVerVentas || puedeVerProduccion ;
 
   if (!tieneAlgunAcceso) {
     return (
