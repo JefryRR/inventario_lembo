@@ -31,6 +31,7 @@ def create_solicitud(db: Session, solicitud: SolicitudCreate, user_id: int):
         params = solicitud.model_dump()
         params["cant_convertida"] = float(solicitud.cantidad_in) * float(conv) 
         params["user_id"] = user_id
+        params["estado_solicitud"] = "pendiente"
         result = db.execute(query, params)
         db.commit()
 

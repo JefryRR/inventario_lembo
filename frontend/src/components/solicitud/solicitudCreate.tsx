@@ -4,12 +4,6 @@ import { Link, useNavigate } from "react-router";
 import { apiFetch } from "@/services/api";
 
 // Definición de tipos para el estado del formulario de creación de solicitudes de insumos
-type SolicitudEstado =
-  | "pendiente"
-  | "entregado"
-  | "cancelado"
-  | "devuelto";
-
 type SolicitudFormState = {
   solicitante: string
   ficha: string
@@ -18,7 +12,6 @@ type SolicitudFormState = {
   unid_med_id: number
   fecha_solicitud: string
   tipo_insumo_id: number
-  estado_solicitud: SolicitudEstado
   nombre_tipo: string
   simbolo: string
   nombre_producto: string
@@ -54,20 +47,12 @@ const initialState: SolicitudFormState = {
   unid_med_id: 0,
   fecha_solicitud: new Date().toISOString(),
   tipo_insumo_id: 0,
-  estado_solicitud: "pendiente",
   nombre_tipo: "",
   simbolo: "",
   nombre_producto: "",
   user_id: 0,
   nombre_user: "",
 };
-// Opciones de estado para la solicitud de insumo
-const ESTADO_OPTIONS: Array<{ value: SolicitudEstado; label: string }> = [
-  { value: "pendiente", label: "Pendiente" },
-  { value: "entregado", label: "Entregado" },
-  { value: "cancelado", label: "Cancelado" },
-  { value: "devuelto", label: "Devuelto" },
-];
 
 // Componente principal para crear una nueva solicitud de insumo
 export default function SolicitudCreate() {
@@ -169,13 +154,13 @@ export default function SolicitudCreate() {
           return;
         }
 
-        if (field === "estado_solicitud") {
-          setForm((current) => ({
-            ...current,
-            estado_solicitud: value as SolicitudEstado,
-          }));
-          return;
-        }
+        // if (field === "estado_solicitud") {
+        //   setForm((current) => ({
+        //     ...current,
+        //     estado_solicitud: value as SolicitudEstado,
+        //   }));
+        //   return;
+        // }
 
         setForm((current) => ({
           ...current,
@@ -199,7 +184,6 @@ export default function SolicitudCreate() {
         unid_med_id: Number(form.unid_med_id),
         fecha_solicitud: form.fecha_solicitud,
         tipo_insumo_id: Number(form.tipo_insumo_id),
-        estado_solicitud: form.estado_solicitud,
         user_id: Number(form.user_id),
       };
 
@@ -347,24 +331,6 @@ export default function SolicitudCreate() {
                 {/* Buscamos el nombre en la lista de tipos usando el ID guardado de forma automática */}
                 {tipos.find(t => t.id_tipo_insumo === form.tipo_insumo_id)?.nombre_tipo || "Cargando tipo..."}
               </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Estado de la solicitud <span className="text-error-500">*</span>
-              </label>
-              <select
-                value={form.estado_solicitud}
-                onChange={handleChange("estado_solicitud")}
-                className="h-11 w-full rounded-lg focus:ring-gray-500 focus:border-gray-300 border border-gray-300 bg-transparent px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:text-white/90"
-                required
-              >
-                {ESTADO_OPTIONS.map((estado) => (
-                  <option className="dark:text-black/90" key={estado.value} value={estado.value}>
-                    {estado.label}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 

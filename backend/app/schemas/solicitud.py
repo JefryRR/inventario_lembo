@@ -20,7 +20,6 @@ class SolicitudBase(BaseModel):
     unid_med_id: int
     fecha_solicitud: date
     tipo_insumo_id: int = Field(gt=0)
-    estado_solicitud: SolicitudStatus
 
 class SolicitudCreate(SolicitudBase):
     pass
@@ -46,6 +45,7 @@ class SolicitudOut(SolicitudBase):
     user_id: int
     nombre_user: Optional[str] = None
     cant_devolver: Optional[int] = None
+    estado_solicitud: SolicitudStatus
 
 class PaginatedSolicitudes(BaseModel):
     page: int
