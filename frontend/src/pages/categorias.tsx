@@ -11,6 +11,9 @@ type CategoriaRow = {
 };
 
 type CategoriasResponse = {
+    total_categorias: number;
+	page: number;
+	page_size: number;
     categorias: CategoriaRow[];
 };
 
@@ -18,6 +21,9 @@ export default function Categorias() {
     const [categoria, setCategoria] = useState<CategoriaRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+	const [pageSize] = useState(10);
+	const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
 
     useEffect(() => {
@@ -28,19 +34,14 @@ export default function Categorias() {
             setError(null);
 
             try {
-                const data = await apiFetch(`categorias/all-categorias`) as CategoriasResponse | CategoriaRow[];
+                const data = await apiFetch(`categorias/paginated?page=${page}&page_size=${pageSize}`) as CategoriasResponse;
 
                 if (!isMounted) {
                     return;
                 }
 
-                const categoriaList = Array.isArray(data)
-                    ? data
-                    : Array.isArray(data?.categorias)
-                        ? data.categorias
-                        : [];
-
-                setCategoria(categoriaList);
+                setCategoria(Array.isArray(data) ? data : data.categorias);
+                setTotal(Number(data?.total_categorias ?? 0));
             } catch (requestError: any) {
                 if (!isMounted) {
                     return;
@@ -63,7 +64,7 @@ export default function Categorias() {
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [page, pageSize]);
 
     const filteredCategorias = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -81,10 +82,11 @@ export default function Categorias() {
         });
     }, [search, categoria]);
 
-        return (
-            <>
-                <PageBreadcrumb pageTitle="Categorías" />
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+    return (
+        <>
+            <PageBreadcrumb pageTitle="Categorías" />
                 <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                     <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
 
@@ -164,6 +166,30 @@ export default function Categorias() {
                             </tbody>
                         </table>
                     </div>
+
+                    <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-center">
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                                disabled={page <= 1 || loading}
+                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                            >
+                                Anterior
+                            </button>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                Página {page} de {totalPages}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
+                                disabled={page >= totalPages || loading}
+                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+				    </div>
                 </div>
             </>
         );

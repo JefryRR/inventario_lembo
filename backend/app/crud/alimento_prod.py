@@ -8,6 +8,7 @@ from app.schemas.alimento_prod import AlimentoCreate, AlimentoUpdate
 
 logger = logging.getLogger(__name__)
 
+# Función para crear un nuevo alimento
 def create_alimento(db: Session, alimento: AlimentoCreate) -> Optional[bool]:
     try:
         query_conversion = text("""
@@ -31,6 +32,7 @@ def create_alimento(db: Session, alimento: AlimentoCreate) -> Optional[bool]:
               :lote_id, :insumo_id, :fecha_alimento, :cantidad, :unid_medida_id
           )
       """)
+        # Agregar el campo cant_convertida calculado
         params = alimento.model_dump()
         params["cant_convertida"] = params["cantidad"] * float(result_conv["conversion"])
         db.execute(query, params)
@@ -44,6 +46,7 @@ def create_alimento(db: Session, alimento: AlimentoCreate) -> Optional[bool]:
         if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
             trigger_msg = orig.args[1]  # El texto limpio del SIGNAL
 
+            # Manejo de errores específicos según el mensaje del trigger
             if "no hay suficiente stock" in trigger_msg.lower():
                 raise HTTPException(status_code=409, detail="No hay suficiente stock para registrar esta producción")
 
@@ -61,6 +64,7 @@ def create_alimento(db: Session, alimento: AlimentoCreate) -> Optional[bool]:
         logger.error(f"Error al crear alimento: {e}")
         raise HTTPException(status_code=500, detail="Error de base de datos al crear el registro de alimento")
 
+# Función para obtener todos los alimentos
 def get_all_alimentos(db: Session):
     try:
         query = text("""
@@ -81,6 +85,7 @@ def get_all_alimentos(db: Session):
         logger.error(f"Error al obtener alimentos: {e}")
         raise Exception("Error de base de datos al obtener los registros de alimentos")
 
+#Función para obtener un alimento por su ID
 def get_alimento_by_id(db: Session, id: int):
     try:
         query = text("""
@@ -102,6 +107,7 @@ def get_alimento_by_id(db: Session, id: int):
         logger.error(f"Error al obtener alimento por id: {e}")
         raise Exception("Error de base de datos al obtener el alimento por id")
 
+#Función para actualizar un alimento por su ID
 def update_alimento_by_id(db: Session, id_alimento: int, alimento: AlimentoUpdate) -> Optional[bool]:
     try:
         # Obtener el factor de conversión
@@ -159,6 +165,7 @@ def update_alimento_by_id(db: Session, id_alimento: int, alimento: AlimentoUpdat
             logger.error(f"Error al actualizar alimento {id_alimento}: {e}")
             raise HTTPException(status_code=500, detail="Error de base de datos al actualizar el registro de alimento")
 
+# Función para obtener todos los alimentos con paginación y búsqueda
 def get_all_alimentos_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
     """
     Obtiene los registros de alimentos con paginación.

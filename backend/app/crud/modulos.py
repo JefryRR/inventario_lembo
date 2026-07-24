@@ -1,13 +1,13 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from typing import Optional
 from app.schemas.modulos import ModuloCreate, ModuloUpdate
-
 import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear un nuevo módulo
 def create_modulo(db: Session, modulo: ModuloCreate) -> Optional[bool]:
     try:
         query = text("""
@@ -24,7 +24,8 @@ def create_modulo(db: Session, modulo: ModuloCreate) -> Optional[bool]:
         db.rollback()
         logger.error(f"Error al crear el modulo: {e}")
         raise Exception("Error de base de datos al crear el modulo")
-    
+
+# Obtener un módulo por su ID
 def get_modulo_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_modulo, nombre
@@ -38,6 +39,7 @@ def get_modulo_by_id(db: Session, id: int):
         logger.error(f"Error al obtener modulo por id: {e}")
         raise Exception("Error de base de datos al obtener el modulo")
 
+# Obtener todos los datos de los modulos
 def get_all_modules(db: Session):
     try:
         query = text("""SELECT
@@ -48,7 +50,8 @@ def get_all_modules(db: Session):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener los modulos: {e}")
         raise Exception("Error de base de datos al obtener los modulos")
-    
+
+# Actualizar un módulo por su ID
 def update_module_by_id(db: Session, id_modulo: int, modulo: ModuloUpdate) -> Optional[bool]:
     try:
         modulo_data = modulo.model_dump(exclude_unset=True)

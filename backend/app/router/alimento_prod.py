@@ -11,13 +11,17 @@ from typing import Optional
 router = APIRouter()
 modulo = 14 # ID del módulo de lotes para verificar permisos
 
+# Aquí se definen las rutas para el CRUD de alimentos, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
+
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_alimento(alimento: AlimentoCreate, db: Session = Depends(get_db),
                       user_token: UserOut = Depends(get_current_user)
                       ):
     try:
         id_rol = user_token.rol_id
- 
+
+        # Verificar permisos de usuario para crear un alimento
         if not verify_permissions(db, id_rol, modulo, 'insertar'):
            raise HTTPException(status_code=401, detail= 'Usuario no autorizado')
  

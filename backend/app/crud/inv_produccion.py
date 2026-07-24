@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from datetime import date
 from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate
 from typing import Optional
@@ -9,6 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Función para crear un nuevo registro de producción
 def create_produccion(db: Session, produccion: ProduccionCreate):
     try:
         query = text("""INSERT INTO inv_produccion 
@@ -24,6 +25,7 @@ def create_produccion(db: Session, produccion: ProduccionCreate):
         logger.error(f"Error al crear producción: {e}")
         raise Exception("Error de base de datos al crear la producción")
 
+# Función para obtener un registro de producción por su ID
 def get_produccion_by_id(db: Session, id: int):
     try:
         query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
@@ -43,6 +45,7 @@ def get_produccion_by_id(db: Session, id: int):
         logger.error(f"Error al obtener producción por ID: {e}")
         raise Exception("Error de base de datos al obtener la producción")
 
+# Función para calcular el nivel de alerta de un inventario de producción según su fecha de vencimiento y cantidad
 def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict:
     """Calcula días restantes y nivel de alerta considerando la cantidad.
 
@@ -74,6 +77,7 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
     if fecha_vencimiento == hoy:
         dias = 1
 
+    # Clasificar nivel de alerta según días restantes
     if dias <= 0:
         nivel = "Este inventario está vencido"
     elif dias <= 7:
@@ -87,8 +91,10 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
 
     return {"dias_restantes": dias, "nivel_alerta": nivel}
 
+# Función para registrar productos vencidos como pérdidas
 def registrar_vencidos_como_perdidas(db: Session):
     try:
+        # Seleccionar los productos vencidos que aún tienen cantidad disponible y no han sido registrados como pérdidas
         query = text("""
             SELECT pr.id_inventario, pr.cantidad, pr.fecha_vencimiento, pr.unid_medida_id,
                    ip.id_perdida, ip.cantidad AS cantidad_registrada
@@ -103,6 +109,7 @@ def registrar_vencidos_como_perdidas(db: Session):
         """)
         vencidos = db.execute(query).mappings().all()
 
+        # Procesar cada producto vencido y registrar o actualizar la pérdida correspondiente
         procesados = 0
         for row in vencidos:
             if row["id_perdida"] is None:
@@ -152,6 +159,7 @@ def registrar_vencidos_como_perdidas(db: Session):
         logger.error(f"Error al registrar vencidos: {e}")
         raise Exception("Error al registrar productos vencidos como pérdidas")
 
+# Función para obtener el encabezado del reporte de producción
 def get_reporte_encabezado(db: Session, inv_prod_id: int):
     try:
         query = text("""
@@ -221,7 +229,8 @@ def get_reporte_encabezado(db: Session, inv_prod_id: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener encabezado del reporte: {e}")
         raise Exception("Error al obtener encabezado del reporte")
-    
+
+# Función para obtener los movimientos del reporte de producción
 def get_reporte_movimientos(db: Session, inv_prod_id: int):
     try:
         query = text("""
@@ -301,6 +310,7 @@ def get_reporte_movimientos(db: Session, inv_prod_id: int):
         logger.error(f"Error al obtener movimientos del reporte: {e}")
         raise Exception("Error al obtener movimientos del reporte")
 
+# Función para obtener el reporte detallado de producción
 def get_reporte_produccion_detallado(db: Session, inv_prod_id: int):
     encabezado = get_reporte_encabezado(db, inv_prod_id)
     if not encabezado:
@@ -313,6 +323,7 @@ def get_reporte_produccion_detallado(db: Session, inv_prod_id: int):
         "movimientos": [dict(m) for m in movimientos]
     }
 
+# Función para actualizar un registro de producción
 def update_produccion(db: Session, produccion_id: int, produccion: ProduccionUpdate):
     try:
         produccion_data = produccion.model_dump(exclude_unset=True)
@@ -334,6 +345,7 @@ def update_produccion(db: Session, produccion_id: int, produccion: ProduccionUpd
         logger.error(f"Error al actualizar la producción {produccion_id}: {e}")
         raise Exception("Error de base de datos al actualizar la produccción")
 
+# Función para obtener registros de producción por rango de fechas
 def get_produccion_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene las tareas cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -361,6 +373,7 @@ def get_produccion_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
 
         resultado = []
 
+        # Agregar información de alerta a cada registro
         for row in result:
             data = dict(row)
             alerta = get_nivel_alerta(data.get("fecha_vencimiento", ""), data.get("cantidad", 0))
@@ -373,6 +386,7 @@ def get_produccion_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str)
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los productos por rango de fechas: {e}")
 
+# Función para obtener todos los registros de producción
 def all_produccion(db: Session):
     try:
         query = text("""SELECT pr.id_inventario, pr.nombre_producto, pr.cantidad, pr.unid_medida_id,
@@ -401,6 +415,7 @@ def all_produccion(db: Session):
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas las producciones")
 
+# Función para obtener registros de producción con paginación y filtros
 def get_produccion_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None, search: Optional[str] = None):
     """
     Obtiene inventario de producción con paginación.

@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field # type: ignore
+from pydantic import BaseModel, Field
 from typing import Optional
 from enum import Enum
+
+# Aquí se define el schema para el detalle de venta, incluyendo la creación, actualización y salida de datos.
 
 class EstadoVenta(str, Enum):
     vendido = "Vendido"

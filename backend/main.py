@@ -1,13 +1,11 @@
-
-from fastapi import FastAPI # type: ignore
-from fastapi.middleware.cors import CORSMiddleware # type: ignore
-from fastapi.staticfiles import StaticFiles # type: ignore
+from fastapi import FastAPI 
+from fastapi.middleware.cors import CORSMiddleware 
+from fastapi.staticfiles import StaticFiles 
 from app.router import (users, rols, modulos, permisos, auth, inv_perdida, inv_produccion, 
     categorias, especies, lotes_prod, lotes, mortalidad, inv_insumos, tipo_insumos, alimento_prod, 
     tratamiento, ventas, detalles_venta, unid_medida, solicitud, platos, ingredientes, prog_platos, 
     venta_platos, maquinas, solicitud_maq, comercio)
 from app.core.scheduler import iniciar_scheduler, scheduler
-
 
 app = FastAPI()
 
@@ -52,6 +50,7 @@ app.include_router(maquinas.router, prefix="/maquinas", tags=["maquinas"])
 app.include_router(solicitud_maq.router, prefix="/solicitud-maq", tags=["solicitud-maq"])
 app.include_router(comercio.router, prefix="/comercio", tags=["comercio"])
 
+# Eventos de inicio y apagado de la aplicación para iniciar y detener el scheduler.
 @app.on_event("startup")
 def startup_event():
     iniciar_scheduler()

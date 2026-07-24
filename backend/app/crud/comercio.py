@@ -1,14 +1,15 @@
 from fastapi import HTTPException
 from datetime import date
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from typing import Optional
 from app.schemas.comercio import (ComercializacionCreate, ComercializacionUpdate, ComercializacionOut)
 import logging
 
 logger = logging.getLogger(__name__)
 
+#Función para crear una nueva comercialización y actualizar el stock de producción
 def create_comercializacion(db: Session, comercializacion: ComercializacionCreate, user_id: int):
 	try:
 		query_conversion = text("""
@@ -25,6 +26,7 @@ def create_comercializacion(db: Session, comercializacion: ComercializacionCreat
 		if not result_conv:
 			raise Exception("Unidad de medida no encontrada")
 
+		# Verificar el stock actual de producción antes de registrar la comercialización
 		stock_actual = db.execute(
 			text("""
 				SELECT cantidad
@@ -38,6 +40,7 @@ def create_comercializacion(db: Session, comercializacion: ComercializacionCreat
 		if not stock_actual:
 			raise HTTPException(status_code=404, detail="Inventario de producción no encontrado")
 
+		# Calcular la cantidad convertida y preparar los parámetros para la inserción
 		params = comercializacion.model_dump()
 		params["cant_convertida"] = float(params["cantidad"]) * float(result_conv["conversion"])
 		params["user_id"] = user_id
@@ -45,6 +48,7 @@ def create_comercializacion(db: Session, comercializacion: ComercializacionCreat
 		if float(stock_actual["cantidad"] or 0) < float(params["cant_convertida"] or 0):
 			raise HTTPException(status_code=409, detail="No hay suficiente stock de producción para registrar la comercialización")
 
+		# Actualizar el stock de producción restando la cantidad convertida
 		db.execute(
 			text("""
 				UPDATE inv_produccion
@@ -80,8 +84,10 @@ def create_comercializacion(db: Session, comercializacion: ComercializacionCreat
 		logger.error(f"Error al crear comercialización: {e}")
 		raise Exception("Error de base de datos al crear la comercialización")
 
+# Función para registrar automáticamente los productos vencidos como pérdidas
 def registrar_vencidos_como_perdidas(db: Session):
     try:
+		# Selecciona los productos vencidos que aún tienen cantidad disponible y no han sido registrados como pérdidas por vencimiento
         vencidos = db.execute(text("""
             SELECT c.producto_id, 
 					CASE 
@@ -101,6 +107,7 @@ def registrar_vencidos_como_perdidas(db: Session):
             )
         """)).mappings().all()
 
+		# Registra cada producto vencido como pérdida en la tabla inv_perdidas
         for row in vencidos:
             db.execute(text("""
                 INSERT INTO inv_perdidas (
@@ -130,6 +137,7 @@ def registrar_vencidos_como_perdidas(db: Session):
         logger.error(f"Error al registrar vencidos: {e}")
         raise Exception("Error al registrar productos vencidos como pérdidas")
 
+# Función para obtener una comercialización por su ID
 def get_comercializacion_by_id(db: Session, id: int) -> Optional[ComercializacionOut]:
 	try:
 		query = text("""
@@ -154,6 +162,7 @@ def get_comercializacion_by_id(db: Session, id: int) -> Optional[Comercializacio
 		logger.error(f"Error al obtener comercialización por id: {e}")
 		raise Exception("Error de base de datos al obtener la comercialización")
 
+# Función para obtener todas las comercializaciones, con opción de filtrar solo las vigentes
 def get_all_comercializaciones(db: Session, vigentes: bool = False):
 	try:
 		query = """
@@ -179,10 +188,11 @@ def get_all_comercializaciones(db: Session, vigentes: bool = False):
 		logger.error(f"Error al obtener las comercializaciones: {e}")
 		raise Exception("Error de base de datos al obtener las comercializaciones")
 
+# Función para obtener solo las comercializaciones que tienen cant. no vendida disponible
 def get_comercializaciones_disponibles(db: Session):
 	"""
-	Devuelve solo las comercializaciones que tienen remanente disponible
-	para usarse como ingrediente (cant_no_vendida > 0).
+	Devuelve solo las comercializaciones que tienen cant. no vendida disponible
+	para usarse en la tabla de ingrediente (cant_no_vendida > 0).
 	"""
 	try:
 		query = text("""
@@ -204,6 +214,7 @@ def get_comercializaciones_disponibles(db: Session):
 		logger.error(f"Error al obtener las comercializaciones disponibles: {e}")
 		raise Exception("Error de base de datos al obtener las comercializaciones disponibles")
 
+# Función para obtener comercializaciones por rango de fechas
 def get_comercializaciones_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene las comercializaciones cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -231,7 +242,8 @@ def get_comercializaciones_by_date_range(db: Session, fecha_inicio: str, fecha_f
 
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las comercializaciones por rango de fechas: {e}")
-                     
+
+# Función para actualizar una comercialización por su ID
 def update_comercializacion_by_id(db: Session, id: int, comercializacion: ComercializacionUpdate):
 	try:
 		comercializacion_data = comercializacion.model_dump(exclude_unset=True)
@@ -257,6 +269,7 @@ def update_comercializacion_by_id(db: Session, id: int, comercializacion: Comerc
 		cantidad_convertida_original = float(actual["cant_convertida"] or 0)
 		cantidad_convertida_nueva = float(actual["cant_convertida"] or 0)
 
+		# Si se actualiza la cantidad o la unidad de medida, recalcular la cantidad convertida y actualizar el stock
 		if "cantidad" in comercializacion_data or "unid_medida_id" in comercializacion_data:
 			conv = db.execute(
 				text("""
@@ -272,6 +285,7 @@ def update_comercializacion_by_id(db: Session, id: int, comercializacion: Comerc
 
 			cantidad_convertida_nueva = float(cantidad) * float(conv["conversion"])
 
+			# Si el producto no cambia, primero devolver la cantidad convertida original al stock y luego restar la nueva cantidad convertida
 			if producto_id == actual["producto_id"]:
 				db.execute(
 					text("""
@@ -285,6 +299,7 @@ def update_comercializacion_by_id(db: Session, id: int, comercializacion: Comerc
 					}
 				)
 
+				# Verificar si hay suficiente stock para la nueva cantidad convertida
 				stock_producto = db.execute(
 					text("""
 						SELECT cantidad
@@ -301,6 +316,7 @@ def update_comercializacion_by_id(db: Session, id: int, comercializacion: Comerc
 				if float(stock_producto["cantidad"] or 0) < cantidad_convertida_nueva:
 					raise HTTPException(status_code=409, detail="No hay suficiente stock de producción para actualizar la comercialización")
 
+				# Actualizar el stock de producción restando la nueva cantidad convertida
 				db.execute(
 					text("""
 						UPDATE inv_produccion
@@ -329,6 +345,8 @@ def update_comercializacion_by_id(db: Session, id: int, comercializacion: Comerc
 				if float(stock_producto["cantidad"] or 0) < cantidad_convertida_nueva:
 					raise HTTPException(status_code=409, detail="No hay suficiente stock de producción para actualizar la comercialización")
 
+				# Si el producto cambia, primero devolver la cantidad convertida original al stock del producto anterior 
+				# y luego restar la nueva cantidad convertida del nuevo producto
 				if cantidad_convertida_original > 0:
 					db.execute(
 						text("""
@@ -359,6 +377,7 @@ def update_comercializacion_by_id(db: Session, id: int, comercializacion: Comerc
 		else:
 			comercializacion_data["cant_convertida"] = cantidad_convertida_original
 
+		# Si solo cambia el producto, recalcular con la cantidad ya guardada.
 		if producto_id != actual["producto_id"] and "cantidad" not in comercializacion_data and "unid_medida_id" not in comercializacion_data:
 			# Si solo cambia el producto, recalcular con la cantidad ya guardada.
 			conv = db.execute(
@@ -432,7 +451,8 @@ def update_comercializacion_by_id(db: Session, id: int, comercializacion: Comerc
 		db.rollback()
 		logger.error(f"Error al actualizar comercialización: {e}")
 		raise Exception("Error de base de datos al actualizar la comercialización")
-	
+
+# Función para cambiar el estado de vendio_todo de una comercialización
 def change_vendio_todo_status(db: Session, id: int, vendio_todo: bool):
 	try:
 		query = text("""
@@ -448,6 +468,7 @@ def change_vendio_todo_status(db: Session, id: int, vendio_todo: bool):
 		logger.error(f"Error al cambiar el estado de vendio_todo: {e}")
 		raise Exception("Error de base de datos al cambiar el estado de vendio_todo")
 
+# Función para obtener comercializaciones paginadas
 def get_comercializaciones_paginated(db: Session, skip: int = 0, limit: int = 10):
 	try:
 		count_query = text("""

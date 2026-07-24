@@ -4,6 +4,8 @@ from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
+# Aquí se define el schema para los lotes de producción, incluyendo la creación, actualización y salida de datos.
+
 class LoteEstado(str, Enum):
     activo = "activo"
     finalizado = "finalizado"

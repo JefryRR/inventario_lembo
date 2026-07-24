@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field # type: ignore
+from pydantic import BaseModel, Field
 from typing import Optional
+
+# Aquí se define el schema para los roles, incluyendo la creación, actualización y salida de datos.
 
 class RolBase(BaseModel):
     nombre_rol: str = Field(max_length=25)

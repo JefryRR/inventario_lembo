@@ -1,19 +1,22 @@
 from typing import List, Optional
 from webbrowser import get
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query 
+from sqlalchemy.orm import Session 
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.maquinaria import MaquinariaCreate, MaquinariaUpdate, MaquinariaOut, PaginatedMaquinarias
 from app.crud import maquinas as crud_maquinas
 from app.schemas.users import UserOut
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from fastapi.responses import StreamingResponse  #type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
+from fastapi.responses import StreamingResponse 
 from app.utils.exportar_reportes import generar_excel_reporte_maquina, generar_pdf_reporte_maquina, generar_excel_reporte_general_maquina, generar_pdf_reporte_general_maquina
 
 router = APIRouter()
 modulo = 24
+
+# Aquí se definen las rutas para el CRUD de máquinas, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_maquina(
@@ -67,6 +70,7 @@ def get_all_maquina(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+# Ruta para exportar el reporte de máquinas en formato Excel
 @router.get("/exportar/excel")
 def exportar_maquinas_excel(
     db: Session = Depends(get_db),
@@ -92,6 +96,7 @@ def exportar_maquinas_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para exportar el reporte de máquinas en formato PDF
 @router.get("/exportar/pdf")
 def exportar_maquinas_pdf(
     db: Session = Depends(get_db),
@@ -117,6 +122,7 @@ def exportar_maquinas_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para obtener el historial de una máquina por su ID
 @router.get("/historial")
 def get_historial_endpoint(
     id_maquina: int | None = None,
@@ -131,6 +137,7 @@ def get_historial_endpoint(
     skip = (page - 1) * page_size
     return crud_maquinas.get_historial_maquina(db, id_maquina=id_maquina, skip=skip, limit=page_size)
 
+#Ruta para obtener el historial de una máquina por su ID y exportarlo en formato Excel
 @router.get("/reporte/{id_maquina}/excel")
 def exportar_reporte_maquina_excel(
     id_maquina: int,
@@ -157,6 +164,7 @@ def exportar_reporte_maquina_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para obtener el historial de una máquina por su ID y exportarlo en formato PDF
 @router.get("/reporte/{id_maquina}/pdf")
 def exportar_reporte_maquina_pdf(
     id_maquina: int,
@@ -183,7 +191,6 @@ def exportar_reporte_maquina_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.put("/update/{id_maquina}")
 def update_maquina(
     id_maquina: int,
@@ -192,8 +199,6 @@ def update_maquina(
     user_token: UserOut = Depends(get_current_user)
 ):
     try:
-        
-
         id_rol = user_token.rol_id
         if not verify_permissions(db, id_rol, modulo, 'actualizar'):
             raise HTTPException(status_code=401, detail='Usuario no autorizado')

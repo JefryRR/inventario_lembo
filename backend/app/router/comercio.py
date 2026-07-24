@@ -14,12 +14,15 @@ from app.schemas.comercio import (
 	PaginatedComercializaciones,
 )
 from app.schemas.users import UserOut
-from fastapi.responses import StreamingResponse  #type: ignore
+from fastapi.responses import StreamingResponse 
 from app.utils.exportar_reportes import generar_excel_reporte_comercializacion, generar_pdf_reporte_comercializacion
 
 
 router = APIRouter()
 modulo = 26
+
+# Aquí se definen las rutas para el CRUD de comercialización, incluyendo creación, obtención por ID, actualización y obtención paginada.
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_comercializacion(
@@ -61,6 +64,7 @@ def get_comercializacion_by_id(
 	except SQLAlchemyError as e:
 		raise HTTPException(status_code=500, detail=str(e))
 
+# Endpoint para exportar comercializaciones a Excel
 @router.get("/exportar/excel")
 def exportar_comercializaciones_excel(
     db: Session = Depends(get_db),
@@ -75,6 +79,7 @@ def exportar_comercializaciones_excel(
         if not comercializaciones:
             raise HTTPException(status_code=404, detail="No hay comercializaciones registradas")
 
+        # Generar el archivo Excel en memoria
         buffer = generar_excel_reporte_comercializacion(comercializaciones)
         return StreamingResponse(
             buffer,
@@ -86,6 +91,7 @@ def exportar_comercializaciones_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Endpoint para exportar comercializaciones a PDF
 @router.get("/exportar/pdf")
 def exportar_comercializaciones_pdf(
     db: Session = Depends(get_db),
@@ -111,7 +117,6 @@ def exportar_comercializaciones_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/all/comercializaciones", response_model=List[ComercializacionOut])
 def get_all_comercializaciones(
 	db: Session = Depends(get_db),
@@ -127,7 +132,8 @@ def get_all_comercializaciones(
 		return comercializaciones
 	except SQLAlchemyError as e:
 		raise HTTPException(status_code=500, detail=str(e))
-	
+
+# Endpoint para obtener comercializaciones disponibles (vendió todo = False)
 @router.get("/disponibles", response_model=List[ComercializacionOut])
 def get_comercializaciones_disponibles(
     db: Session = Depends(get_db),
@@ -201,6 +207,7 @@ def update_comercializacion_by_id(
 	except SQLAlchemyError as e:
 		raise HTTPException(status_code=500, detail=str(e))
 
+# Endpoint para cambiar el estado de "vendió todo" de una comercialización
 @router.put("/update/vendio-todo/{id}")
 def change_vendio_todo_status(
     id: int,

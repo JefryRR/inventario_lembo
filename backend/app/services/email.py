@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from app.core.config import settings
 
+## Funciones de envío de correos electrónicos para recuperación de contraseña y notificaciones de solicitudes de insumos.
 def send_email(to_email: str, subject: str, html: str):
     """Función genérica de envío. Todo lo demás se apoya en esta."""
     msg = MIMEMultipart("alternative")
@@ -16,7 +17,7 @@ def send_email(to_email: str, subject: str, html: str):
         server.login(settings.GMAIL_USER, settings.GMAIL_APP_PASSWORD)
         server.sendmail(settings.GMAIL_USER, to_email, msg.as_string())
 
-
+# Función para enviar correo de recuperación de contraseña.
 def send_reset_email(to_email: str, token: str):
     reset_link = f"{settings.FRONTEND_URL}/resetPassword?token={token}"
     html = f"""
@@ -28,7 +29,7 @@ def send_reset_email(to_email: str, token: str):
     """
     send_email(to_email, "Recuperar contraseña", html)
 
-
+# Función para enviar correo de notificación de nueva solicitud de insumo.
 def send_solicitud_creada_email(to_email: str, solicitante: str, insumo: str, cantidad: float, solicitud_id: int):
     html = f"""
         <h2>Nueva solicitud de insumo</h2>
@@ -41,7 +42,7 @@ def send_solicitud_creada_email(to_email: str, solicitante: str, insumo: str, ca
     """
     send_email(to_email, f"Nueva solicitud #{solicitud_id}", html)
 
-
+# Se definen los mensajes de correo electrónico para cada estado de la solicitud.
 MENSAJES_ESTADO_SOLICITUD = {
     "autorizado": {
         "asunto": "Solicitud #{id} autorizada",
@@ -65,6 +66,7 @@ MENSAJES_ESTADO_SOLICITUD = {
     },
 }
 
+# Función para enviar correo de notificación de cambio de estado de solicitud.
 def send_solicitud_estado_email(
     to_email: str,
     estado: str,

@@ -1,6 +1,6 @@
-from passlib.context import CryptContext #type: ignore
+from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
-from jose import JWTError, jwt #type: ignore
+from jose import JWTError, jwt
 from app.core.config import settings
 
 # Configurar hashing de contraseñas

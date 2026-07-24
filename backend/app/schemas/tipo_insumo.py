@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+# Aquí se define el schema para los tipos de insumos, incluyendo la creación, actualización y salida de datos.
+
 class Tipo_insumoBase(BaseModel):
     nombre_tipo: str = Field(max_length=25)
    

@@ -1,13 +1,14 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session   # type: ignore
-from sqlalchemy import text  # type: ignore
-from sqlalchemy.exc import SQLAlchemyError  # type: ignore
+from sqlalchemy.orm import Session   
+from sqlalchemy import text  
+from sqlalchemy.exc import SQLAlchemyError  
 from typing import Optional
 import logging
 from app.schemas.tratamiento import TratamientoCreate,TratamientoUpdate
 
 logger = logging.getLogger(__name__)
 
+# Crear tratamiento para animales y plantas
 def create_tratamiento(db: Session, tratamiento: TratamientoCreate, user_id: int) -> Optional[bool]:
     try:
         query_conversion = text("""
@@ -70,6 +71,7 @@ def create_tratamiento(db: Session, tratamiento: TratamientoCreate, user_id: int
         logger.error(f"Error al registrar el tratamiento: {e}")
         raise HTTPException(status_code=500, detail="Error en base de datos al registrar el tratamiento")    
 
+# Obtener todos los tratamientos
 def get_all_tratamientos(db: Session):
     try:
         query = text("""
@@ -93,6 +95,7 @@ def get_all_tratamientos(db: Session):
         logger.error(f"Error al obtener tratamientos: {e}")
         raise Exception("Error de base de datos al obtener los registros de tratamientos")
 
+# Obtener un tratamiento por su ID
 def get_tratamiento_by_id(db: Session, id: int):
     try:
         query = text("""
@@ -117,6 +120,7 @@ def get_tratamiento_by_id(db: Session, id: int):
         logger.error(f"Error al obtener tratamiento por id: {e}")
         raise Exception("Error de base de datos al obtener el tratamiento por id")
 
+# Actualizar un tratamiento por su ID
 def update_tratamiento_by_id(db: Session, id_tratamiento: int, tratamiento: TratamientoUpdate) -> Optional[bool]:
     try:
         tratamiento_data = tratamiento.model_dump(exclude_unset=True)
@@ -183,6 +187,7 @@ def update_tratamiento_by_id(db: Session, id_tratamiento: int, tratamiento: Trat
         logger.error(f"Error al registrar el tratamiento: {e}")
         raise HTTPException(status_code=500, detail="Error interno al registrar el tratamiento")
 
+# Obtener todos los tratamientos con paginación y búsqueda
 def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
     """
     Obtiene los registros de tratamientos con paginación.
@@ -242,5 +247,4 @@ def get_all_tratamientos_pag(db: Session, skip: int = 0, limit: int = 10, search
 
         raise Exception(
             "Error de base de datos al obtener los registros de tratamientos"
-        )
-        
+        )      

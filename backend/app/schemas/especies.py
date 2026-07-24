@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
+# Aquí se define el schema para las especies, incluyendo la creación, actualización y salida de datos.
+
 class EspecieBase(BaseModel):
     nombre_especie: str = Field(max_length=25)
     descripcion: Optional[str] = Field(default=None, max_length=255)

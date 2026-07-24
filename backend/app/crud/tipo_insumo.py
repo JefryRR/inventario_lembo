@@ -7,9 +7,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear tipos de insumos
 def create_tipo_insumo(db: Session, tipo_insumo: Tipo_insumoCreate):
     try:
-
+        # Verificar si ya existe un tipo de insumo con el mismo nombre
         tipo_insumo_existente = db.execute(
             text("SELECT id_tipo_insumo FROM tipo_insumo WHERE nombre_tipo = :nombre_tipo"),
             {"nombre_tipo": tipo_insumo.nombre_tipo.lower()}
@@ -31,6 +32,7 @@ def create_tipo_insumo(db: Session, tipo_insumo: Tipo_insumoCreate):
         logger.error(f"Error al crear la tipo insumo: {e}")
         raise Exception("Error de base de datos al crear el tipo de insumo")
 
+# Obtener un tipo de insumo por su ID
 def get_tipo_insumo_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_tipo_insumo, nombre_tipo
@@ -44,6 +46,7 @@ def get_tipo_insumo_by_id(db: Session, id: int):
         logger.error(f"Error al obtener tipo de insumo por id: {e}")
         raise Exception("Error de base de datos al obtener el tipo de insumo")
 
+# Obtener todos los tipos de insumos
 def get_all_tipo_insumos(db: Session):
     try:
         query = text("""SELECT
@@ -54,7 +57,8 @@ def get_all_tipo_insumos(db: Session):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener los tipos de insumos: {e}")
         raise Exception("Error de base de datos al obtener los tipos de insumos")
-    
+
+# Actualizar un tipo de insumo por su ID
 def update_tipo_insumo_by_id(db: Session, id_tipo_insumo: int, tipo_insumo: Tipo_insumoUpdate) -> Optional[bool]:
     try:
         tipo_insumo_data = tipo_insumo.model_dump(exclude_unset=True)
@@ -79,4 +83,3 @@ def update_tipo_insumo_by_id(db: Session, id_tipo_insumo: int, tipo_insumo: Tipo
         db.rollback()
         logger.error(f"Error al actualizar la tipo_insumo {id_tipo_insumo}: {e}")
         raise Exception("Error de base de datos al actualizar la tipo_insumo")
-    

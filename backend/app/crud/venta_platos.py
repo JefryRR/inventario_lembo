@@ -1,12 +1,13 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from typing import Optional
 from app.schemas.venta_platos import VentaPlatoCreate, VentaPlatoUpdate
 import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear una venta de plato
 def create_ventaPlato(db: Session, platos: VentaPlatoCreate):
     try:
         query = text("""INSERT INTO venta_platos 
@@ -22,6 +23,7 @@ def create_ventaPlato(db: Session, platos: VentaPlatoCreate):
         logger.error(f"Error al registrar la venta del plato: {e}")
         raise Exception("Error de base de datos al crear la venta del plato")
 
+# Obtener una venta de plato por su ID
 def get_ventaPlato_by_id(db: Session, id: int):
     try:
         query = text("""SELECT vp.id_venta_plato, vp.plato_id, vp.cantidad, vp.precio, vp.fecha_venta, p.nombre_plato
@@ -35,6 +37,7 @@ def get_ventaPlato_by_id(db: Session, id: int):
         logger.error(f"Error al obtener la venta por ID: {e}")
         raise Exception("Error de base de datos al obtener la venta por ID")
 
+# Actualizar una venta de plato por su ID
 def update_ventaPlato_by_id(db: Session, ventaP_id: int, ventaP: VentaPlatoUpdate):
     try:
         ventaP_data = ventaP.model_dump(exclude_unset=True)
@@ -56,6 +59,7 @@ def update_ventaPlato_by_id(db: Session, ventaP_id: int, ventaP: VentaPlatoUpdat
         logger.error(f"Error al actualizar la venta {ventaP_id}: {e}")
         raise Exception("Error de base de datos al actualizar la venta")
 
+# Obtener una venta de plato por rango de fechas
 def get_ventas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene las ventas cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -79,6 +83,7 @@ def get_ventas_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar las ventas por rango de fechas: {e}")
 
+# Obtener todas las ventas de platos
 def all_ventas_platos(db: Session):
     try:
         query = text("""SELECT vp.id_venta_plato, vp.plato_id, vp.cantidad, vp.precio, vp.fecha_venta, p.nombre_plato
@@ -93,6 +98,7 @@ def all_ventas_platos(db: Session):
         logger.error(f"Error al obtener todas las ventas: {e}")
         raise Exception("Error de base de datos al obtener todas las ventas")
 
+# Obtener todas las ventas de platos con paginación y búsqueda
 def get_ventas_platos_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
 
     """

@@ -12,6 +12,9 @@ from sqlalchemy.exc import SQLAlchemyError
 router = APIRouter()
 modulo = 2
 
+# Aquí se definen las rutas para el CRUD de roles, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
+
 # Endpoint para crear un nuevo rol
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_roles(

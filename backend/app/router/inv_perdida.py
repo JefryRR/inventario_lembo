@@ -1,20 +1,22 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query 
+from sqlalchemy.orm import Session 
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.inv_perdida import Optional, PerdidaCreate, PerdidaUpdate, PerdidaOut, PaginatedPerdidas
 from app.schemas.users import UserOut
 from app.crud import inv_perdida as inv_perdida_crud
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from fastapi.responses import StreamingResponse   # type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
+from fastapi.responses import StreamingResponse   
 from app.utils.exportar_reportes import generar_excel_reporte_perdidas, generar_pdf_reporte_perdidas
 from app.core.scheduler import job_registrar_vencidos
 
-
 router = APIRouter()
 modulo = 11
+
+# Aquí se definen las rutas para el CRUD de inv_perdida, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_perdida(
@@ -67,7 +69,8 @@ def all_perdidas(
         return perdida
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+# Ruta para exportar el reporte de pérdidas en formato Excel
 @router.get("/exportar/excel")
 def exportar_perdidas_excel(
     db: Session = Depends(get_db),
@@ -93,6 +96,7 @@ def exportar_perdidas_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para exportar el reporte de pérdidas en formato PDF
 @router.get("/exportar/pdf")
 def exportar_perdidas_pdf(
     db: Session = Depends(get_db),

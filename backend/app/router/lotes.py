@@ -11,6 +11,9 @@ from typing import Optional
 router = APIRouter()
 modulo = 28
 
+# Aquí se definen las rutas para el CRUD de lotes de granja, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
+
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_lote(lote: LoteCreate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)

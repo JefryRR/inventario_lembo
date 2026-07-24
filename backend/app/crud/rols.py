@@ -3,11 +3,11 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from typing import Optional
 from app.schemas.rols import RolCreate, RolUpdate
-
 import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear un nuevo rol
 def create_roles(db: Session, rol: RolCreate) -> Optional[bool]:
     try:
         query = text("""
@@ -26,7 +26,8 @@ def create_roles(db: Session, rol: RolCreate) -> Optional[bool]:
         db.rollback()
         logger.error(f"Error al crear el rol: {e}")
         raise Exception("Error de base de datos al crear el rol")
-    
+
+# Obtener un rol por su ID
 def get_rol_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_rol, nombre_rol, descripcion,
@@ -41,6 +42,7 @@ def get_rol_by_id(db: Session, id: int):
         logger.error(f"Error al obtener rol por id: {e}")
         raise Exception("Error de base de datos al obtener el rol")
 
+# Obtener todos los roles
 def get_all_rol(db: Session):
     try:
         query = text("""SELECT
@@ -51,7 +53,8 @@ def get_all_rol(db: Session):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener los roles: {e}")
         raise Exception("Error de base de datos al obtener los roles")
-    
+
+# Actualizar un rol por su ID
 def update_rol_by_id(db: Session, id_rol: int, rol: RolUpdate) -> Optional[bool]:
     try:
         rol_data = rol.model_dump(exclude_unset=True)
@@ -76,7 +79,8 @@ def update_rol_by_id(db: Session, id_rol: int, rol: RolUpdate) -> Optional[bool]
         db.rollback()
         logger.error(f"Error al actualizar el rol {id_rol}: {e}")
         raise Exception("Error de base de datos al actualizar el rol")
-    
+
+# Cambiar el estado de un rol
 def change_rol_status(db: Session, id_rol: int, nuevo_estado: bool) -> bool:
     try:
         sentencia = text("""
@@ -93,5 +97,3 @@ def change_rol_status(db: Session, id_rol: int, nuevo_estado: bool) -> bool:
         db.rollback()
         logger.error(f"Error al cambiar el estado del rol  {id_rol}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del rol")
-    
-

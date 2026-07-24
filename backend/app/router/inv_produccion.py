@@ -1,6 +1,6 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query 
+from sqlalchemy.orm import Session 
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
@@ -8,12 +8,16 @@ from app.schemas.inv_produccion import ProduccionCreate, ProduccionUpdate, Produ
 from app.crud import inv_produccion as crud_produccion
 from app.crud import lotes_prod as crud_lotes_prod
 from app.schemas.users import UserOut
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from fastapi.responses import StreamingResponse  #type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
+from fastapi.responses import StreamingResponse 
 from app.utils.reporte_produccion import generar_excel_rep_gral_produccion, generar_excel_reporte_produccion, generar_pdf_rep_gral_produccion, generar_pdf_reporte_produccion
 from typing import Optional, Literal
+
 router = APIRouter()
 modulo = 17
+
+# Aquí se definen las rutas para el CRUD de inv_produccion, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_produccion(
@@ -97,6 +101,7 @@ def update_produccion(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para exportar el reporte general de producción en formato PDF
 @router.get("/exportar_reporte_general/pdf")
 def exportar_rep_gral_produccion_pdf(
     db: Session = Depends(get_db),
@@ -122,6 +127,7 @@ def exportar_rep_gral_produccion_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para exportar el reporte general de producción en formato Excel
 @router.get("/exportar_reporte_general/excel")
 def exportar_rep_gral_produccion_excel(
     db: Session = Depends(get_db),
@@ -144,7 +150,6 @@ def exportar_rep_gral_produccion_excel(
         )
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/rango-fechas", response_model=PaginatedProducciones)
 def obtener_produccion_por_rango_fechas(
@@ -184,6 +189,7 @@ def obtener_produccion_por_rango_fechas(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener los registros de producción: {e}")
 
+# Ruta para obtener un reporte detallado de la producción por su ID.
 @router.get("/reporte/{inv_prod_id}")
 def get_reporte_produccion(
     inv_prod_id: int,
@@ -204,6 +210,7 @@ def get_reporte_produccion(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para exportar un reporte detallado de la producción por su ID en formato Excel.
 @router.get("/reporte/{inv_prod_id}/excel")
 def exportar_reporte_produccion_excel(
     inv_prod_id: int,
@@ -230,7 +237,7 @@ def exportar_reporte_produccion_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# Ruta para exportar un reporte detallado de la producción por su ID en formato PDF.
 @router.get("/reporte/{inv_prod_id}/pdf")
 def exportar_reporte_produccion_pdf(
     inv_prod_id: int,

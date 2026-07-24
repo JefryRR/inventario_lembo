@@ -12,7 +12,9 @@ from sqlalchemy.exc import SQLAlchemyError
 router = APIRouter()
 modulo = 21
 
-# Endpoint para crear un nuevo rol
+# Aquí se definen las rutas para el CRUD de ingredientes, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
+
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_ingrediente(
     ingrediente: IngredienteCreate, 
@@ -32,7 +34,6 @@ def create_ingrediente(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener un rol por su ID  
 @router.get("/by-id",  response_model=IngredienteOut)
 def get_ingrediente_by_id(id: int, db: Session = Depends(get_db),
               user_token: UserOut = Depends(get_current_user)
@@ -49,7 +50,6 @@ def get_ingrediente_by_id(id: int, db: Session = Depends(get_db),
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener todos los ingredientes
 @router.get("/all-ingredientes", response_model=List[IngredienteOut])
 def get_all_ingredientes(
     db: Session = Depends(get_db),
@@ -70,7 +70,6 @@ def get_all_ingredientes(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para actualizar un rol por su ID   
 @router.put("/by_id/{id_ingrediente}")
 def update_ingrediente_by_id(id_ingrediente: int, ingrediente: IngredienteUpdate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)
@@ -173,4 +172,3 @@ def get_paginated_ingredientes(
         
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-  

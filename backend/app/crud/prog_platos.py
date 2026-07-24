@@ -1,12 +1,12 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from app.schemas.prog_platos import ProgramacionCreate, ProgramacionUpdate
-
 import logging
 
 logger = logging.getLogger(__name__)
 
+#Función para la programación de platos
 def create_progPlato(db: Session, platos: ProgramacionCreate):
     try:
         query = text("""INSERT INTO prog_platos 
@@ -34,6 +34,7 @@ def create_progPlato(db: Session, platos: ProgramacionCreate):
         logger.error(f"Error al crear la programación: {e}")
         raise Exception("Error de base de datos al crear la programación")
 
+# Obtener una programación por su ID
 def get_progPlato_by_id(db: Session, id: int):
     try:
         query = text("""SELECT pp.id_programacion, pp.plato_id, pp.tipo_comida, pp.cant_personas, 
@@ -48,6 +49,7 @@ def get_progPlato_by_id(db: Session, id: int):
         logger.error(f"Error al obtener la programación por ID: {e}")
         raise Exception("Error de base de datos al obtener la programación")
 
+# Actualizar una programación por su ID
 def update_progPlato_by_id(db: Session, programacion_id: int, plato: ProgramacionUpdate):
     try:
         plato_data = plato.model_dump(exclude_unset=True)
@@ -69,30 +71,7 @@ def update_progPlato_by_id(db: Session, programacion_id: int, plato: Programacio
         logger.error(f"Error al actualizar la programación {programacion_id}: {e}")
         raise Exception("Error de base de datos al actualizar la programación")
 
-def get_programaciones_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
-    """
-    Obtiene las programaciones cuya fecha de inicio o fin esté dentro de un rango de fechas.
-    Ignora las horas (usa DATE(fecha_hora_init) y DATE(fecha_hora_fin)).
-    """
-    try:
-        query = text("""
-                    SELECT pp.id_programacion, pp.plato_id, pp.tipo_comida, pp.cant_personas, pp.horario_visita,
-                    pp.fecha_programacion, p.nombre_plato
-                    FROM prog_platos AS pp
-                    LEFT JOIN platos AS p ON pp.plato_id = p.id_plato
-                    WHERE DATE(pp.fecha_programacion) BETWEEN :fecha_inicio AND :fecha_fin
-                    ORDER BY pp.fecha_programacion DESC
-                """)
-        result = db.execute(query, {
-            "fecha_inicio": fecha_inicio,
-            "fecha_fin": fecha_fin
-        }).mappings().all()
-        
-        return [dict(row) for row in result]
-
-    except SQLAlchemyError as e:
-        raise Exception(f"Error al consultar las programaciones por rango de fechas: {e}")
-
+# Obtener todas las programaciones de platos
 def all_progPlatos(db: Session):
     try:
         query = text("""SELECT pp.id_programacion, pp.plato_id, pp.tipo_comida, pp.cant_personas, pp.horario_visita, 
@@ -107,6 +86,7 @@ def all_progPlatos(db: Session):
         logger.error(f"Error al obtener todas las programaciones: {e}")
         raise Exception("Error de base de datos al obtener todas las programaciones")
 
+# Obtener las programaciones de platos con paginación
 def get_progPlatos_paginated(db: Session, skip: int = 0, limit: int = 10):
 
     """
@@ -140,7 +120,8 @@ def get_progPlatos_paginated(db: Session, skip: int = 0, limit: int = 10):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener las programaciones: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener las programaciones")
-    
+
+# Eliminar una programación por su ID
 def delete_progPlato_by_id(db: Session, programacion_id: int):
     try:
         query = text("""

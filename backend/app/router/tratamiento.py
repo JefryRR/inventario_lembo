@@ -1,18 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
-from sqlalchemy.orm import Session  # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query 
+from sqlalchemy.orm import Session  
 from app.core.database import get_db
 from app.router.dependencies import get_current_user
 from app.crud.permisos import verify_permissions
 from app.schemas.tratamiento import TratamientoCreate, TratamientoUpdate, TratamientoOut, PaginatedTratamientos
 from app.schemas.users import UserOut
 from app.crud import tratamiento as crud_tratamiento
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from fastapi.responses import StreamingResponse   # type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
+from fastapi.responses import StreamingResponse   
 from app.utils.exportar_reportes import generar_excel_reporte_tratamientos, generar_pdf_reporte_tratamientos
 from typing import Optional
 
 router = APIRouter()
 modulo = 16
+
+# Aquí se definen las rutas para el CRUD de tratamientos medicos, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_tratamiento(tratamiento: TratamientoCreate, db: Session = Depends(get_db),
@@ -65,7 +68,8 @@ def get_tratamiento_by_id(id_tratamiento: int, db: Session = Depends(get_db),
         return tratamiento
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
-    
+
+# Rutas para exportar los registros de tratamientos a Excel
 @router.get("/exportar/excel")
 def exportar_tratamientos_excel(
     db: Session = Depends(get_db),
@@ -91,6 +95,7 @@ def exportar_tratamientos_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Rutas para exportar los registros de tratamientos a PDF
 @router.get("/exportar/pdf")
 def exportar_tratamientos_pdf(
     db: Session = Depends(get_db),
@@ -131,7 +136,6 @@ def update_tratamiento_by_id( id_tratamiento: int, tratamiento: TratamientoUpdat
         return {"message": "Registro de tratamiento actualizado correctamente"}
     except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/paginated", response_model=PaginatedTratamientos)
 def get_all_tratamientos_pag(

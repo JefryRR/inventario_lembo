@@ -12,7 +12,9 @@ from sqlalchemy.exc import SQLAlchemyError
 router = APIRouter()
 modulo = 29
 
-# Endpoint para crear un nuevo rol
+# Aquí se definen las rutas para el CRUD de tipos de insumos, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
+
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_tipo_insumo(
     tipo_insumo: Tipo_insumoCreate, 
@@ -30,7 +32,6 @@ def create_tipo_insumo(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener un rol por su ID  
 @router.get("/by-id",  response_model=Tipo_insumoOut)
 def get_tipo_insumo_by_id(id: int, db: Session = Depends(get_db),
               user_token: UserOut = Depends(get_current_user)
@@ -48,7 +49,6 @@ def get_tipo_insumo_by_id(id: int, db: Session = Depends(get_db),
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para obtener todos los tipos de insumos
 @router.get("/all-tipo_insumo", response_model=List[Tipo_insumoOut])
 def get_all_tipos_insumos(
     db: Session = Depends(get_db),
@@ -68,7 +68,6 @@ def get_all_tipos_insumos(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para actualizar un rol por su ID   
 @router.put("/by_id/{id_tipo_insumo}")
 def update_tipo_insumo_by_id(id_tipo_insumo: int, tipo_insumo: Tipo_insumoUpdate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)

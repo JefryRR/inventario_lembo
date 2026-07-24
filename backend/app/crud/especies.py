@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+#Crear una nueva especie
 def create_especie(db: Session, especie: EspecieCreate):
     try:
         query = text("""INSERT INTO especies (
@@ -22,6 +23,7 @@ def create_especie(db: Session, especie: EspecieCreate):
         logger.error(f"Error al crear la especie: {e}")
         raise Exception("Error de base de datos al crear la especie")
 
+# Obtener una especie por su ID
 def get_especie_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_especie, nombre_especie, descripcion
@@ -35,6 +37,7 @@ def get_especie_by_id(db: Session, id: int):
         logger.error(f"Error al obtener especie por id: {e}")
         raise Exception("Error de base de datos al obtener la especie")
 
+# Obtener todas las especies
 def get_all_especies(db: Session):
     try:
         query = text("""SELECT
@@ -45,7 +48,8 @@ def get_all_especies(db: Session):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener las especies: {e}")
         raise Exception("Error de base de datos al obtener las especies")
-    
+
+# Actualizar una especie por su ID
 def update_especie_by_id(db: Session, id_especie: int, especie: EspecieUpdate) -> Optional[bool]:
     try:
         especie_data = especie.model_dump(exclude_unset=True)
@@ -71,6 +75,7 @@ def update_especie_by_id(db: Session, id_especie: int, especie: EspecieUpdate) -
         logger.error(f"Error al actualizar la especie {id_especie}: {e}")
         raise Exception("Error de base de datos al actualizar la especie")
 
+# Obtener todas las especies con paginación y búsqueda
 def get_all_especies_pag(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
     """
     Obtiene especies con paginación.

@@ -1,24 +1,29 @@
 import os, uuid
 from datetime import date
 from typing import List, Optional, Literal
-
-from app.utils.exportar_reportes import generar_excel_reporte_perdidas
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form   #type: ignore
-from sqlalchemy.orm import Session   #type: ignore
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form   
+from sqlalchemy.orm import Session   
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.inv_insumos import InsumoCreate, InsumoUpdate, InsumoOut, Paginatedinsumos 
 from app.crud import inv_insumos as crud_insumos
 from app.schemas.users import UserOut
-from sqlalchemy.exc import SQLAlchemyError #type: ignore
-from fastapi.responses import StreamingResponse  #type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
+from fastapi.responses import StreamingResponse  
 from app.utils.reporte_insumo import generar_excel_rep_gral_insumos, generar_excel_reporte_insumo, generar_pdf_rep_gral_insumos, generar_pdf_reporte_insumo
 
 router = APIRouter()
 modulo = 10
+
+# Ruta para crear un nuevo insumo, con la opción de subir un archivo de factura. 
+# Se verifica que el usuario tenga permisos para insertar insumos y se maneja la carga del archivo, 
+# guardándolo en un directorio específico y generando una URL para acceder a él.
 UPLOAD_DIR = "static/facturas"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Aquí se definen las rutas para el CRUD de inv_insumos, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/crear", status_code=201)
 async def crear_insumo(
@@ -59,6 +64,7 @@ async def crear_insumo(
 
             factura_url = f"/static/facturas/{nombre_unico}"
 
+        # Crear el insumo en la base de datos
         insumo_data = InsumoCreate(
             nombre_producto=nombre_producto,
             cantidad=cantidad,
@@ -136,6 +142,7 @@ def get_all_insumos(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para obtener el reporte detallado de un insumo específico.
 @router.get("/reporte/{inv_insumo_id}")
 def get_reporte_insumo(
     inv_insumo_id: int,
@@ -155,7 +162,8 @@ def get_reporte_insumo(
         raise
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+# Ruta para exportar el reporte detallado de un insumo específico en formato Excel.
 @router.get("/reporte/{inv_insumo_id}/excel")
 def exportar_reporte_insumo_excel(
     inv_insumo_id: int,
@@ -182,6 +190,7 @@ def exportar_reporte_insumo_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Ruta para exportar el reporte detallado de un insumo específico en formato PDF.
 @router.get("/reporte/{inv_insumo_id}/pdf")
 def exportar_reporte_insumo_pdf(
     inv_insumo_id: int,
@@ -208,6 +217,7 @@ def exportar_reporte_insumo_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Endpoint para exportar el reporte general de insumos en formato PDF
 @router.get("/exportar_reporte_general/pdf")
 def exportar_rep_gral_insumos_pdf(
     db: Session = Depends(get_db),
@@ -233,6 +243,7 @@ def exportar_rep_gral_insumos_pdf(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Endpoint para exportar el reporte general de insumos en formato Excel
 @router.get("/exportar_reporte_general/excel")
 def exportar_rep_gral_insumos_excel(
     db: Session = Depends(get_db),

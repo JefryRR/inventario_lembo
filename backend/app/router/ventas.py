@@ -1,19 +1,22 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query 
+from sqlalchemy.orm import Session 
 from app.crud.permisos import verify_permissions
 from app.router.dependencies import get_current_user
 from app.core.database import get_db
 from app.schemas.ventas import VentasCreate, VentasUpdate, VentasOut, PaginatedVentas
 from app.crud import ventas as crud_ventas
 from app.schemas.users import UserOut
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from fastapi.responses import StreamingResponse   # type: ignore
+from sqlalchemy.exc import SQLAlchemyError 
+from fastapi.responses import StreamingResponse   
 from app.crud import detalle_venta as crud_detalle_ventas
-from app.utils.exportar_reportes import generar_excel_reporte_ventas, generar_pdf_reporte_ventas, _agrupar_detalles_por_venta
+from app.utils.exportar_reportes import generar_excel_reporte_ventas, generar_pdf_reporte_ventas
 
 router = APIRouter()
 modulo = 13
+
+# Aquí se definen las rutas para el CRUD de ventas, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
 def create_venta(
@@ -62,7 +65,8 @@ def get_all_ventas(
         return ventas
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+# Rutas para exportar los registros de ventas a Excel
 @router.get("/exportar/excel")
 def exportar_ventas_excel(
     fecha_inicio: Optional[str] = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),
@@ -98,7 +102,7 @@ def exportar_ventas_excel(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# Rutas para exportar los registros de ventas a PDF
 @router.get("/exportar/pdf")
 def exportar_ventas_pdf(
     fecha_inicio: Optional[str] = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),

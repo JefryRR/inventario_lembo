@@ -1,7 +1,9 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional
 from enum import Enum 
 from datetime import date
+
+# Aquí se define el schema para la solicitud de insumos, incluyendo la creación, actualización y salida de datos.
 
 class SolicitudStatus(str, Enum):
     pendiente = "pendiente"

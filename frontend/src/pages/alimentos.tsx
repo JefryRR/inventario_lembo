@@ -166,7 +166,7 @@ export default function Alimentos() {
 						<thead className="bg-gray-50 dark:bg-gray-900/40">
 							<tr>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-									Fecha de alimento
+									Fecha de registro
 								</th>
 								<th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 									Cantidad

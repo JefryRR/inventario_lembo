@@ -1,7 +1,7 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends,HTTPException #type: ignore
-from sqlalchemy.orm import Session #type: ignore
-from sqlalchemy import text #type: ignore
+from fastapi import APIRouter, Depends,HTTPException 
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
 from app.crud.users import get_user_by_email_for_login
 from app.crud.password_reset import create_reset_token, get_valid_token, mark_token_used
 from app.services.email import send_reset_email
@@ -10,12 +10,13 @@ from app.schemas.auth import ResponseLoggin
 from app.schemas.password_reset import ForgotPasswordRequest, ResetPasswordRequest
 from app.core.security import create_access_token
 from app.core.database import get_db
-from passlib.context import CryptContext #type: ignore
-from fastapi.security import OAuth2PasswordRequestForm #type: ignore
+from passlib.context import CryptContext 
+from fastapi.security import OAuth2PasswordRequestForm 
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Rutas de autenticación y gestión de contraseñas
 @router.post("/token", response_model=ResponseLoggin)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -39,7 +40,8 @@ async def login_for_access_token(
             detail="Correo o contraseña incorrecta",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
+    # Verificar si el correo coincide y si la contraseña está presente
     if user.correo != username or not user.pass_hash:
         raise HTTPException(
             status_code=401,
@@ -68,6 +70,7 @@ async def login_for_access_token(
         access_token=access_token,
     )
 
+# Rutas para la recuperación y restablecimiento de contraseñas
 @router.post("/forgot-password")
 def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.execute(

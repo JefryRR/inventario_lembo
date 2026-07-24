@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from datetime import date, datetime
 from app.schemas.maquinaria import MaquinariaCreate, MaquinariaUpdate
 from typing import Optional
@@ -9,6 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear datos de una nueva máquina
 def create_maquina(db: Session, maquina: MaquinariaCreate, user_id: int):
     try:
         existing_maquina = get_maquina_by_num_serie(db, maquina.num_serie)
@@ -24,6 +25,7 @@ def create_maquina(db: Session, maquina: MaquinariaCreate, user_id: int):
 
         id_maquina = result.lastrowid  # o db.execute(text("SELECT LASTVAL()")).scalar() según motor
 
+        # Registrar el estado inicial en el historial de maquinaria
         historial_query = text("""
             INSERT INTO historial_maquinaria (id_maquina, estado, user_id, fecha_cambio, observaciones)
             VALUES (:id_maquina, 'operativa', :user_id, :fecha_cambio, :observaciones)
@@ -42,6 +44,7 @@ def create_maquina(db: Session, maquina: MaquinariaCreate, user_id: int):
         logger.error(f"Error al registrar la máquina: {e}")
         raise Exception("Error de base de datos al registrar la máquina")
 
+# Obtener una máquina por su ID
 def get_maquina_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_maquina, nombre_maq, tipo_maq, marca, modelo,
@@ -55,6 +58,7 @@ def get_maquina_by_id(db: Session, id: int):
         logger.error(f"Error al obtener la máquina por ID: {e}")
         raise Exception("Error de base de datos al obtener la máquina")
 
+# Obtener una máquina por su número de serie
 def get_maquina_by_num_serie(db: Session, num_serie: str):
     try:
         query = text("""SELECT id_maquina, nombre_maq, tipo_maq, marca, modelo,
@@ -68,8 +72,10 @@ def get_maquina_by_num_serie(db: Session, num_serie: str):
         logger.error(f"Error al obtener la máquina por número de serie: {e}")
         raise Exception("Error de base de datos al obtener la máquina")
 
+# Actualizar los datos de una máquina, incluyendo el cambio de estado y registro en historial
 def update_maquina(db: Session, maquina_id: int, maquina: MaquinariaUpdate, user_id: int):
     try:
+        # Obtener el estado actual de la máquina
         estado_actual = db.execute(
             text("SELECT estado FROM maquinaria WHERE id_maquina = :id_maquina"),
             {"id_maquina": maquina_id}
@@ -78,9 +84,11 @@ def update_maquina(db: Session, maquina_id: int, maquina: MaquinariaUpdate, user
         if estado_actual is None:
             raise ValueError(f"No se encontró la máquina con id {maquina_id}")
 
+        # Validar que no se pueda modificar una máquina que está de baja
         if estado_actual == 'de_baja':
             raise ValueError("No se puede modificar los datos de la máquina que está de baja")
 
+        # Preparar los datos para la actualización
         maquina_data = maquina.model_dump(exclude_unset=True)
         if not maquina_data:
             return False
@@ -94,7 +102,8 @@ def update_maquina(db: Session, maquina_id: int, maquina: MaquinariaUpdate, user
             SET {set_clauses}
             WHERE id_maquina = :id_maquina
         """)
-        
+
+        # Agregar el id_maquina a los datos de la máquina
         maquina_data["id_maquina"] = maquina_id
         result = db.execute(query, maquina_data)
 
@@ -119,6 +128,7 @@ def update_maquina(db: Session, maquina_id: int, maquina: MaquinariaUpdate, user
         logger.error(f"Error al actualizar la máquina {maquina_id}: {e}")
         raise Exception("Error de base de datos al actualizar la máquina")
 
+# Obtener el historial de cambios de estado de una máquina por su ID
 def get_historial_maquina(db: Session, id_maquina: int | None = None, skip: int = 0, limit: int = 10):
     try:
         where_clause = "WHERE h.id_maquina = :id_maquina" if id_maquina is not None else ""
@@ -164,6 +174,7 @@ def get_historial_maquina(db: Session, id_maquina: int | None = None, skip: int 
         logger.error(f"Error al obtener el historial de maquinaria: {e}", exc_info=True)
         raise Exception("Error de base de datos al obtener el historial de maquinaria")
 
+# Obtener todos los datos de las máquinas.
 def all_maquina(db: Session):
     try:
         query = text("""SELECT id_maquina, nombre_maq, tipo_maq, marca, modelo,
@@ -177,6 +188,7 @@ def all_maquina(db: Session):
         logger.error(f"Error al obtener todas las maquinaes: {e}")
         raise Exception("Error de base de datos al obtener todas las maquinaes")
 
+# Obtener todas las máquinas con paginación y búsqueda
 def get_maquina_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str]= None):
 
     """

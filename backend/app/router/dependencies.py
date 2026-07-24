@@ -5,9 +5,9 @@ from app.core.security import create_access_token, verify_password, verify_token
 from app.core.database import get_db
 from fastapi.security import OAuth2PasswordBearer
 
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/access/token")
 
+# Obtenemos el usuario actual a partir del token de acceso proporcionado en la solicitud.
 def get_current_user(
         response: Response,
         token: str = Depends(oauth2_scheme),
@@ -27,7 +27,7 @@ def get_current_user(
 
     return user_db
 
-
+# Función para autenticar al usuario verificando su nombre de usuario y contraseña.
 def authenticate_user(username: str, password: str, db: Session):
     user = get_user_by_email_for_login(db, username)
     if not user:

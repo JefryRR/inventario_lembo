@@ -9,6 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear un nuevo insumo
 def create_insumo(db: Session, insumo: InsumoCreate, factura_url: str | None = None, fecha_compra: date | None = None, usuario_id: int | None = None):
     try:
         # Validar duplicado
@@ -64,7 +65,8 @@ def create_insumo(db: Session, insumo: InsumoCreate, factura_url: str | None = N
         logger.error(f"Error al registrar el insumo: {e}")
         db.rollback()
         raise Exception("Error de base de datos al registrar el insumo")
-    
+
+# Obtener un insumo por su ID
 def get_insumo_by_id(db: Session, insumo_id: int):
     try:
         query = text("""SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
@@ -79,6 +81,7 @@ def get_insumo_by_id(db: Session, insumo_id: int):
         logger.error(f"Error al obtener el insumo por id: {e}")
         raise
 
+# Obtener todos los insumos
 def get_all_insumos(db: Session):
     try:
         query = text("""SELECT i_in.id_insumo, i_in.nombre_producto, i_in.cantidad, i_in.unid_medida_id, i_in.precio_unitario,
@@ -104,6 +107,7 @@ def get_all_insumos(db: Session):
         logger.error(f"Error al obtener todos los insumos: {e}")
         raise
 
+# Obtener la factura asociada a un insumo por su ID
 def get_factura_by_id(db: Session, insumo_id: int):
     try:
         query = text("""
@@ -118,8 +122,10 @@ def get_factura_by_id(db: Session, insumo_id: int):
         logger.error(f"Error al obtener la factura por id: {e}")
         raise
 
+# Función para registrar automáticamente los insumos vencidos como pérdidas
 def registrar_vencidos_como_perdidas(db: Session):
     try:
+        # Obtener insumos vencidos que aún no han sido registrados como pérdidas
         vencidos = db.execute(text("""
             SELECT ii.id_insumo, ii.cantidad, 
                    ii.fecha_vencimiento, ii.unid_medida_id
@@ -133,6 +139,7 @@ def registrar_vencidos_como_perdidas(db: Session):
             )
         """)).mappings().all()
 
+        # Registrar cada insumo vencido como pérdida
         for row in vencidos:
             db.execute(text("""
                 INSERT INTO inv_perdidas (
@@ -162,6 +169,7 @@ def registrar_vencidos_como_perdidas(db: Session):
         logger.error(f"Error al registrar vencidos: {e}")
         raise Exception("Error al registrar productos vencidos como pérdidas")
 
+# Actualizar un insumo por su ID
 def update_insumo_by_id(db: Session, insumo_id: int, insumo: InsumoUpdate):
     try:
          # Solo los campos enviados por el cliente
@@ -185,6 +193,7 @@ def update_insumo_by_id(db: Session, insumo_id: int, insumo: InsumoUpdate):
             logger.error(f"Error al actualizar insumo {insumo_id}: {e}")
             raise Exception("Error de base de datos al actualizar el insumo")
 
+# Función para calcular el nivel de alerta de un insumo según su fecha de vencimiento y cantidad
 def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict:
     """Calcula días restantes y nivel de alerta considerando la cantidad.
 
@@ -229,6 +238,7 @@ def get_nivel_alerta(fecha_vencimiento: date, cantidad: float | int = 0) -> dict
 
     return {"dias_restantes": dias, "nivel_alerta": nivel}
 
+#Función para obtener el encabezado del reporte de insumo
 def get_reporte_encabezado_insumo(db: Session, id_insumo: int):
     try:
         return db.execute(text("""
@@ -302,7 +312,8 @@ def get_reporte_encabezado_insumo(db: Session, id_insumo: int):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener encabezado del reporte de insumo: {e}")
         raise Exception("Error al obtener encabezado del reporte de insumo")
-    
+
+# Función para obtener los movimientos del reporte de insumo 
 def get_reporte_movimientos_insumo(db: Session, id_insumo: int):
     try:
         return db.execute(text("""
@@ -375,6 +386,7 @@ def get_reporte_movimientos_insumo(db: Session, id_insumo: int):
         logger.error(f"Error al obtener movimientos del reporte de insumo: {e}")
         raise Exception("Error al obtener movimientos del reporte de insumo")
 
+# Función para obtener el reporte detallado de un insumo
 def get_reporte_insumo_detallado(db: Session, id_insumo: int):
     encabezado = get_reporte_encabezado_insumo(db, id_insumo)
     if not encabezado:
@@ -387,6 +399,7 @@ def get_reporte_insumo_detallado(db: Session, id_insumo: int):
         "movimientos": [dict(m) for m in movimientos]
     }
 
+# Función para obtener insumos por rango de fechas
 def get_insumos_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene las tareas cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -412,6 +425,7 @@ def get_insumos_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los insumos por rango de fechas: {e}")
 
+# Función para obtener insumos con paginación y filtrado por estado y búsqueda
 def get_insumos_paginated(db: Session, skip: int = 0, limit: int = 10, estado: Optional[str] = None, search: Optional[str] = None):
     """
     Obtiene insumos con paginación.

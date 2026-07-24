@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session # type: ignore
-from sqlalchemy import text # type: ignore
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
+from sqlalchemy.orm import Session 
+from sqlalchemy import text 
+from sqlalchemy.exc import SQLAlchemyError 
 from app.schemas.platos import PlatoCreate, PlatoUpdate
 from typing import Optional
 
@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear un plato nuevo
 def create_platos(db: Session, platos: PlatoCreate):
     try:
         query = text("""INSERT INTO platos 
@@ -23,6 +24,7 @@ def create_platos(db: Session, platos: PlatoCreate):
         logger.error(f"Error al crear el plato: {e}")
         raise Exception("Error de base de datos al crear el plato")
 
+# Obtener un plato por su ID
 def get_plato_by_id(db: Session, id: int):
     try:
         query = text("""SELECT id_plato, nombre_plato, estado, fecha_registro
@@ -35,6 +37,7 @@ def get_plato_by_id(db: Session, id: int):
         logger.error(f"Error al obtener plato por ID: {e}")
         raise Exception("Error de base de datos al obtener el plato")
 
+# Actualizar un plato por su ID
 def update_plato_by_id(db: Session, plato_id: int, plato: PlatoUpdate):
     try:
         plato_data = plato.model_dump(exclude_unset=True)
@@ -56,6 +59,7 @@ def update_plato_by_id(db: Session, plato_id: int, plato: PlatoUpdate):
         logger.error(f"Error al actualizar el plato {plato_id}: {e}")
         raise Exception("Error de base de datos al actualizar el plato")
 
+# Obtener los platos por un rango de fechas
 def get_platos_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     """
     Obtiene los platos cuya fecha de inicio o fin esté dentro de un rango de fechas.
@@ -78,6 +82,7 @@ def get_platos_by_date_range(db: Session, fecha_inicio: str, fecha_fin: str):
     except SQLAlchemyError as e:
         raise Exception(f"Error al consultar los platos por rango de fechas: {e}")
 
+# Obtener todos los platos
 def all_platos(db: Session):
     try:
         query = text("""SELECT id_plato, nombre_plato, estado, fecha_registro
@@ -90,7 +95,8 @@ def all_platos(db: Session):
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener todas las producciones: {e}")
         raise Exception("Error de base de datos al obtener todas los platos")
-    
+
+# Cambiar el estado de un plato
 def change_plato_estado(db: Session, plato_id: int, nuevo_estado: bool):
     """
     Cambia el estado de un plato.
@@ -109,6 +115,7 @@ def change_plato_estado(db: Session, plato_id: int, nuevo_estado: bool):
         logger.error(f"Error al cambiar el estado del plato {plato_id}: {e}")
         raise Exception("Error de base de datos al cambiar el estado del plato")
 
+# Obtener todos los platos con paginación y búsqueda
 def get_platos_paginated(db: Session, skip: int = 0, limit: int = 10, search: Optional[str] = None):
 
     """

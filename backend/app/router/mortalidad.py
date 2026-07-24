@@ -1,6 +1,6 @@
 import os, uuid
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form #type: ignore
-from sqlalchemy.orm import Session #type: ignore
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form 
+from sqlalchemy.orm import Session 
 from typing import List, Optional
 from app.core.database import get_db
 from app.router.dependencies import get_current_user
@@ -9,14 +9,17 @@ from app.schemas.mortalidad import MortalidadCreate, MortalidadUpdate, Paginated
 from app.crud import lotes_prod as crud_lotes
 from app.schemas.users import UserOut
 from app.crud import mortalidad as crud_mortalidad
-from sqlalchemy.exc import SQLAlchemyError # type: ignore
-from fastapi.responses import StreamingResponse   # type: ignore
+from sqlalchemy.exc import SQLAlchemyError
+from fastapi.responses import StreamingResponse   
 from app.utils.exportar_reportes import generar_excel_reporte_mortalidad, generar_pdf_reporte_mortalidad
 
 router = APIRouter()
 modulo = 15
 UPLOAD_DIR = "static/mortalidad"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Aquí se definen las rutas para el CRUD de mortalidad, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_mortalidad(

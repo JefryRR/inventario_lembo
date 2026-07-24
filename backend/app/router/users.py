@@ -10,6 +10,9 @@ from typing import Optional
 router = APIRouter()
 modulo = 3
 
+# Aquí se definen las rutas para el CRUD de usuarios, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
+
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db),
                 user_token: UserOut = Depends(get_current_user)

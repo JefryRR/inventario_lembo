@@ -10,7 +10,10 @@ from app.router.dependencies import get_current_user
 from app.core.database import get_db
 
 router = APIRouter()
-modulo = 1  # ID asignados
+modulo = 1
+
+# Aquí se definen las rutas para el CRUD de permisos, incluyendo creación, obtención por ID, actualización y obtención paginada. 
+# Cada ruta verifica los permisos del usuario antes de realizar la operación correspondiente.
 
 # Crear permiso
 @router.post("/crear", status_code=status.HTTP_201_CREATED)
@@ -35,6 +38,7 @@ def create_permiso(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Obtener permisos por rol para organizar las vistas en el frontend
 @router.get("/mios")
 def obtener_mis_permisos(
     current_user = Depends(get_current_user),
